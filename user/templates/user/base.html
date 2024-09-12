@@ -1,0 +1,42 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/base.css'%}">
+  {% block head %}
+  {% endblock %}
+</head>
+<body>
+  <header>
+    <a href="/" class="logo">
+      <div>
+        <img src="{% static 'images/logo.jpg'%}" alt="">
+        <p>Lol-pay</p>
+      </div>
+    </a>
+    <div class="header-menu">
+      <a href="#" class="">Главная</a>
+      <a href="#" class="">Магазин</a>
+      <a href="#" class="">Новости</a>
+      <a href="#" class="">Услуги</a>
+      <a href="#" class="">Отзывы</a>
+      <a href="#" class="">FAQ</a>
+    </div>
+    <a href="" class="login">
+      <div>
+        <p>Войти</p>
+      </div>
+    </a>
+  </header>
+  {%block content%}
+  {%endblock%}
+
+</body>
+</html>
