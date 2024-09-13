@@ -83,8 +83,12 @@ WSGI_APPLICATION = 'lol_pay.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': getenv('POSTGRES_DB'),
+        'USER': getenv('POSTGRES_USER'),
+        'PASSWORD': getenv('POSTGRES_PASSWORD'),
+        'HOST': getenv('POSTGRES_HOST'),
+        'PORT': getenv('POSTGRES_PORT'),
     }
 }
 
