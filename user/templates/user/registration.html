@@ -1,0 +1,29 @@
+{% extends "user/base.html" %}
+{% load static %}
+{% block head %}
+  <link rel="stylesheet" href="{% static 'css/registration.css'%}">
+  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+{% endblock %}
+{%block content%}
+<div class="block_login">
+  <h2>Регистрация</h2>
+  <form action="{% url 'user:registration' %}" method='post'>
+    {% csrf_token %}
+    <div class="inputs">
+      {{ form.username }}
+      {{ form.password1 }}
+      {{ form.password2 }}
+      {{ form.email }}
+    </div>
+    <div class="remember">
+      <div class="remember_me">
+        {{ form.checkbox }}
+        <p>Я соглашаюсь</p>
+      </div>
+    </div>
+    {{ form.captcha }}
+    <div style="margin: 0 auto;width: 200px;"><input class="login_submit" type="submit" value="Регистрация"></div>
+  </form>
+</div>
+
+{%endblock%}

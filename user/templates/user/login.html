@@ -4,4 +4,28 @@
   <link rel="stylesheet" href="{% static 'css/login.css'%}">
 {% endblock %}
 {%block content%}
+<div class="block_login">
+  <h2>Вход в аккаунт</h2>
+  <form action="{% url 'user:login' %}" method='post'>
+    {% csrf_token %}
+    <div class="inputs">
+      {{ form.username }}
+      {{ form.password }}
+    </div>
+    <div class="remember">
+      <div class="remember_me">
+        {{ form.checkbox }}
+        <p>Запомнить меня</p>
+      </div>
+      <a href="#" class="forgot_password">Забыли пароль?</a>
+    </div>
+    <div style="margin: 0 auto;width: 200px;"><input class="login_submit" type="submit" value="Войти"></div>
+
+
+  </form>
+  <div class="registration">
+    <p>Нет аккаунта?</p>
+    <a href="#">Зарегистрироваться</a>
+  </div>
+</div>
 {%endblock%}

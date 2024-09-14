@@ -44,7 +44,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'user'
+    'user',
+    'django_recaptcha',
 ]
 
 MIDDLEWARE = [
@@ -130,10 +131,19 @@ USE_TZ = True
 STATIC_URL = 'static/'
 
 STATICFILES_DIRS = [
-    BASE_DIR / "static",  # Если у вас есть папка static в корневом каталоге проекта
+    BASE_DIR / 'static',  # Если у вас есть папка static в корневом каталоге проекта
 ]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+RECAPTCHA_PUBLIC_KEY = '6LdwE0MqAAAAADV5-7XmopTBufOuiryN466r2Cc_'  # Site Key от Google reCAPTCHA
+RECAPTCHA_PRIVATE_KEY = '6LdwE0MqAAAAAGifaJJfhdx_T0Ga7Qg_Tfv0J6nO'  # Secret Key от Google reCAPTCHA
+
+
+AUTH_USER_MODEL = 'user.User'
+LOGIN_URL = '/login/'
+LOGOUT_REDIRECT_URL = '/'
+LOGIN_REDIRECT_URL = '/registration/'
