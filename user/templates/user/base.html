@@ -29,11 +29,24 @@
       <a href="#" class="">Отзывы</a>
       <a href="#" class="">FAQ</a>
     </div>
-    <a href="" class="login">
-      <div>
-        <p>Войти</p>
-      </div>
-    </a>
+    <div class="dropdown">
+      {% if user.is_authenticated %}
+          <button class="dropbtn">
+            <img src="{{ user.avatar.url }}" alt="User Avatar" class="user-avatar">
+            <p>{{ user.username }}</p>
+          </button>
+          <div class="dropdown-content">
+              <a href="#">Профиль</a>
+              <a href="#">Выйти</a>
+          </div>
+      {% else %}
+      <a href="{% url 'user:login' %}" class="login">
+        <div>
+          <p>Войти</p>
+        </div>
+      </a>
+      {% endif %}
+  </div>
   </header>
   {%block content%}
   {%endblock%}

@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from os import getenv
+import os
 from pathlib import Path
 
 from dotenv import find_dotenv, load_dotenv
@@ -44,8 +45,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
     'user',
     'django_recaptcha',
+    'main',
 ]
 
 MIDDLEWARE = [
@@ -134,6 +137,9 @@ STATICFILES_DIRS = [
     BASE_DIR / 'static',  # Если у вас есть папка static в корневом каталоге проекта
 ]
 
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/media/'
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
@@ -146,4 +152,4 @@ RECAPTCHA_PRIVATE_KEY = '6LdwE0MqAAAAAGifaJJfhdx_T0Ga7Qg_Tfv0J6nO'  # Secret Key
 AUTH_USER_MODEL = 'user.User'
 LOGIN_URL = '/login/'
 LOGOUT_REDIRECT_URL = '/'
-LOGIN_REDIRECT_URL = '/registration/'
+LOGIN_REDIRECT_URL = '/'

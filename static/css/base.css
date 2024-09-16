@@ -88,3 +88,66 @@ header a{
     font-weight: 300;
     color: black;
 }
+
+.user-avatar {
+    width: 30px;                /* Ширина аватара */
+    height: 30px;
+    border-radius: 50%;         /* Закругление для создания круга */
+    object-fit: cover;          /* Обрезка изображения по размеру, без искажения */
+    border: 2px solid #007BFF;  /* Рамка вокруг аватара (опционально) */
+    margin-right: 10px;         /* Отступ справа */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Нежная тень для красоты */
+}
+
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+/* Стиль кнопки */
+.dropbtn {
+    background-color: #007BFF;   /* Синий цвет фона */
+    color: white;                /* Белый цвет текста */
+    padding: 5px 20px;          /* Размеры кнопки */
+    font-size: 18px;             /* Размер текста */
+    font-weight: bold;           /* Жирный текст */
+    border: none;                /* Убираем границы */
+    border-radius: 8px;          /* Скругленные углы */
+    cursor: pointer;             /* Курсор в виде руки */
+    transition: background-color 0.3s ease;  /* Плавный переход при наведении */
+    display: flex;
+    align-items: center;
+}
+
+/* Стиль кнопки при наведении */
+.dropbtn:hover {
+    background-color: #0056b3;    /* Темнее синий цвет при наведении */
+}
+
+/* Стиль выпадающего списка */
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+    z-index: 1;
+    border-radius: 8px;          /* Закругленные углы у выпадающего списка */
+}
+
+.dropdown-content a {
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    transition: background-color 0.3s ease;  /* Плавный переход фона при наведении */
+}
+
+.dropdown-content a:hover {
+    background-color: #f1f1f1;   /* Светлый фон при наведении на пункт */
+}
+
+/* Отображаем выпадающий список при наведении */
+.dropdown:hover .dropdown-content {
+    display: block;
+}
