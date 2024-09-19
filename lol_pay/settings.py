@@ -10,10 +10,11 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
-from os import getenv
 import os
+from os import getenv
 from pathlib import Path
 
+from django.conf.global_settings import DEFAULT_FROM_EMAIL, SERVER_EMAIL
 from dotenv import find_dotenv, load_dotenv
 
 
@@ -45,7 +46,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
     'user',
     'django_recaptcha',
     'main',
@@ -145,11 +145,23 @@ MEDIA_URL = '/media/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-RECAPTCHA_PUBLIC_KEY = '6LdwE0MqAAAAADV5-7XmopTBufOuiryN466r2Cc_'  # Site Key от Google reCAPTCHA
-RECAPTCHA_PRIVATE_KEY = '6LdwE0MqAAAAAGifaJJfhdx_T0Ga7Qg_Tfv0J6nO'  # Secret Key от Google reCAPTCHA
+RECAPTCHA_PUBLIC_KEY = getenv('RECAPTCHA_PUBLIC_KEY')  # Site Key от Google reCAPTCHA
+RECAPTCHA_PRIVATE_KEY = getenv('RECAPTCHA_PRIVATE_KEY')  # Secret Key от Google reCAPTCHA
 
 
 AUTH_USER_MODEL = 'user.User'
 LOGIN_URL = '/login/'
 LOGOUT_REDIRECT_URL = '/'
 LOGIN_REDIRECT_URL = '/'
+
+
+EMAIL_HOST = 'smtp.yandex.ru'
+EMAIL_PORT = '465'
+EMAIL_HOST_USER = getenv('EMAIL_HOST_USER')
+EMAIL_USE_SSL = True
+EMAIL_HOST_PASSWORD = getenv('EMAIL_HOST_PASSWORD')
+
+
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER  # noqa: F811
+SERVER_EMAIL = EMAIL_HOST_USER  # noqa: F811
+EMAIL_ADMIN = EMAIL_HOST_USER

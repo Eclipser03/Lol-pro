@@ -15,14 +15,14 @@
 </head>
 <body>
   <header>
-    <a href="/" class="logo">
+    <a href="{% url 'main:home' %}" class="logo">
       <div>
         <img src="{% static 'images/logo.jpg'%}" alt="">
         <p>Lol-pay</p>
       </div>
     </a>
     <div class="header-menu">
-      <a href="#" class="">Главная</a>
+      <a href="{% url 'main:home' %}" class="">Главная</a>
       <a href="#" class="">Магазин</a>
       <a href="#" class="">Новости</a>
       <a href="#" class="">Услуги</a>
@@ -37,7 +37,7 @@
           </button>
           <div class="dropdown-content">
               <a href="#">Профиль</a>
-              <a href="#">Выйти</a>
+              <a href="{% url 'user:logout' %}">Выйти</a>
           </div>
       {% else %}
       <a href="{% url 'user:login' %}" class="login">

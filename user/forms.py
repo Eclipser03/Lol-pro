@@ -1,6 +1,10 @@
 from django import forms
 from django.contrib.auth import get_user_model
-from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.contrib.auth.forms import (
+    AuthenticationForm,
+    SetPasswordForm,
+    UserCreationForm,
+)
 from django_recaptcha.fields import ReCaptchaField
 
 
@@ -46,3 +50,20 @@ class UserLoginForm(AuthenticationForm):
     class Meta:
         model = User
         fields = ('username', 'password')
+
+
+class CustomSetPasswordForm(SetPasswordForm):
+    new_password1 = forms.CharField(
+        widget=forms.PasswordInput(attrs={'class': 'password_input', 'placeholder': 'Пароль'})
+    )
+    new_password2 = forms.CharField(
+        widget=forms.PasswordInput(
+            attrs={'class': 'password_input', 'placeholder': 'Подтвердите пароль'}
+        )
+    )
+
+
+class CustomPasswordResetForm(forms.Form):
+    email = forms.CharField(
+        widget=forms.EmailInput(attrs={'name': 'email', 'placeholder': 'Введите адрес почты'})
+    )
