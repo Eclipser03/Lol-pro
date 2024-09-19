@@ -1,0 +1,72 @@
+{% extends "user/base.html" %}
+{% load static %}
+{% block head %}
+  <link rel="stylesheet" href="{% static 'css/profile.css'%}">
+{% endblock %}
+{%block content%}
+<div class="container">
+  <div class="profile">
+    <h1>Eclipser</h1>
+  <div>
+    <div>
+      <p>Адрес электронной почты:</p>
+      <p>eclipser03@yandex.ru</p>
+    </div>
+    <div>
+      <p>Дата создания аккаунта:</p>
+      <p>15.09.2024</p>
+    </div>
+    <div>
+      <p>Discord:</p>
+      <p>eclipser03</p>
+    </div>
+  </div>
+
+
+    <div class="profile-buttons">
+      <button class="btn">Изменить пароль</button>
+      <button class="btn">Изменить почту</button>
+    </div>
+  </div>
+
+  <div class="purchases">
+    <h2>Мои покупки</h2>
+    <div>
+      <div>
+        <p>skin1</p>
+        <p>790 руб.</p>
+      </div>
+      <div>
+        <p>skin2</p>
+        <p>850 руб.</p>
+      </div>
+      <div>
+        <p>450 RP</p>
+        <p>700 руб.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="bookings">
+    <h2>Мои записи</h2>
+    <div class="booking-item">
+      <div>
+        <p>Коучинг:</p>
+        <p>24.09.2024</p>
+      </div>
+      <div>
+        <p>Сервер:EUW</p>
+        <p>Ментор: eclipser</p>
+      </div>
+      <div>
+        <p>Связь: Discord</p>
+      </div>
+      <img src="{% static 'images/arrow.png'%}" alt="">
+    </div>
+    <div class="booking-item">
+      <p><strong>Коучинг:</strong> 26.09.2024</p>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

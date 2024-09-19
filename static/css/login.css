@@ -17,7 +17,7 @@
 .block_login h2{
     color: white;
     Text-align: center;
-    margin-bottom: 60px;
+    margin-bottom: 40px;
 }
 
 .inputs {
@@ -45,7 +45,6 @@
 .remember {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 30px;
 }
 
 .login_submit {
@@ -56,6 +55,11 @@
     border-radius: 10px;
     color: white;
     font-size: 18px;
+    margin-top: 30px;
+}
+
+.login_submit:hover {
+    background-color: #0045cc; /* Более темный оттенок синего для эффекта затенения */
 }
 
 .registration{
@@ -63,4 +67,8 @@
     justify-content: center;
     gap: 10px;
     margin-top: 18px;
+}
+
+.login_submit1 {
+    margin-top: 20px;
 }

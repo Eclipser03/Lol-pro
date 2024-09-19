@@ -58,6 +58,10 @@
     font-size: 18px;
 }
 
+.login_submit:hover {
+    background-color: #0045cc; /* Более темный оттенок синего для эффекта затенения */
+}
+
 .registration{
     display: flex;
     justify-content: center;

@@ -84,6 +84,11 @@ header a{
     color: black;
 }
 
+.login div:hover {
+    background-color: #C0C0C0; /* Более темный оттенок серого для эффекта затемнения */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Тень для создания эффекта затенения */
+}
+
 .login p{
     font-weight: 300;
     color: black;

@@ -9,7 +9,12 @@ from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, TemplateView
 
-from user.forms import CustomPasswordResetForm, CustomSetPasswordForm, UserLoginForm, UserRegistrationForm
+from user.forms import (
+    CustomPasswordResetForm,
+    CustomSetPasswordForm,
+    UserLoginForm,
+    UserRegistrationForm,
+)
 from user.utils import RedirectAuthUser
 
 
@@ -57,3 +62,7 @@ class PasswordResetCompleteView(TemplateView):
 def logout_user(request):
     logout(request)
     return redirect('main:home')
+
+
+class MyProfileView(TemplateView):
+    template_name = 'user/profile.html'
