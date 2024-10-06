@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'user',
     'django_recaptcha',
     'main',
+    'news',
 ]
 
 MIDDLEWARE = [

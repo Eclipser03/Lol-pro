@@ -1,0 +1,102 @@
+.news {
+    margin-top: 62px;
+    text-align: center;
+}
+
+.news h1 {
+    font-size: 54px;
+    margin-bottom: 48px;
+}
+
+.news a {
+    text-decoration: none;
+}
+
+.blocks {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    align-items: start;
+    max-width: max-content;
+    gap: 42px;
+    margin: 0 auto;
+}
+
+.block {
+    max-width: 440px;
+    overflow: hidden;
+    transition: box-shadow 0.3s ease;
+}
+
+.block:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); /* Эффект тени при наведении */
+}
+
+.img1 {
+    width: 440px;
+    height: 240px;
+    background-size: cover;  /* Чтобы изображение заполняло весь блок */
+    background-position: center; /* Центрируем изображение */
+    /* background-image: url('../images/Home/Skini.jpg'); */
+    margin: 0 auto;
+    transition: transform 0.3s ease;
+}
+
+.block:hover .img1 {
+    transform: scale(1.1); /* Увеличение изображения при наведении */
+}
+
+.block {
+    text-align: left;
+}
+
+.block p {
+    margin-top: 20px;
+}
+
+.block h2 {
+    margin-top: 20px;
+    height: 58px;
+    font-weight: 700;
+}
+
+
+
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(0, 0, 0, 0); /* Полупрозрачный фон */
+    padding: 10px 20px;
+    border-radius: 8px;
+    backdrop-filter: blur(10px); /* Эффект размытия */
+    margin-top: 70px;
+  }
+
+  .pagination a {
+    color: white;
+    padding: 10px 16px;
+    text-decoration: none;
+    margin: 0 4px;
+    font-size: 18px;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+  }
+
+  .pagination a:hover {
+    background-color: rgba(255, 255, 255, 0.2); /* Эффект наведения */
+  }
+
+  .pagination a.active {
+    background-color: rgba(255, 255, 255, 0.4); /* Активная страница */
+    color: white;
+  }
+
+  .pagination a.prev, .pagination a.next {
+    font-weight: bold;
+  }
+
+  .pagination a.disabled {
+    pointer-events: none;
+    color: #888;
+  }

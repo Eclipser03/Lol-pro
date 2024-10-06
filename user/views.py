@@ -1,7 +1,9 @@
 from django.contrib.auth import get_user_model, logout
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import (
     LoginView,
+    PasswordChangeView,
     PasswordResetConfirmView,
     PasswordResetView,
 )
@@ -12,6 +14,7 @@ from django.views.generic import CreateView, TemplateView
 from user.forms import (
     CustomPasswordResetForm,
     CustomSetPasswordForm,
+    ProfileChangePasswordForm,
     UserLoginForm,
     UserRegistrationForm,
 )
@@ -64,5 +67,10 @@ def logout_user(request):
     return redirect('main:home')
 
 
-class MyProfileView(TemplateView):
+class ProfileView(LoginRequiredMixin, PasswordChangeView):
+    form_class = ProfileChangePasswordForm
     template_name = 'user/profile.html'
+    success_url = reverse_lazy('user:profile')
+
+
+

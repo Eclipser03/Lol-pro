@@ -24,7 +24,7 @@
     <div class="header-menu">
       <a href="{% url 'main:home' %}" class="">Главная</a>
       <a href="#" class="">Магазин</a>
-      <a href="#" class="">Новости</a>
+      <a href="{% url 'news:news' %}" class="">Новости</a>
       <a href="#" class="">Услуги</a>
       <a href="#" class="">Отзывы</a>
       <a href="#" class="">FAQ</a>
@@ -36,7 +36,7 @@
             <p>{{ user.username }}</p>
           </button>
           <div class="dropdown-content">
-              <a href="#">Профиль</a>
+              <a href="{% url 'user:profile' %}">Профиль</a>
               <a href="{% url 'user:logout' %}">Выйти</a>
           </div>
       {% else %}
@@ -50,6 +50,7 @@
   </header>
   {%block content%}
   {%endblock%}
-
+  {% block scripts %}
+  {% endblock %}
 </body>
 </html>

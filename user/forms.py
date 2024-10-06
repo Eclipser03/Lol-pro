@@ -68,3 +68,29 @@ class CustomPasswordResetForm(PasswordResetForm):
     email = forms.CharField(
         widget=forms.EmailInput(attrs={'name': 'email', 'placeholder': 'Введите адрес почты'})
     )
+
+
+class ProfileChangePasswordForm(SetPasswordForm):
+    old_password = forms.CharField(
+        strip=False,
+        widget=forms.PasswordInput(
+            attrs={
+                'autocomplete': 'current-password',
+                'autofocus': True,
+                'placeholder': 'Текущий пароль',
+                'class':'oldpassword'
+            }
+        ),
+    )
+    new_password1 = forms.CharField(
+        widget=forms.PasswordInput(attrs={'class': 'password_input', 'placeholder': 'Новый пароль'})
+    )
+    new_password2 = forms.CharField(
+        widget=forms.PasswordInput(
+            attrs={'class': 'password_input', 'placeholder': 'Подтвердите пароль'}
+        )
+    )
+
+    class Meta:
+        model = User
+        fields = ('old_password', 'new_password1', 'new_password2')

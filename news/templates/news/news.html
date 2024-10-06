@@ -1,0 +1,39 @@
+{% extends "user/base.html" %}
+{% load static %}
+{% block head %}
+  <link rel="stylesheet" href="{% static 'css/news.css'%}">
+{% endblock %}
+{%block content%}
+<div class="news">
+  <h1>Новости</h1>
+  <div class="blocks">
+    {% for news in news_items %}
+    <a href="{{ news.url }}" target="_blank" class="block">
+      <div style="background-image: url('{{ news.image}}');" class="img1"></div>
+      <p class="data">{{ news.date_published }}</p>
+      <h2 class="new">{{ news.title }}</h2>
+      <p class="text">{{ news.description|truncatechars:100 }}</p>
+    </a>
+    {% endfor %}
+  </div>
+
+  <div class="pagination">
+    {% if page_obj.has_previous %}
+      <a href="?page=1" class="prev">Первая</a>
+      <a href="?page={{ page_obj.previous_page_number }}">Предыдущая</a>
+    {% endif %}
+
+    {% for page_num in paginator.page_range %}
+      {% if page_num == page_obj.number %}
+        <a href="?page={{ page_num }}" class="active">{{ page_num }}</a>
+      {% else %}
+        <a href="?page={{ page_num }}">{{ page_num }}</a>
+      {% endif %}
+    {% endfor %}
+
+    {% if page_obj.has_next %}
+      <a href="?page={{ page_obj.next_page_number }}" class="next">Следующая</a>
+    {% endif %}
+</div>
+</div>
+{% endblock %}

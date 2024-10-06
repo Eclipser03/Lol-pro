@@ -4,11 +4,11 @@ from django.urls import path
 
 from user.views import (
     MyLoginView,
-    MyProfileView,
     PasswordResetCompleteView,
     PasswordResetConfirmView,
     PasswordResetDoneView,
     PasswordResetFormView,
+    ProfileView,
     UserRegistrationView,
     logout_user,
 )
@@ -26,7 +26,7 @@ urlpatterns = [
         'password-reset/complete/', PasswordResetCompleteView.as_view(), name='password_reset_complete'
     ),
     path('logout/', logout_user, name='logout'),
-    path('profile/', MyProfileView.as_view(), name='profile'),
+    path('profile/', ProfileView.as_view(), name='profile'),
 ]
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

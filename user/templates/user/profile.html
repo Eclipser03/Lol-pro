@@ -1,37 +1,38 @@
 {% extends "user/base.html" %}
 {% load static %}
+
 {% block head %}
-  <link rel="stylesheet" href="{% static 'css/profile.css'%}">
+  <link rel="stylesheet" href="{% static 'css/profile.css' %}">
 {% endblock %}
-{%block content%}
+
+{% block content %}
 <div class="container">
   <div class="profile">
     <h1>Eclipser</h1>
-  <div>
-    <div>
-      <p>Адрес электронной почты:</p>
-      <p>eclipser03@yandex.ru</p>
+    <div class="block_line">
+      <div class="line">
+        <p>Адрес электронной почты:</p>
+        <p>eclipser03@yandex.ru</p>
+      </div>
+      <div class="line">
+        <p>Дата создания аккаунта:</p>
+        <p>15.09.2024</p>
+      </div>
+      <div class="line">
+        <p>Discord:</p>
+        <p>eclipser03</p>
+      </div>
     </div>
-    <div>
-      <p>Дата создания аккаунта:</p>
-      <p>15.09.2024</p>
-    </div>
-    <div>
-      <p>Discord:</p>
-      <p>eclipser03</p>
-    </div>
-  </div>
 
-    <div class="profile-buttons">
-      <button class="btn">Изменить пароль</button>
+    <div class="profile_buttons">
+      <button class="btn" id="changePasswordBtn">Изменить пароль</button>
       <button class="btn">Изменить почту</button>
     </div>
   </div>
 
-  
-  <div class="purchases">
-    <h2>Мои покупки</h2>
-    <div>
+  <div class="my_purchases">
+    <h1>Мои покупки</h1>
+    <div class="purchases">
       <div>
         <p>skin1</p>
         <p>790 руб.</p>
@@ -48,25 +49,70 @@
   </div>
 
   <div class="bookings">
-    <h2>Мои записи</h2>
-    <div class="booking-item">
-      <div>
+    <h1>Мои записи</h1>
+    <div class="bookings_border">
+      <div class="booking-item">
+        <div>
+          <p>Коучинг:</p>
+          <p>24.09.2024</p>
+          <img src="{% static 'images/arrow.png' %}" alt="" style="width: 11px; height: 11px;">
+        </div>
+        <div>
+          <p>Сервер:EUW</p>
+          <p>Ментор: eclipser</p>
+        </div>
+        <div>
+          <p>Связь: Discord</p>
+        </div>
+      </div>
+      <div class="booking-item1">
         <p>Коучинг:</p>
-        <p>24.09.2024</p>
+        <p>26.09.2024</p>
+        <img src="{% static 'images/arrow.png' %}" alt="">
       </div>
-      <div>
-        <p>Сервер:EUW</p>
-        <p>Ментор: eclipser</p>
-      </div>
-      <div>
-        <p>Связь: Discord</p>
-      </div>
-      <img src="{% static 'images/arrow.png'%}" alt="">
-    </div>
-    <div class="booking-item">
-      <p><strong>Коучинг:</strong> 26.09.2024</p>
     </div>
   </div>
 </div>
 
+<div class="form_change_password">
+  <div class="form">
+    <h2>Смена пароля</h2>
+    <form action="{% url 'user:profile' %}" method='post'>
+      {% csrf_token %}
+      <div class="inputs">
+        {{ form.old_password }}
+        {{ form.new_password1 }}
+        {{ form.new_password2 }}
+      </div>
+      <div style="margin: 0 auto;width: 200px; width: min-content;">
+        <input class="login_submit" type="submit" value="Сменить пароль">
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const changePasswordBtn = document.getElementById("changePasswordBtn");
+  const formChangePassword = document.querySelector(".form_change_password");
+  const form = document.querySelector(".form");
+
+  // Открытие и закрытие формы по кнопке
+  changePasswordBtn.addEventListener("click", function(event) {
+    event.stopPropagation(); // Останавливаем событие, чтобы клик по кнопке не закрывал форму
+    formChangePassword.style.display = formChangePassword.style.display === "block" ? "none" : "block";
+  });
+
+  // Закрытие формы при клике вне ее
+  document.addEventListener("click", function(event) {
+    if (formChangePassword.style.display === "block") {
+      // Проверяем, был ли клик вне формы
+      if (!form.contains(event.target) && event.target !== changePasswordBtn) {
+        formChangePassword.style.display = "none"; // Скрываем форму
+      }
+    }
+  });
+</script>
 {% endblock %}
