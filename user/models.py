@@ -6,5 +6,4 @@ from django.db import models
 class User(AbstractUser):
     avatar = models.ImageField(upload_to='users_avatar', null=True, blank=True, default='avatar.jpg')
     game_username = models.CharField(max_length=100, blank=True, null=True)
-
-
+    discord = models.CharField(max_length=100, blank=True, null=True)

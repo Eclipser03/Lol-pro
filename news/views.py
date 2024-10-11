@@ -2,6 +2,7 @@
 
 from django.views.generic import ListView
 from news.models import News
+from news.services import parse_news
 
 
 # Create your views here.
@@ -29,3 +30,4 @@ class NewsView(ListView):
 
     #     context['news_items'] = news_page  # Добавляем список новостей в контекст
     #     return context
+

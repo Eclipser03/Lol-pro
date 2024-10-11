@@ -14,6 +14,7 @@ import os
 from os import getenv
 from pathlib import Path
 
+from celery.schedules import crontab
 from django.conf.global_settings import DEFAULT_FROM_EMAIL, SERVER_EMAIL
 from dotenv import find_dotenv, load_dotenv
 
@@ -166,3 +167,38 @@ EMAIL_HOST_PASSWORD = getenv('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER  # noqa: F811
 SERVER_EMAIL = EMAIL_HOST_USER  # noqa: F811
 EMAIL_ADMIN = EMAIL_HOST_USER
+
+
+
+# redis
+
+REDIS_HOST = getenv('REDIS_HOST')
+REDIS_PORT = getenv('REDIS_PORT')
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [(REDIS_HOST, REDIS_PORT)],
+        },
+    },
+}
+
+# celery
+
+CELERY_BROKER_URL = "redis://" + REDIS_HOST + ":" + REDIS_PORT + "/0"
+CELERY_BROKER_TRANSPORT_OPTIONS = {"visibility_timeout": 3600}
+CELERY_RESULT_BACKEND = "redis://" + REDIS_HOST + ":" + REDIS_PORT + "/0"
+CELERY_ACCEPT_CONTENT = ["application/json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TIMEZONE = TIME_ZONE
+
+CELERY_BEAT_SCHEDULE = {
+    'parse-news-every-day': {
+        'task': 'news.tasks.parse_news_task',
+        'schedule': crontab(),  # Ежедневно в 00:00
+    },
+}
+
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True

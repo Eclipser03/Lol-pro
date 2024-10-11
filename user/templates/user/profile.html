@@ -8,19 +8,43 @@
 {% block content %}
 <div class="container">
   <div class="profile">
-    <h1>Eclipser</h1>
+      <form id="avatar-form" action="{% url 'user:profile' %}" method="POST" enctype="multipart/form-data" class="avatarnickname">
+        {% csrf_token %}
+        <div class="avatar-container">
+          <!-- Аватар -->
+          <img id="avatar-preview" src="{{ user.avatar.url }}" alt="Аватар" class="avatar-img" onclick="document.getElementById('id_avatar').click()">
+
+          <!-- Иконка редактирования поверх аватара -->
+          <div class="edit-icon">
+            <img src="{% static 'images/change.png' %}" alt="Редактировать">
+          </div>
+        </div>
+        {{ profile_form.avatar }}
+      <h1>Eclipser</h1>
+    </form>
+
     <div class="block_line">
       <div class="line">
         <p>Адрес электронной почты:</p>
-        <p>eclipser03@yandex.ru</p>
+        <p>{{ user.email }}</p>
       </div>
       <div class="line">
         <p>Дата создания аккаунта:</p>
-        <p>15.09.2024</p>
+        <p>{{ user.date_joined|date:"d.m.Y" }}</p>
+      </div>
+      <div class="line">
+        <p>Никнейм в игре:</p>
+        <button class="changenickname" onclick="editNickname()">
+          <img src="{% static 'images/change.png' %}" alt="Иконка" class="icon1">
+          {% if user.game_username %}<p>  {{ user.game_username }} </p>{% endif %}
+        </button>
       </div>
       <div class="line">
         <p>Discord:</p>
-        <p>eclipser03</p>
+        <button class="changediscord" onclick="editDicord()">
+          <img src="{% static 'images/change.png' %}" alt="Иконка" class="icon1">
+          {% if user.discord %}<p> {{ user.discord }} </p>{% endif %}
+        </button>
       </div>
     </div>
 
@@ -91,6 +115,32 @@
   </div>
 </div>
 
+<!-- Модальное окно для никнейма -->
+<div id="nicknameModal" class="modal" style="display:none;">
+  <div class="modal-content">
+      <span class="close" onclick="closeModal()">&times;</span>
+      <h2>Изменить никнейм</h2>
+      <form action="{% url 'user:profile' %}" method="post">
+        {% csrf_token %}
+        {{ profile_form.game_username }}
+        <button onclick="saveNickname()" name='update_profile' type="submit" >Сохранить</button>
+      </form>
+  </div>
+</div>
+
+<!-- Модальное окно для дискорда -->
+<div id="discordModal" class="modal" style="display:none;">
+  <div class="modal-content">
+      <span class="close" onclick="closeModalDiscord()">&times;</span>
+      <h2>Изменить ник Discord</h2>
+      <form action="{% url 'user:profile' %}" method="post">
+        {% csrf_token %}
+        {{ profile_form.discord }}
+        <button onclick="saveDiscord()" name='update_discord' type="submit" >Сохранить</button>
+      </form>
+  </div>
+</div>
+
 {% endblock %}
 
 {% block scripts %}
@@ -114,5 +164,71 @@
       }
     }
   });
+
+// Сменя никнейма
+  function editNickname() {
+    document.getElementById("nicknameModal").style.display = "block";
+}
+
+function closeModal() {
+    document.getElementById("nicknameModal").style.display = "none";
+}
+
+function saveNickname() {
+    const newNickname = document.getElementById("newNickname").value;
+    if (newNickname) {
+        document.querySelector(".nickname").textContent = "Никнейм: " + newNickname;
+        closeModal(); // Закрываем модальное окно
+    }
+}
+
+// Закрытие модального окна при клике вне его
+window.onclick = function(event) {
+    const modal = document.getElementById("nicknameModal");
+    const modal1 = document.getElementById("discordModal");
+    if (event.target == modal ||  event.target == modal1) {
+        modal.style.display = "none";
+        modal1.style.display = "none";
+
+
+    }
+}
+
+// Смена discord
+function editDicord() {
+  document.getElementById("discordModal").style.display = "block";
+}
+
+function closeModalDiscord() {
+  document.getElementById("discordModal").style.display = "none";
+}
+
+function saveDicord() {
+  const newDicrord = document.getElementById("newDiscord").value;
+  if (newNickname) {
+      document.querySelector(".nickname").textContent = "Никнейм: " + newNickname;
+      closeModal(); // Закрываем модальное окно
+  }
+}
+
+// отправка формы аватара
+
+function uploadAvatar() {
+  const input = document.getElementById('id_avatar');
+  const form = document.getElementById('avatar-form');
+
+  if (input.files && input.files[0]) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+          // Отображаем превью аватарки
+          document.getElementById('avatar-preview').src = e.target.result;
+      };
+      reader.readAsDataURL(input.files[0]);
+
+      // После выбора файла автоматически отправляем форму
+      form.submit();
+  }
+}
+
 </script>
 {% endblock %}

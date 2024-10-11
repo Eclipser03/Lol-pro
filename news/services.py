@@ -1,17 +1,47 @@
-from datetime import datetime
+import time
 
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.edge.options import Options as EdgeOptions
-
-from news.models import News
+from django.db.models import Q
+from selenium.common.exceptions import (
+    TimeoutException,  # Импортируем исключение для обработки времени ожидания кнопки
+)
+from selenium.webdriver.common.by import (
+    By,  # Импортируем модуль для выбора элементов по различным селекторам
+)
 
 
 def parse_news():
+    from datetime import datetime  # Импортируем datetime для работы с датами
+
+    from selenium import webdriver  # Импортируем webdriver для управления браузером
+    from selenium.webdriver.edge.options import (
+        Options as EdgeOptions,  # Импортируем настройки Edge для создания экземпляра браузера
+    )
+
+    from news.models import News  # Импортируем модель News для записи данных в базу данных
+
+    # Устанавливаем параметры для Edge, чтобы отключить ненужные логи
     options = EdgeOptions()
     options.add_experimental_option('excludeSwitches', ['enable-logging'])
+
+    # Создаем экземпляр браузера Edge с заданными настройками
     driver = webdriver.Edge(options=options)
+
+    # Переходим на страницу новостей League of Legends
     driver.get('https://www.leagueoflegends.com/ru-ru/news/game-updates/')
+
+    # Получаем начальную высоту страницы (чтобы отслеживать изменения высоты после подгрузки контента)
+    last_height = driver.execute_script('return document.body.scrollHeight')
+
+    if not News.objects.exists():
+        while True:
+            driver.execute_script('window.scrollTo(0, document.body.scrollHeight);')
+            time.sleep(1)
+            try:
+                button = driver.find_element(By.CLASS_NAME, 'cta')
+                button.click()
+            except:
+                break
+
 
     elements = driver.find_element(By.CSS_SELECTOR, "div[class='sc-a15cc6aa-0 IphyG']").find_elements(
         By.TAG_NAME, 'a'
@@ -23,7 +53,6 @@ def parse_news():
         description = elem.find_element(By.CSS_SELECTOR, "div[class='sc-85c0bd82-0 faqZib']").text
         image_url = elem.find_element(By.TAG_NAME, 'img').get_attribute('src')
         news_url = elem.get_attribute('href')
-
         if not News.objects.filter(url=news_url).exists():
             News.objects.create(
                 title=title,
@@ -33,7 +62,8 @@ def parse_news():
                 image=image_url,
             )
 
-    print('successfuly parsing')
+    print('Парсинг завершён успешно')
+    driver.quit()
 
 
-parse_news()
+

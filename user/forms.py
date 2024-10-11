@@ -1,3 +1,4 @@
+
 from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import (
@@ -78,7 +79,7 @@ class ProfileChangePasswordForm(SetPasswordForm):
                 'autocomplete': 'current-password',
                 'autofocus': True,
                 'placeholder': 'Текущий пароль',
-                'class':'oldpassword'
+                'class': 'oldpassword',
             }
         ),
     )
@@ -94,3 +95,18 @@ class ProfileChangePasswordForm(SetPasswordForm):
     class Meta:
         model = User
         fields = ('old_password', 'new_password1', 'new_password2')
+
+
+class ProfileUpdateForm(forms.ModelForm):
+    game_username = forms.CharField(
+        widget=forms.TextInput(attrs={'placeholder': 'Никнейм'}), required=False
+    )
+    discord = forms.CharField(
+        widget=forms.TextInput(attrs={'placeholder': 'Discord никнейм'}), required=False
+    )
+
+    avatar = forms.ImageField(widget=forms.FileInput(attrs={'class': 'file-input', 'onchange': 'uploadAvatar()'}), required=False)
+
+    class Meta:
+        model = User
+        fields = ('game_username', 'discord', 'avatar')
