@@ -13,7 +13,7 @@
         <div class="avatar-container">
           <!-- Аватар -->
           <img id="avatar-preview" src="{{ user.avatar.url }}" alt="Аватар" class="avatar-img" onclick="document.getElementById('id_avatar').click()">
-
+          <input type="hidden" name="update_profile" value="true">
           <!-- Иконка редактирования поверх аватара -->
           <div class="edit-icon">
             <img src="{% static 'images/change.png' %}" alt="Редактировать">
@@ -50,7 +50,7 @@
 
     <div class="profile_buttons">
       <button class="btn" id="changePasswordBtn">Изменить пароль</button>
-      <button class="btn">Изменить почту</button>
+      <button class="btn" id="changeEmailBtn">Изменить почту</button>
     </div>
   </div>
 
@@ -97,7 +97,7 @@
     </div>
   </div>
 </div>
-
+<!-- Модальное окно для смены пароля -->
 <div class="form_change_password">
   <div class="form">
     <h2>Смена пароля</h2>
@@ -109,7 +109,23 @@
         {{ form.new_password2 }}
       </div>
       <div style="margin: 0 auto;width: 200px; width: min-content;">
-        <input class="login_submit" type="submit" value="Сменить пароль">
+        <input class="login_submit" name='update_password' type="submit" value="Сменить пароль">
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Модальное окно для смены почты -->
+<div class="form_change_email">
+  <div class="form_email">
+    <h2>Смена почты</h2>
+    <form action="{% url 'user:profile' %}" method='post'>
+      {% csrf_token %}
+      <div class="inputs">
+        {{ update_email.new_email }}
+      </div>
+      <div style="margin: 0 auto;width: 200px; width: min-content;">
+        <input class="login_submit" name='update_email' type="submit" value="Сменить почту">
       </div>
     </form>
   </div>
@@ -136,7 +152,7 @@
       <form action="{% url 'user:profile' %}" method="post">
         {% csrf_token %}
         {{ profile_form.discord }}
-        <button onclick="saveDiscord()" name='update_discord' type="submit" >Сохранить</button>
+        <button onclick="saveDiscord()" name='update_profile' type="submit" >Сохранить</button>
       </form>
   </div>
 </div>
@@ -145,6 +161,7 @@
 
 {% block scripts %}
 <script>
+  // Смена пароля
   const changePasswordBtn = document.getElementById("changePasswordBtn");
   const formChangePassword = document.querySelector(".form_change_password");
   const form = document.querySelector(".form");
@@ -164,6 +181,26 @@
       }
     }
   });
+
+
+// Смена почты
+const changeEmailBtn = document.getElementById("changeEmailBtn");
+const formChangeEmail = document.querySelector(".form_change_email");
+const form1 = document.querySelector(".form_email");
+// Открытие и закрытие формы по кнопке
+changeEmailBtn.addEventListener("click", function(event) {
+  event.stopPropagation(); // Останавливаем событие, чтобы клик по кнопке не закрывал форму
+  formChangeEmail.style.display = formChangeEmail.style.display === "block" ? "none" : "block";
+});
+// Закрытие формы при клике вне ее
+document.addEventListener("click", function(event) {
+  if (formChangeEmail.style.display === "block") {
+    // Проверяем, был ли клик вне формы
+    if (!form1.contains(event.target) && event.target !== changeEmailBtn) {
+      formChangeEmail.style.display = "none"; // Скрываем форму
+    }
+  }
+});
 
 // Сменя никнейма
   function editNickname() {

@@ -1,0 +1,6 @@
+<p>Здравствуйте, {{ user.username }}</p>
+<p>Вы запросили изменение электронной почты на: {{ new_email }}</p>
+<p>Чтобы подтвердить изменения, перейдите по ссылке:</p>
+<a href="http://{{ domain }}{% url 'user:confirm_email_change' uidb64=uid token=token new_email_encoded=new_email %}">
+  Подтвердить изменение почты
+</a>

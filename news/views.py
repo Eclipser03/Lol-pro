@@ -1,12 +1,11 @@
-
-
 from django.views.generic import ListView
+
 from news.models import News
-from news.services import parse_news
 
 
 # Create your views here.
 
+# Отображение списка новостей
 
 class NewsView(ListView):
     template_name = 'news/news.html'
@@ -15,12 +14,8 @@ class NewsView(ListView):
     context_object_name = 'news_items'
     ordering = ('-date_published',)
 
-
-
-
-
     # def get_context_data(self, **kwargs):
-        # context = super().get_context_data(**kwargs)  # Получаем стандартный контекст
+    # context = super().get_context_data(**kwargs)  # Получаем стандартный контекст
     #     news_items = News.objects.all()
     #     print(news_items)
 
@@ -30,4 +25,3 @@ class NewsView(ListView):
 
     #     context['news_items'] = news_page  # Добавляем список новостей в контекст
     #     return context
-

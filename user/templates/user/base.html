@@ -36,6 +36,9 @@
             <p>{{ user.username }}</p>
           </button>
           <div class="dropdown-content">
+              {% if user.is_staff %}
+              <a href="{% url 'admin:index' %}">Админка</a>
+              {% endif %}
               <a href="{% url 'user:profile' %}">Профиль</a>
               <a href="{% url 'user:logout' %}">Выйти</a>
           </div>
@@ -52,5 +55,22 @@
   {%endblock%}
   {% block scripts %}
   {% endblock %}
+  {% if messages %}
+  <div id="messages">
+      {% for message in messages %}
+          <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+      {% endfor %}
+  </div>
+{% endif %}
+
+<script>
+  // Автоматическое скрытие сообщений через 5 секунд
+  setTimeout(function() {
+      const messages = document.getElementById('messages');
+      if (messages) {
+          messages.style.display = 'none';
+      }
+  }, 5000);  // 5000 миллисекунд = 5 секунд
+</script>
 </body>
 </html>

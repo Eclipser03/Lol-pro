@@ -1,4 +1,3 @@
-
 from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import (
@@ -105,8 +104,24 @@ class ProfileUpdateForm(forms.ModelForm):
         widget=forms.TextInput(attrs={'placeholder': 'Discord никнейм'}), required=False
     )
 
-    avatar = forms.ImageField(widget=forms.FileInput(attrs={'class': 'file-input', 'onchange': 'uploadAvatar()'}), required=False)
+    avatar = forms.ImageField(
+        widget=forms.FileInput(attrs={'class': 'file-input', 'onchange': 'uploadAvatar()'}),
+        required=False,
+    )
 
     class Meta:
         model = User
         fields = ('game_username', 'discord', 'avatar')
+
+
+class UpdateUserEmail(forms.Form):
+    new_email = forms.EmailField(widget=forms.EmailInput(attrs={'placeholder': 'Введите новую почту'}))
+
+    def clean_new_email(self):
+        new_email = self.cleaned_data['new_email']
+
+        # Проверка, существует ли уже такой email в базе данных
+        if User.objects.filter(email=new_email).exists():
+            raise forms.ValidationError('Этот email уже используется.')
+
+        return new_email

@@ -156,3 +156,32 @@ header a{
 .dropdown:hover .dropdown-content {
     display: block;
 }
+
+
+#messages {
+    position: fixed;
+    bottom: 20px; /* Расположить внизу экрана */
+    right: 20px;  /* Расположить справа экрана */
+    width: 300px; /* Ширина блока сообщений */
+    z-index: 1000; /* Чтобы сообщения были поверх других элементов */
+    text-align: right;
+}
+
+.alert {
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    opacity: 0.9;
+    text-align: left;
+}
+
+.alert-success {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.alert-error {
+    background-color: #f44336;
+    color: white;
+}
