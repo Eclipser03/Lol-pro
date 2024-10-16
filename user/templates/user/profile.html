@@ -139,7 +139,7 @@
       <form action="{% url 'user:profile' %}" method="post">
         {% csrf_token %}
         {{ profile_form.game_username }}
-        <button onclick="saveNickname()" name='update_profile' type="submit" >Сохранить</button>
+        <button onclick="saveNickname()" class="login_submit" name='update_profile' type="submit" >Сохранить</button>
       </form>
   </div>
 </div>
@@ -152,7 +152,7 @@
       <form action="{% url 'user:profile' %}" method="post">
         {% csrf_token %}
         {{ profile_form.discord }}
-        <button onclick="saveDiscord()" name='update_profile' type="submit" >Сохранить</button>
+        <button onclick="saveDiscord()" class="login_submit" name='update_profile' type="submit" >Сохранить</button>
       </form>
   </div>
 </div>

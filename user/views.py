@@ -31,6 +31,7 @@ from user.forms import (
     UserLoginForm,
     UserRegistrationForm,
 )
+from user.tasks import send_email_task
 from user.utils import RedirectAuthUser
 
 
@@ -133,14 +134,18 @@ class ProfileView(LoginRequiredMixin, PasswordChangeView):
                     for text in error:
                         messages.error(request, text)
                 return redirect('user:profile')
+
         if 'update_password' in request.POST:
             form = self.get_form()
-            print(form)
+            form.instance = request.user
             if form.is_valid():
-                print(1)
+                messages.success(request, 'Письмо отправлено на Вашу почту!')
                 return self.form_valid(form)
 
-            print(form.errors)
+            errors = form.errors.values()
+            for error in errors:
+                for text in error:
+                    messages.error(request, text)
             return self.form_invalid(form)
 
     # Отправка письма
@@ -159,7 +164,8 @@ class ProfileView(LoginRequiredMixin, PasswordChangeView):
                 'token': token_generator.make_token(user),
             },
         )
-        send_mail(mail_subject, message, settings.EMAIL_HOST_USER, [user.email])
+        send_email_task.delay(mail_subject, message, [user.email])
+        # send_mail(mail_subject, message, settings.EMAIL_HOST_USER, [user.email])
 
 
 # Смена почты

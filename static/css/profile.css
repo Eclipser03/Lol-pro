@@ -177,7 +177,6 @@
 
 .form_email h2 {
     margin-bottom: 30px;
-
 }
 
 input{
@@ -285,31 +284,43 @@ input{
 }
 
 .modal {
-    position: fixed;
-    z-index: 1;
-    left: 0;
-    top: 0;
     width: 100%;
     height: 100%;
-    overflow: auto;
-    background-color: rgb(0,0,0);
-    background-color: rgba(0,0,0,0.4);
-    padding-top: 60px;
+    background-color: rgba(0, 0, 0, 0.811);
+    position: fixed; /* Измените на fixed для улучшения поведения */
+    top: 0;
+    left: 0;
+    display: none; /* По умолчанию скрыта */
+    z-index: 1000;
 }
 
 .modal-content {
-    background-color: #fefefe;
-    margin: 5% auto;
-    padding: 20px;
-    border: 1px solid #888;
-    width: 80%;
+    width: min-content;
+    height: min-content;
+    background-color: rgba(122, 120, 120, 0.18);
+    border: 2px solid white;
+    border-radius: 15px;
+    position: absolute; /* Измените на absolute для правильного позиционирования */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 38px 150px;
+    text-align: center;
+    position: relative;
+}
+
+.modal-content h2 {
+    margin-bottom: 30px;
 }
 
 .close {
+    position: absolute;
+    top: 10px;
+    right: 20px;
     color: #aaa;
-    float: right;
-    font-size: 28px;
+    font-size: 32px;
     font-weight: bold;
+    cursor: pointer;
 }
 
 .close:hover,

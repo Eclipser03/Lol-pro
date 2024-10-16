@@ -197,7 +197,7 @@ CELERY_TIMEZONE = TIME_ZONE
 CELERY_BEAT_SCHEDULE = {
     'parse-news-every-day': {
         'task': 'news.tasks.parse_news_task',
-        'schedule': crontab(),  # Ежедневно в 00:00
+        'schedule': crontab(hour=0, minute=0),  # Ежедневно в 00:00
     },
 }
 
