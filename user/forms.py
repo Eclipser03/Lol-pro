@@ -1,12 +1,8 @@
 import logging
-from typing import Callable
+from collections.abc import Callable
 
-
-from django.conf import settings
-from django.template import loader
-
-from lol_pay.celery import app
 from django import forms
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import (
     AuthenticationForm,
@@ -15,7 +11,10 @@ from django.contrib.auth.forms import (
     UserCreationForm,
 )
 from django.core.mail import EmailMultiAlternatives
+from django.template import loader
 from django_recaptcha.fields import ReCaptchaField
+
+from lol_pay.celery import app
 
 
 logger = logging.getLogger('django.contrib.auth')
@@ -27,10 +26,10 @@ def password_reset_send_mail_override(func: Callable) -> Callable:
     def wrap(*args, **kwargs):
         args = list(args)
 
-        args[0] = "CustomPasswordResetForm"
-        args[3]["username"] = args[3]["user"].get_username()
+        args[0] = 'CustomPasswordResetForm'
+        args[3]['username'] = args[3]['user'].get_username()
         args[4] = settings.EMAIL_HOST_USER
-        del args[3]["user"]
+        del args[3]['user']
         func.delay(*args, **kwargs)
 
     return wrap
@@ -104,7 +103,6 @@ class CustomPasswordResetForm(PasswordResetForm):
         to_email,
         html_email_template_name=None,
     ):
-
         subject = loader.render_to_string(subject_template_name, context)
         # Email subject *must not* contain newlines
         subject = ''.join(subject.splitlines())
@@ -116,8 +114,6 @@ class CustomPasswordResetForm(PasswordResetForm):
             email_message.attach_alternative(html_email, 'text/html')
 
         email_message.send()
-
-
 
 
 class ProfileChangePasswordForm(SetPasswordForm):
@@ -144,12 +140,10 @@ class ProfileChangePasswordForm(SetPasswordForm):
     def clean_old_password(self):
         old_password = self.cleaned_data['old_password']
 
-        # Проверка, существует ли уже такой email в базе данных
         if not self.instance.check_password(old_password):
             raise forms.ValidationError('Неправильно введен текущий пароль')
 
         return old_password
-
 
     class Meta:
         model = User

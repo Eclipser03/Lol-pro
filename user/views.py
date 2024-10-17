@@ -44,6 +44,18 @@ class MyLoginView(RedirectAuthUser, LoginView):
     form_class = UserLoginForm
     template_name = 'user/login.html'
 
+    def form_valid(self, form):
+        checkbox = form.cleaned_data.get('checkbox')
+        print(checkbox)
+        if checkbox:
+            # Устанавливаем срок жизни сессии на, например, 30 дней
+            self.request.session.set_expiry(60 * 60 * 24 * 30)  # 30 дней
+        else:
+            # Сессия будет закрыта после закрытия браузера
+            self.request.session.set_expiry(0)
+
+        return super().form_valid(form)
+
 
 # Регистрация пользователя
 class UserRegistrationView(RedirectAuthUser, CreateView):
