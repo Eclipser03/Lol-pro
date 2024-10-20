@@ -53,7 +53,7 @@ class MyLoginView(RedirectAuthUser, LoginView):
         else:
             # Сессия будет закрыта после закрытия браузера
             self.request.session.set_expiry(0)
-
+ 
         return super().form_valid(form)
 
 

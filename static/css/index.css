@@ -15,6 +15,10 @@ h1 {
     margin: 0 auto;
 }
 
+.categories a {
+    text-decoration: none;  /* Убираем подчеркивание ссылок */
+}
+
 .categories div {
     width: 360px;
     height: 350px;
@@ -62,5 +66,3 @@ h1 {
 .category-background p {
     font-size: 44px;
 }
-
-

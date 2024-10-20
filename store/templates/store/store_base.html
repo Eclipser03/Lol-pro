@@ -1,0 +1,26 @@
+{% extends "user/base.html" %}
+{% load static %}
+{% block head %}
+  <link rel="stylesheet" href="{% static 'css/store_base.css'%}">
+  {% block extra_head %}
+  {% endblock %}
+{% endblock %}
+{%block content%}
+  <div class="container">
+    <aside class="sidebar">
+        <h2>Категории:</h2>
+        <ul>
+          <li><a href="#">Скины</a></li>
+          <li><a href="#">RP</a></li>
+          <li><a href="#">Аккаунты</a></li>
+          <li><a href="#">Скины</a></li>
+          <li><a href="{% url 'store:store_elo_boost' %} " class="{% if request.path == '/store-elo-boost/' %}active{% endif %} ">Буст</a></li>
+
+        </ul>
+    </aside>
+    <main class="main-content">
+    {% block extra_content %}
+    {% endblock %}
+    </main>
+  </div>
+{% endblock %}

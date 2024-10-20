@@ -1,0 +1,105 @@
+{% extends "store/store_base.html" %}
+{% load static %}
+{% block extra_head%}
+    <link rel="stylesheet" href="{% static 'css/store_elo_boost.css'%}">
+{% endblock %}
+{% block extra_content %}
+  <h1>Купить пакет эло буста</h1>
+  <p>В данный пакет входит поднятие скрытого рейтинга (MMR), а так же, возможность перепрыгнуть через дивизион в процессе прокачки. Купив бандл на 4 дивизиона и выше мы предоставляем скидку для всех наших клиентов!</p>
+
+  <div class="packages">
+      <div class="package">
+          <div class="head_gold">
+            <h2>ЗОЛОТОЙ</h2>
+            <p class="division">Silver IV > Gold IV</p>
+          </div>
+          <div class="price">
+            <p class="price_text">2038 РУБ</p>
+            <p class="old-price">2145 РУБ</p>
+          </div>
+          <div class="contentimg">
+            <img src="/media/gold_bundle.jpg" alt="">
+          </div>
+          <div class="sale">
+            <div class="dotted-line"></div>
+            <p class="discount">Скидка: 5%</p>
+            <div class="dotted-line"></div>
+          </div>
+          <button class="btnbuy">КУПИТЬ ПАКЕТ</button>
+      </div>
+
+      <div class="package">
+        <div class="head_platinum">
+          <h2>ПЛАТИНОВЫЙ</h2>
+          <p class="division">Gold IV > Platina IV</p>
+        </div>
+        <div class="price">
+          <p class="price_text">2665 РУБ</p>
+          <p class="old-price">2805 РУБ</p>
+        </div>
+        <div class="contentimg">
+          <img src="/media/platinum_bundle.jpg" alt="">
+        </div>
+        <div class="sale">
+          <div class="dotted-line"></div>
+          <p class="discount">Скидка: 5%</p>
+          <div class="dotted-line"></div>
+        </div>
+        <button class="btnbuy">КУПИТЬ ПАКЕТ</button>
+      </div>
+
+      <div class="package">
+        <div class="head_emerald">
+          <h2>ИЗУМРУДНЫЙ</h2>
+          <p class="division">Platinum IV > Emerald IV</p>
+        </div>
+        <div class="price">
+          <p class="price_text">3658 РУБ</p>
+          <p class="old-price">3850 РУБ</p>
+        </div>
+        <div class="contentimg">
+          <img src="/media/emerald_bundle.jpg" alt="">
+        </div>
+        <div class="sale">
+          <div class="dotted-line"></div>
+          <p class="discount">Скидка: 5%</p>
+          <div class="dotted-line"></div>
+        </div>
+        <button class="btnbuy">КУПИТЬ ПАКЕТ</button>
+      </div>
+
+      <div class="package">
+        <div class="head_diamond">
+          <h2>АЛМАЗНЫЙ</h2>
+          <p class="division">Emerald IV > Diamond IV</p>
+        </div>
+        <div class="price">
+          <p class="price_text">4452 РУБ</p>
+          <p class="old-price">4686 РУБ</p>
+        </div>
+        <div class="contentimg">
+          <img src="/media/diamond_bundle.jpg" alt="">
+        </div>
+        <div class="sale">
+          <div class="dotted-line"></div>
+          <p class="discount">Скидка: 5%</p>
+          <div class="dotted-line"></div>
+        </div>
+        <button class="btnbuy">КУПИТЬ ПАКЕТ</button>
+      </div>
+  </div>
+
+  <div class="qualification-box">
+    <div class="qualification-content">
+        <h2>Отборочные игры</h2>
+        <p class="text_otbor">Суть услуги заключается в том, что наш человек отыграет на вашем аккаунте квалификационные игры, сделав при этом все возможное, чтобы в итоге вы получили максимальный ранг.</p>
+        <p class="text_price"><strong>Цена 5 "Unranked" игр: 800 руб.</strong></p>
+        <button class="buy-btn">КУПИТЬ КВАЛИФИКАЦИЮ</button>
+    </div>
+    <div class="qualification-image">
+        <img src="/media/unranked_placements.png" alt="Qualification Image">
+    </div>
+</div>
+
+
+{% endblock %}

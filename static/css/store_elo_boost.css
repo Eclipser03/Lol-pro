@@ -1,0 +1,155 @@
+.packages {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 40px;
+    margin-top: 40px;
+}
+
+.package {
+    background-color: #ffffff;
+    border-radius: 10px;
+    width: 23%;
+    height: 500px;
+    text-align: center;
+}
+
+.head_gold {
+    background-color: #ffa600dc;
+    height: 90px;
+    padding-top: 20px;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+}
+
+.head_platinum {
+    background-color: #0a6ea8dc;
+    height: 90px;
+    padding-top: 20px;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+}
+
+.head_emerald {
+    background-color: #0e8464dc;
+    height: 90px;
+    padding-top: 20px;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+}
+
+.head_diamond {
+    background-color: #3f44d5dc;
+    height: 90px;
+    padding-top: 20px;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+}
+
+.package h2 {
+    font-size: 24px;
+    font-weight: bold;
+
+}
+
+
+.price {
+    background-color: #414141;
+    height: 80px;
+}
+
+.price_text {
+    padding-top: 20px;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.old-price {
+    font-size: 16px;
+    text-decoration: line-through;
+}
+
+.dotted-line {
+    border-top: 2px dotted #808080; /* Верхняя граница с точками */
+    width: 80%; /* Ширина линии */
+    margin: 10px auto; /* Отступы сверху и снизу */
+}
+
+.discount {
+    color: #303030;
+}
+
+.btnbuy {
+
+    margin-top: 10px;
+    padding: 10px 15px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    font-size: 18px;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+.qualification-box {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #e9ebec; /* Цвет фона блока */
+    border-radius: 10px;       /* Закругление углов */
+    padding: 0 20px;             /* Отступы внутри */
+    width: 100%;               /* Ширина блока */
+    height: 294px;
+    margin: 0 auto;         /* Центрирование блока */
+}
+
+.qualification-content {
+    flex: 1;
+    color: #333;               /* Цвет текста */
+}
+
+.qualification-content h2 {
+    color: #007bff;            /* Синий цвет заголовка */
+    font-size: 36px;
+    margin-bottom: 15px;
+}
+
+.text_otbor {
+    font-size: 16px;
+    margin-bottom: 10px;
+    margin-top: 10px;
+    color: #303030;
+    font-style: italic;
+}
+
+.text_price {
+    font-size: 20px;
+    color: #303030;
+}
+
+
+
+.buy-btn {
+    background-color: #007bff;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 30px;
+    font-size: 18px;
+    cursor: pointer;
+    width: 296px;
+    height: 48px;
+    margin-top: 20px;
+}
+
+.buy-btn:hover {
+    background-color: #0056b3;
+}
+
+.qualification-image {
+    margin-left: 20px;
+    width: 586px;
+}

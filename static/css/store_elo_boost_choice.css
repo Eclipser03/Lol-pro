@@ -1,0 +1,148 @@
+.containerchoice {
+    display: flex;
+    width: 100%;
+    background-color: #fff;
+    color: rgb(63, 134, 226);
+    justify-content: space-between;
+}
+
+.containerchoice h3 {
+    color: rgb(63, 134, 226);
+    font-size: 24px;
+}
+.card {
+    width: 30%;
+    align-items: center;
+    justify-content: center;
+}
+
+.serverimg {
+    display: flex;
+    width: 160px;
+    height: 160px;
+    align-items: center;
+    margin: 0 auto;
+}
+
+.card {
+    background-color: #fff;
+    border-radius: 15px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    width: 33%;
+    text-align: center;
+}
+
+.select-box {
+    width: 100%;
+    margin: 10px 0;
+}
+
+select {
+    width: 100%;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+    font-size: 16px;
+}
+
+.last {
+    margin-top: 30px;
+}
+
+.coupon {
+    width: 100%;
+    height: 100px;
+    background-color: #ffffff;
+    color: rgb(63, 134, 226);
+    display: flex;
+    align-items: center;
+    gap: 20px;
+
+}
+
+.coupon input {
+    padding: 10px;
+    width: 25%;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+    margin-left: 30px;
+}
+
+.coupon button {
+    padding: 10px 20px;
+    background-color: #0057FF;
+    color: #fff;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    width: 15%;
+    height: 40px;
+    font-size: 18px;
+}
+
+.coupon button:hover {
+    background-color: #0045cc;
+}
+
+.discount {
+    font-size: 18px;
+    color: green;
+    font-weight: bold;
+}
+
+.total {
+    width: 100%;
+    height: 200px;
+    background-color: #ffffff;
+    display: flex;
+
+    margin-top: 10px;
+    padding: 20px;
+}
+
+.purchase {
+    color: #0045cc;
+    width: 50%;
+    text-align: left;
+}
+
+.purchase h3 {
+    color: rgb(63, 134, 226);
+    font-size: 28px;
+    margin-bottom: 20px;
+}
+
+.purchase button {
+    padding: 10px 20px;
+    background-color: #0057FF;
+    color: #fff;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    width: 40%;
+    height: 50px;
+    font-size: 18px;
+}
+
+.purchase button:hover {
+    background-color: #0045cc;
+}
+
+.description {
+    width: 50%;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.description p {
+    color: #0045cc;
+    padding: 10px;
+    border: 2px solid #3fabf3;
+    box-shadow: 5px 5px 10px #81a1b7;
+    border-radius: 10px;
+    font-size: 16px;
+
+}

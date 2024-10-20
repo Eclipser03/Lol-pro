@@ -1,0 +1,78 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+/* body {
+    font-family: Arial, sans-serif;
+    background-color: #2b2f33;
+    color: #ffffff;
+    display: flex;
+    justify-content: center;
+} */
+
+.container {
+    margin-top: 100px;
+    display: flex;
+    width: 100%;
+    padding: 20px;
+    justify-content: center;
+}
+
+.active {
+    font-weight: bold; /* Подсвечиваем текст */
+    color: #d6d6d6; /* Цвет текста для активной ссылки */
+    background-color: rgba(255, 255, 255, 0.1); /* Фон для активной ссылки */
+}
+
+.sidebar {
+    width: 20%;
+    padding-right: 20px;
+}
+
+.sidebar h2 {
+    margin-bottom: 40px;
+    font-size: 36px;
+}
+
+.sidebar ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.sidebar ul li {
+    margin: 10px 0;
+}
+
+.sidebar ul li a {
+    display: block;
+    padding: 10px;
+    color: white;
+    text-decoration: none;
+    transition: background-color 0.3s, border 0.3s;
+}
+
+.sidebar ul li a:hover {
+    background-color: rgba(255, 255, 255, 0.1); /* Прозрачный белый цвет */
+    border: 1px solid rgba(255, 255, 255, 0.3); /* Полупрозрачная белая рамка */
+    width: 100%;
+    box-sizing: border-box; /* Чтобы рамка не сдвигала текст */
+}
+
+.main-content {
+    width: 80%;
+    margin-left: 50px;
+    text-align: center;
+    padding: 0 120px;
+}
+
+
+.main-content h1 {
+    font-size: 44px;
+    margin-bottom: 30px;
+}
+
+/* .main-content p {
+    font-size: 20px;
+} */
