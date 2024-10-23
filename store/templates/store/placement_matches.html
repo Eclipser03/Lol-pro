@@ -1,0 +1,99 @@
+{% extends "store/store_base.html" %}
+{% load static %}
+{% block extra_head%}
+    <link rel="stylesheet" href="{% static 'css/placement_matches.css'%}">
+{% endblock %}
+{% block extra_content %}
+<div class="containerchoice">
+  <div class="card">
+    <img src="/media/gold_4_2023.png" alt="Текущая позиция">
+    <h3>РАНГ В ПРОШЛОМ СПЛИТЕ</h3>
+    <div class="select-box">
+      <select id="current-position">
+        <option value="7">MASTER</option>
+        <option value="6">DIAMOND</option>
+        <option value="5">EMERALD</option>
+        <option value="4">PLATINUM</option>
+        <option value="3">GOLD</option>
+        <option value="2">SILVER</option>
+        <option value="1">BRONZE</option>
+        <option value="0">IRON</option>
+      </select>
+    </div>
+    <div class="option">
+      <h3 class="last">Опции:</h3>
+      <div class="option-row">
+        <input class="checkbox" type="checkbox" id="specific-role" value="1.2">
+        <label for="specific-role">Определенная роль</label>
+      </div>
+
+      <div class="option-row">
+        <input class="checkbox" type="checkbox" id="duo-booster" value="1.3">
+        <label for="duo-booster">Играть в дуо с бустером</label>
+      </div>
+      </div>
+  </div>
+
+  <div class="card">
+    <img class="hidden-image" src="/media/gold_4_2023.png" alt="Текущая позиция">
+    <h3>КОЛИЧЕСТВО ИГР:</h3>
+    <div class="slider-container">
+      <span class="gamecount" id="gameCount">1</span>
+      <input type="range" id="gameSlider" name="gameSlider" min="1" max="5" value="1" step="1" oninput="updateGameCount(this.value)">
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="serverimg">
+      <img src="/media/server_russia.png" alt="Сервер">
+    </div>
+    <h3>СЕРВЕР И ОЧЕРЕДЬ</h3>
+    <div class="select-box">
+      <select id="server">
+        <option value="1">EU WEST</option>
+        <option value="0">RUSSIA</option>
+      </select>
+    </div>
+    <div class="select-box">
+      <select id="queue-type">
+        <option value="0">SOLO/DUO QUEUE</option>
+        <option value="1">FLEX 5V5 QUEUE</option>
+      </select>
+    </div>
+
+  </div>
+</div>
+
+<div class="coupon">
+  <input type="text" id="coupon-code" placeholder="Ввести купон">
+  <span class="discount">Скидка: <span id="discount-value">5%</span></span>
+  <button id="apply-coupon">Применить</button>
+</div>
+
+<div class="total">
+  <div class="purchase">
+    <div><h3>Итоговое время:</h3><span id="total-time"></span></div>
+    <h3>ИТОГОВАЯ ЦЕНА: <span id="total-price">660</span> руб.</h3>
+    <button>КУПИТЬ</button>
+  </div>
+  <div class="description">
+    <p>Наш бустер ранга Challenger отыграет квалификационные игры на вашем аккаунте, сделав при этом все возможное, чтобы в конечном итоге вы получили максимальный результат. Гарантируем минимум 70% побед, но как правило, результат получается еще лучше.</p>
+  </div>
+</div>
+
+<script>
+  function updateGameCount(value) {
+    document.getElementById('gameCount').textContent = value;
+
+    // Обновляем стили фона для слайдера
+    const slider = document.getElementById('gameSlider');
+    const percentage = (value - slider.min) / (slider.max - slider.min) * 100;
+    slider.style.setProperty('--value', `${percentage}%`);
+  }
+
+  // Инициализация прогресса при загрузке
+  window.onload = function() {
+    updateGameCount(document.getElementById('gameSlider').value);
+  }
+</script>
+{% endblock %}

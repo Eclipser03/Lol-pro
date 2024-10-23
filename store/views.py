@@ -12,3 +12,7 @@ class StoreEloBoostView(TemplateView):
 
 class StoreEloBoostChoiceView(TemplateView):
     template_name = 'store/store_elo_boost_choice.html'
+
+
+class PlacementMatchesView(TemplateView):
+    template_name = 'store/placement_matches.html'

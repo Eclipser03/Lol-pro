@@ -6,7 +6,7 @@
 {% block extra_content %}
     <div class="containerchoice">
       <div class="card">
-        <img src="/media/gold_4_2023.png" alt="Текущая позиция">
+        <img id="current-image" src="/media/gold_4_2023.png" alt="Текущая позиция">
         <h3>ТЕКУЩАЯ ПОЗИЦИЯ</h3>
         <div class="select-box">
           <select id="current-position">
@@ -41,7 +41,7 @@
       </div>
 
       <div class="card">
-        <img src="/media/platinum_3_2023.png" alt="Желаемая позиция">
+        <img id="desired-image" src="/media/platinum_4_2023.png" alt="Желаемая позиция">
         <h3>ЖЕЛАЕМАЯ ПОЗИЦИЯ</h3>
         <div class="select-box">
           <select id="desired-position">
@@ -67,22 +67,22 @@
         <h3 class="last">LP ЗА ПОБЕДУ</h3>
         <div class="select-box">
           <select id="lp-per-win">
-            <option value="0">18+ LP ЗА WIN</option>
-            <option value="1">15-17 LP ЗА WIN</option>
-            <option value="2">МЕНЕЕ 15 LP ЗА WIN</option>
+            <option value="1">18+ LP ЗА WIN</option>
+            <option value="1.1">15-17 LP ЗА WIN</option>
+            <option value="1.2">МЕНЕЕ 15 LP ЗА WIN</option>
           </select>
         </div>
       </div>
 
       <div class="card">
         <div class="serverimg">
-          <img src="/media/server_russia.png" alt="Сервер">
+          <img id="server-image" src="/media/server_russia.png" alt="Сервер">
         </div>
         <h3>СЕРВЕР И ОЧЕРЕДЬ</h3>
         <div class="select-box">
           <select id="server">
             <option value="1">EU WEST</option>
-            <option value="0">RUSSIA</option>
+            <option value="0.8">RUSSIA</option>
           </select>
         </div>
         <div class="select-box">
@@ -91,29 +91,31 @@
             <option value="1">FLEX 5V5 QUEUE</option>
           </select>
         </div>
-        <h3 class="last">ТЕКУЩИЕ LEAGUE POINTS</h3>
+        <div class="option">
+        <h3 class="last">Опции:</h3>
         <div class="option-row">
-          <input type="checkbox" id="specific-role" value="300">
+          <input class="checkbox" type="checkbox" id="specific-role" value="1.2">
           <label for="specific-role">Определенная роль</label>
         </div>
 
         <div class="option-row">
-          <input type="checkbox" id="duo-booster" value="300">
+          <input class="checkbox" type="checkbox" id="duo-booster" value="1.3">
           <label for="duo-booster">Играть в дуо с бустером</label>
+        </div>
         </div>
       </div>
     </div>
 
     <div class="coupon">
       <input type="text" id="coupon-code" placeholder="Ввести купон">
-      <span class="discount">Скидка: <span id="discount-value">5%</span></span>
+      <span class="discount">Скидка: <span id="discount-value"></span> %</span>
       <button id="apply-coupon">Применить</button>
     </div>
 
     <div class="total">
       <div class="purchase">
-        <h3>Срок выполнение в часах: ~<span id="completion-time">18</span> ч.</h3>
-        <h3>ИТОГОВАЯ ЦЕНА: <span id="total-price">660</span> руб.</h3>
+        <h3>Итоговое время: <span id="total-time"></span> ч.</h3>
+        <h3>ИТОГОВАЯ ЦЕНА: <span id="total-price"></span> руб.</h3>
         <button>КУПИТЬ</button>
       </div>
       <div class="description">
@@ -122,262 +124,374 @@
     </div>
 
     <script>
-      const PRICES = {
-        "iron":
-          {
-            "4":
-             {
-              "price":300,
-               "time": 2
+        document.addEventListener("DOMContentLoaded", function () {
+          const discount = 0; // Процент скидки
+
+          // Селекторы
+          const currentPos = document.getElementById("current-position"); // Текущая позиция
+          const currentDiv = document.getElementById("current-division"); // Текущий дивизион
+          const desiredPos = document.getElementById("desired-position"); // Желаемая позиция
+          const desiredDiv = document.getElementById("desired-division"); // Желаемый дивизион
+          const lpPerWin = document.getElementById("lp-per-win"); // LP за победу
+          const server = document.getElementById("server");
+          const specificRole = document.getElementById("specific-role"); // Определенная роль
+          const duoBooster = document.getElementById("duo-booster"); // Игра в дуо
+          const couponInput = document.getElementById("coupon-code"); // Купон код
+          const applyCouponBtn = document.getElementById("apply-coupon"); // Кнопка применить купон
+          const totalPriceElem = document.getElementById("total-price"); // Итоговая цена
+          const totalTimeElem = document.getElementById("total-time");
+          const currentImage = document.getElementById("current-image");
+          const desiredImage = document.getElementById("desired-image");
+          const serverImage = document.getElementById("server-image");
+
+
+
+          const rankData = {
+              "iron": {
+                  "4": { "price": 300, "time": 2 },
+                  "3": { "price": 300, "time": 2 },
+                  "2": { "price": 300, "time": 2 },
+                  "1": { "price": 300, "time": 2 }
               },
-            "3":
-             {
-              "price":300,
-               "time": 2
+              "bronze": {
+                  "4": { "price": 400, "time": 2 },
+                  "3": { "price": 400, "time": 2 },
+                  "2": { "price": 400, "time": 2 },
+                  "1": { "price": 400, "time": 2 }
               },
-            "2":
-             {
-              "price":300,
-               "time": 2
+              "silver": {
+                  "4": { "price": 500, "time": 2 },
+                  "3": { "price": 500, "time": 2 },
+                  "2": { "price": 500, "time": 2 },
+                  "1": { "price": 500, "time": 2 }
               },
-            "1":
-             {
-              "price":300,
-               "time": 2
+              "gold": {
+                  "4": { "price": 600, "time": 3 },
+                  "3": { "price": 600, "time": 3 },
+                  "2": { "price": 600, "time": 3 },
+                  "1": { "price": 600, "time": 3 }
               },
-            },
-        "bronze":
-          {
-            "4":
-             {
-              "price":400,
-               "time": 2
+              "platinum": {
+                  "4": { "price": 800, "time": 5 },
+                  "3": { "price": 800, "time": 5 },
+                  "2": { "price": 800, "time": 5 },
+                  "1": { "price": 800, "time": 5 }
               },
-            "3":
-             {
-              "price":400,
-               "time": 2
+              "emerald": {
+                  "4": { "price": 1100, "time": 7 },
+                  "3": { "price": 1100, "time": 7 },
+                  "2": { "price": 1100, "time": 7 },
+                  "1": { "price": 1100, "time": 7 }
               },
-            "2":
-             {
-              "price":400,
-               "time": 2
+              "diamond": {
+                  "4": { "price": 2000, "time": 7 },
+                  "3": { "price": 2000, "time": 7 },
+                  "2": { "price": 2000, "time": 7 },
+                  "1": { "price": 2000, "time": 7 }
               },
-            "1":
-             {
-              "price":400,
-               "time": 2
+              "master": {
+                  "1": { "price": 5000, "time": 15 }
               },
-            },
-        "silver":
-          {
-            "4":
-             {
-              "price":500,
-               "time": 2
-              },
-            "3":
-             {
-              "price":500,
-               "time": 2
-              },
-            "2":
-             {
-              "price":500,
-               "time": 2
-              },
-            "1":
-             {
-              "price":500,
-               "time": 2
-              },
-            },
-        "gold":
-          {
-            "4":
-             {
-              "price":600,
-               "time": 3
-              },
-            "3":
-             {
-              "price":600,
-               "time": 3
-              },
-            "2":
-             {
-              "price":600,
-               "time": 3
-              },
-            "1":
-             {
-              "price":600,
-               "time": 3
-              },
-            },
-        "platinum":
-          {
-            "4":
-             {
-              "price":800,
-               "time": 5
-              },
-            "3":
-             {
-              "price":800,
-               "time": 5
-              },
-            "2":
-             {
-              "price":800,
-               "time": 5
-              },
-            "1":
-             {
-              "price":800,
-               "time": 5
-              },
-            },
-        "emerald":
-          {
-            "4":
-             {
-              "price":1100,
-               "time": 7
-              },
-            "3":
-             {
-              "price":1100,
-               "time": 7
-              },
-            "2":
-             {
-              "price":1100,
-               "time": 7
-              },
-            "1":
-             {
-              "price":1100,
-               "time": 7
-              },
-            },
-        "diamond":
-          {
-            "4":
-             {
-              "price":2000,
-               "time": 7
-              },
-            "3":
-             {
-              "price":2000,
-               "time": 7
-              },
-            "2":
-             {
-              "price":2000,
-               "time": 7
-              },
-            "1":
-             {
-              "price":2000,
-               "time": 7
-              },
-            },
-        "master":
-          {
-            "4":
-             {
-              "price":2000,
-               "time": 7
-              },
+              "grandmaster": {
+                  "1": { "price": 10000, "time": 15 } }
+
+            };
+
+
+
+          // Функция для извлечения параметров из URL
+            function getQueryParams() {
+              const urlParams = new URLSearchParams(window.location.search);
+              return {
+                  currentRank: urlParams.get('currentRank'),
+                  desiredRank: urlParams.get('desiredRank')
+              };
           }
-        }
-      document.addEventListener("DOMContentLoaded", function () {
-        const basePrice = 2000;
-        const discount = 5; // Процент скидки
 
-        // Селекторы
-        const currentPos = document.getElementById("current-position");
-        const currentDiv = document.getElementById("current-division");
-        const desiredPos = document.getElementById("desired-position");
-        const desiredDiv = document.getElementById("desired-division");
-        const lpPerWin = document.getElementById("lp-per-win");
-        const specificRole = document.getElementById("specific-role");
-        const duoBooster = document.getElementById("duo-booster");
-        const couponInput = document.getElementById("coupon-code");
-        const applyCouponBtn = document.getElementById("apply-coupon");
+          // Функция установки значений селекторов
+          function setFormValues() {
+            const { currentRank, desiredRank } = getQueryParams();
 
-        const totalPriceElem = document.getElementById("total-price");
-        console.log(desiredPos)
+             // Карта соответствий для рангов
+            const rankMap = {
+                "iron": "0",
+                "bronze": "1",
+                "silver": "2",
+                "gold": "3",
+                "platinum": "4",
+                "emerald": "5",
+                "diamond": "6",
+                "master": "7",
+                "grandmaster": "8"
+            };
 
-        <!-- Желаемы дивизион скрыть -->
-        function toggleDivisionSelect() {
-          // Проверка, выбран ли MASTER
-          if (desiredPos.value === "7" || desiredPos.value === "8") {
-            desiredDiv.style.display = "none"; // Скрываем DIVISION select
-          } else {
-            desiredDiv.style.display = "block"; // Показываем DIVISION select
-          }
+            // Устанавливаем текущую позицию
+            if (currentRank && rankMap[currentRank] !== undefined) {
+                currentPos.value = rankMap[currentRank];
+            }
+
+            // Устанавливаем желаемую позицию
+            if (desiredRank && rankMap[desiredRank] !== undefined) {
+                desiredPos.value = rankMap[desiredRank];
+            }
+
+            // Обновляем интерфейс и вычисляем стоимость
+            toggle1DivisionSelect();
+            toggleDivisionSelect();
+            updateDesiredOptions();
+            calculatePrice();
         }
 
-        <!-- Текущий дивизион скрыть -->
-        function toggle1DivisionSelect() {
-          // Проверка, выбран ли MASTER
-          if (currentPos.value === "7") {
-            currentDiv.style.display = "none"; // Скрываем DIVISION select
-          } else {
-            currentDiv.style.display = "block"; // Показываем DIVISION select
+            // Вызов функции для установки значений при загрузке страницы
+            setFormValues();
+
+            // Функция для смены изображения
+            function updateImage(rankValue, imageElement) {
+              let imageUrl = "";
+
+              // Определяем путь к изображению в зависимости от выбранного значения
+              switch (rankValue) {
+                  case "8":
+                      imageUrl = "/media/grandmaster_1_2023.png";
+                      break;
+                  case "7":
+                      imageUrl = "/media/master_1_2023.png";
+                      break;
+                  case "6":
+                      imageUrl = "/media/diamond_4_2023.png";
+                      break;
+                  case "5":
+                      imageUrl = "/media/emerald_4_2023.png";
+                      break;
+                  case "4":
+                      imageUrl = "/media/platinum_4_2023.png";
+                      break;
+                  case "3":
+                      imageUrl = "/media/gold_4_2023.png";
+                      break;
+                  case "2":
+                      imageUrl = "/media/silver_4_2023.png";
+                      break;
+                  case "1":
+                      imageUrl = "/media/bronze_4_2023.png";
+                      break;
+                  case "0":
+                      imageUrl = "/media/iron_4_2023.png";
+                      break;
+                  default:
+                      imageUrl = "/media/default.png"; // Путь к изображению по умолчанию
+              }
+              imageElement.src = imageUrl;
+            }
+
+
+          // Функция для смены изображения региона
+          function updateServerImage(rankValue, imageElement) {
+            let imageUrl = "";
+
+            switch (rankValue) {
+              case "1":
+                  imageUrl = "/media/server_eu_west.png";
+                  break;
+              case "0.8":
+                  imageUrl = "/media/server_russia.png";
+                  break;
+              default:
+                  imageUrl = "/media/server_eu_west.png"; // Путь к изображению по умолчанию
           }
+
+          // Обновляем атрибут src у изображения
+          imageElement.src = imageUrl;
         }
 
-        function calculatePrice() {
-          let price = basePrice;
+          // Функция расчета цены
+          function calculatePrice() {
+            let price = 0;
+            let time = 0;
 
-          // Увеличиваем цену на основе текущей и желаемой позиции
-          price += parseInt(currentPos.value) * 100;
-          price += parseInt(currentDiv.value) * 40;
-          price += parseInt(desiredPos.value) * 100;
-          price += parseInt(desiredDiv.value) * 40;
+            const currentRank = getRankName(currentPos.value);
+            const desiredRank = getRankName(desiredPos.value);
+            let currentDivision = currentPos.value === "7" ? "4" : currentDiv.value;
+            let desiredDivision = desiredPos.value === "7" || desiredPos.value === "8" ? "-1" : desiredDiv.value;
 
-          // LP за победу
-          price += parseInt(lpPerWin.value) * 60;
+            console.log(`Current Rank: ${currentRank}, Current Division: ${currentDivision}`);
+            console.log(`Desired Rank: ${desiredRank}, Desired Division: ${desiredDivision}`);
 
-          // Опции
-          if (specificRole.checked) price += parseInt(specificRole.value);
-          if (duoBooster.checked) price += parseInt(duoBooster.value);
+            // Проверяем индексы
+            const rankOrder = ["iron", "bronze", "silver", "gold", "platinum", "emerald", "diamond", "master", "grandmaster"];
+            let currentRankIndex = rankOrder.indexOf(currentRank);
+            let desiredRankIndex = rankOrder.indexOf(desiredRank);
 
-          // Применяем скидку
-          price = price - (price * discount) / 100;
+            console.log(`Current Rank Index: ${currentRankIndex}, Desired Rank Index: ${desiredRankIndex}`);
 
-          // Обновляем итоговую цену
-          totalPriceElem.textContent = price.toFixed(2);
-        }
+            // Убедимся, что индексы валидны
+            if (currentRankIndex === -1 || desiredRankIndex === -1) {
+                console.error("Invalid rank name:", currentRank, desiredRank);
+                return; // Прерываем выполнение, если есть ошибка
+            }
 
-        // Слушатели изменений
-        currentPos.addEventListener("change", () => { toggle1DivisionSelect(); calculatePrice()});
-        currentDiv.addEventListener("change", calculatePrice);
-        desiredDiv.addEventListener("change", calculatePrice);
-        lpPerWin.addEventListener("change", calculatePrice);
-        specificRole.addEventListener("change", calculatePrice);
-        duoBooster.addEventListener("change", calculatePrice);
-        desiredPos.addEventListener("change",() => { toggleDivisionSelect(); calculatePrice()});
+            // Переход по ранговым дивизионам
+            for (let rankIndex = currentRankIndex; rankIndex <= desiredRankIndex; rankIndex++) {
+                console.log(rankIndex, desiredRankIndex)
+                const rank = rankOrder[rankIndex];
+                let startDiv = (rankIndex === currentRankIndex) ? parseInt(currentDivision)+1 : 4;
+                let endDiv = (rankIndex === desiredRankIndex) ? parseInt(desiredDivision)+2 : 1;
+                if (rankIndex === 8 || rankIndex === 7) {
+                  startDiv = 1
+                }
+                console.log(rankIndex, desiredRankIndex, startDiv, endDiv)
+                // Пробегаемся по всем дивизионам ранга
+                for (let div = startDiv; div >= endDiv; div--) {
+                    if (rankData[rank] && rankData[rank][div]) {
+                        price += rankData[rank][div].price;
+                        time += rankData[rank][div].time;
+                        console.log(`Adding price for rank ${rank}, div ${div}: ${rankData[rank][div].price}`);
+                    } else {
+                        console.error(`Price data not found for rank ${rank}, div ${div}`);
+                    }
+                }
+            }
 
-        toggleDivisionSelect();
-        toggle1DivisionSelect();
+            // Увеличиваем цену за LP за победу
+            price = price * parseFloat(lpPerWin.value);
 
-        // Применение купона
-        applyCouponBtn.addEventListener("click", function () {
-          const coupon = couponInput.value.trim();
-          if (coupon === "DISCOUNT10") {
-            alert("Применен купон на 10% скидку!");
+            // Цена в зависимости от сервера
+            price = price * parseFloat(server.value);
+
+            // Опции
+            if (specificRole.checked) price *= parseFloat(specificRole.value);
+            if (duoBooster.checked) price *= parseFloat(duoBooster.value);
+
+            // Применяем скидку
+            price = price - (price * discount) / 100;
+
+            // Обновляем итоговую цену
+            totalPriceElem.textContent = price.toFixed(2);
+            totalTimeElem.textContent = time
           }
+
+          // Функция получения названия ранга
+          function getRankName(rankValue) {
+              switch (rankValue) {
+                  case "0": return "iron";
+                  case "1": return "bronze";
+                  case "2": return "silver";
+                  case "3": return "gold";
+                  case "4": return "platinum";
+                  case "5": return "emerald";
+                  case "6": return "diamond";
+                  case "7": return "master";
+                  case "8": return "grandmaster";
+                  default: return "";
+              }
+          }
+
+          // Текущий дивизион скрыть
+          function toggle1DivisionSelect() {
+              if (currentPos.value === "7") { // Если позиция MASTER
+                  currentDiv.style.display = "none"; // Скрываем DIVISION select
+              } else {
+                  currentDiv.style.display = "block"; // Показываем DIVISION select
+              }
+          }
+
+          // Желаемый дивизион скрыть
+          function toggleDivisionSelect() {
+              if (desiredPos.value === "7" || desiredPos.value === "8") { // Если позиция MASTER или CHALLENGER
+                  desiredDiv.style.display = "none"; // Скрываем DIVISION select
+              } else {
+                  desiredDiv.style.display = "block"; // Показываем DIVISION select
+              }
+          }
+
+          // Обновление доступных опций в "Желаемой позиции"
+          function updateDesiredOptions() {
+              const currentPosValue = parseInt(currentPos.value);
+
+              // Перебираем все опции в "Желаемой позиции"
+              for (let option of desiredPos.options) {
+                  if (parseInt(option.value) < currentPosValue) {
+                      option.disabled = true;
+                  } else {
+                      option.disabled = false;
+                  }
+              }
+
+              // Обновляем опции в желаемом дивизионе
+              updateDesiredDivisionOptions();
+          }
+
+          // Обновление доступных опций в "Желаемом дивизионе"
+          function updateDesiredDivisionOptions() {
+              const currentPosValue = parseInt(currentPos.value);
+              const desiredPosValue = parseInt(desiredPos.value);
+              const currentDivValue = parseInt(currentDiv.value);
+
+              if (currentPosValue === desiredPosValue) {
+                  for (let option of desiredDiv.options) {
+                      if (parseInt(option.value) >= currentDivValue) {
+                          option.disabled = true;
+                      } else {
+                          option.disabled = false;
+                      }
+                  }
+              } else {
+                  for (let option of desiredDiv.options) {
+                      option.disabled = false;
+                  }
+              }
+          }
+
+          // Слушатели изменений
+          currentPos.addEventListener("change", () => {
+              toggle1DivisionSelect();
+              updateDesiredOptions();
+              calculatePrice();
+              updateImage(currentPos.value, currentImage);
+          });
+
+          currentDiv.addEventListener("change", () => {
+              updateDesiredDivisionOptions();
+              calculatePrice();
+          });
+
+          desiredPos.addEventListener("change", () => {
+              toggleDivisionSelect();
+              updateDesiredDivisionOptions();
+              calculatePrice();
+              updateImage(desiredPos.value, desiredImage);
+          });
+
+          server.addEventListener("change", () => {
+            calculatePrice();
+            updateServerImage(server.value, serverImage);
+          });
+
+          desiredDiv.addEventListener("change", calculatePrice);
+          lpPerWin.addEventListener("change", calculatePrice);
+          specificRole.addEventListener("change", calculatePrice);
+          duoBooster.addEventListener("change", calculatePrice);
+
+          // Применение купона
+          applyCouponBtn.addEventListener("click", function () {
+              const coupon = couponInput.value.trim();
+              if (coupon === "DISCOUNT10") {
+                  alert("Применен купон на 10% скидку!");
+              }
+              calculatePrice();
+          });
+
+          desiredDiv.value = 3
+          currentDiv.value = 3
+          // Первоначальные вызовы функций для корректной работы
+          toggle1DivisionSelect();
+          toggleDivisionSelect();
+          updateDesiredOptions();
           calculatePrice();
-        });
-
-        // Первоначальный расчет
-        calculatePrice();
-      });
+          updateImage(currentPos.value, currentImage);
+          updateImage(desiredPos.value, desiredImage);
+          updateServerImage(server.value, serverImage);
+          });
 
     </script>
   {% endblock %}

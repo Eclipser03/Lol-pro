@@ -7,6 +7,7 @@ from news.models import News
 
 # Отображение списка новостей
 
+
 class NewsView(ListView):
     template_name = 'news/news.html'
     paginate_by = 12

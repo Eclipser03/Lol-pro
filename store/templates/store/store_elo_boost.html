@@ -25,7 +25,7 @@
             <p class="discount">Скидка: 5%</p>
             <div class="dotted-line"></div>
           </div>
-          <button class="btnbuy">КУПИТЬ ПАКЕТ</button>
+          <button onclick="goToBoostPage('silver', 'gold')" class="btnbuy">КУПИТЬ ПАКЕТ</button>
       </div>
 
       <div class="package">
@@ -45,7 +45,7 @@
           <p class="discount">Скидка: 5%</p>
           <div class="dotted-line"></div>
         </div>
-        <button class="btnbuy">КУПИТЬ ПАКЕТ</button>
+        <button onclick="goToBoostPage('gold', 'platinum')" class="btnbuy">КУПИТЬ ПАКЕТ</button>
       </div>
 
       <div class="package">
@@ -65,7 +65,7 @@
           <p class="discount">Скидка: 5%</p>
           <div class="dotted-line"></div>
         </div>
-        <button class="btnbuy">КУПИТЬ ПАКЕТ</button>
+        <button onclick="goToBoostPage('platinum', 'emerald')" class="btnbuy">КУПИТЬ ПАКЕТ</button>
       </div>
 
       <div class="package">
@@ -85,7 +85,7 @@
           <p class="discount">Скидка: 5%</p>
           <div class="dotted-line"></div>
         </div>
-        <button class="btnbuy">КУПИТЬ ПАКЕТ</button>
+        <button onclick="goToBoostPage('emerald', 'diamond')" class="btnbuy">КУПИТЬ ПАКЕТ</button>
       </div>
   </div>
 
@@ -94,12 +94,20 @@
         <h2>Отборочные игры</h2>
         <p class="text_otbor">Суть услуги заключается в том, что наш человек отыграет на вашем аккаунте квалификационные игры, сделав при этом все возможное, чтобы в итоге вы получили максимальный ранг.</p>
         <p class="text_price"><strong>Цена 5 "Unranked" игр: 800 руб.</strong></p>
-        <button class="buy-btn">КУПИТЬ КВАЛИФИКАЦИЮ</button>
+        <a href="{% url 'store:placement_matches' %}"><button class="buy-btn">КУПИТЬ КВАЛИФИКАЦИЮ</button></a>
     </div>
     <div class="qualification-image">
         <img src="/media/unranked_placements.png" alt="Qualification Image">
     </div>
 </div>
 
+<script>
+  function goToBoostPage(currentRank, desiredRank) {
+    const baseUrl = '{% url "store:store_elo_boost_choice" %}'; // Указываем базовый URL страницы
+    const url = `${baseUrl}?currentRank=${currentRank}&desiredRank=${desiredRank}`;
+    console.log("Redirecting to:", url);
+    window.location.href = url; // Переход с параметрами
+}
+  </script>
 
 {% endblock %}

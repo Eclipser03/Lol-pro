@@ -147,17 +147,72 @@ select {
 
 }
 
+
+.hidden-image {
+    visibility: hidden; /* Скрывает изображение, но оставляет место для него */
+  }
+
+.slider-container {
+  display: flex;
+  align-items: center;
+  gap: 20px; /* Расстояние между счетчиком и слайдером */
+}
+.gamecount {
+  width: 40px; /* Ширина для квадратной рамки */
+  height: 40px; /* Высота для квадратной рамки */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.5em;
+  background-color: #f2f2f2;
+  border-radius: 10px; /* Скругление углов */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Тень для эффекта */
+}
+
+input[type="range"] {
+  -webkit-appearance: none;
+  width: 260px; /* Длина слайдера */
+  height: 20px; /* Толщина слайдера */
+  background: linear-gradient(to right, #007bff 0%, #007bff var(--value), #ddd var(--value), #ddd 100%);
+  border-radius: 10px;
+  outline: none;
+  transition: background 0.3s;
+}
+input[type="range"]:hover {
+  opacity: 1;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 30px; /* Размер "пальца" слайдера */
+  height: 30px;
+  background: #9ea0a2; /* Синий цвет ползунка */
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  background: #007bff;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+
 .option {
     text-align: start;
 }
 
 .option h3 {
     font-size: 28px;
-    margin-bottom: 5px;
+    margin-bottom: 10px;
 }
 
 .option-row {
     font-size: 22px;
+    margin-bottom: 15px;
 }
 
 .checkbox {

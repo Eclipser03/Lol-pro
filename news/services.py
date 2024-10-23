@@ -1,9 +1,5 @@
 import time
 
-from django.db.models import Q
-from selenium.common.exceptions import (
-    TimeoutException,  # Импортируем исключение для обработки времени ожидания кнопки
-)
 from selenium.webdriver.common.by import (
     By,  # Импортируем модуль для выбора элементов по различным селекторам
 )
@@ -42,8 +38,7 @@ def parse_news():
             except:
                 break
 
-
-    elements = driver.find_element(By.CSS_SELECTOR, "div[class='sc-a15cc6aa-0 IphyG']").find_elements(
+    elements = driver.find_element(By.CSS_SELECTOR, "div[class='sc-1de19c4d-0 jhZjMa']").find_elements(
         By.TAG_NAME, 'a'
     )
     for elem in elements:
@@ -64,6 +59,3 @@ def parse_news():
 
     print('Парсинг завершён успешно')
     driver.quit()
-
-
-
