@@ -6,18 +6,20 @@
 {% block extra_content %}
 <div class="containerchoice">
   <div class="card">
-    <img src="/media/gold_4_2023.png" alt="Текущая позиция">
+    <img id="current-image" src="/media/gold_4_2023.png" alt="Текущая позиция">
     <h3>РАНГ В ПРОШЛОМ СПЛИТЕ</h3>
     <div class="select-box">
       <select id="current-position">
-        <option value="7">MASTER</option>
-        <option value="6">DIAMOND</option>
-        <option value="5">EMERALD</option>
-        <option value="4">PLATINUM</option>
-        <option value="3">GOLD</option>
-        <option value="2">SILVER</option>
-        <option value="1">BRONZE</option>
-        <option value="0">IRON</option>
+        <option value="9">GRANDMASTER</option>
+        <option value="8">MASTER</option>
+        <option value="7">DIAMOND</option>
+        <option value="6">EMERALD</option>
+        <option value="5">PLATINUM</option>
+        <option value="4">GOLD</option>
+        <option value="3">SILVER</option>
+        <option value="2">BRONZE</option>
+        <option value="1">IRON</option>
+        <option value="0">UNRANKED</option>
       </select>
     </div>
     <div class="option">
@@ -45,13 +47,13 @@
 
   <div class="card">
     <div class="serverimg">
-      <img src="/media/server_russia.png" alt="Сервер">
+      <img id="server-image" src="/media/server_russia.png" alt="Сервер">
     </div>
     <h3>СЕРВЕР И ОЧЕРЕДЬ</h3>
     <div class="select-box">
       <select id="server">
         <option value="1">EU WEST</option>
-        <option value="0">RUSSIA</option>
+        <option value="0.9">RUSSIA</option>
       </select>
     </div>
     <div class="select-box">
@@ -72,7 +74,7 @@
 
 <div class="total">
   <div class="purchase">
-    <div><h3>Итоговое время:</h3><span id="total-time"></span></div>
+    <h3>Итоговое время: <span id="total-time"></span> ч.</h3>
     <h3>ИТОГОВАЯ ЦЕНА: <span id="total-price">660</span> руб.</h3>
     <button>КУПИТЬ</button>
   </div>
@@ -95,5 +97,184 @@
   window.onload = function() {
     updateGameCount(document.getElementById('gameSlider').value);
   }
+
+    document.addEventListener("DOMContentLoaded", function () {
+      let discount = 0; // Процент скидки
+
+      const currentPos = document.getElementById("current-position"); // Ранг в прошлом сезоне
+      const specificRole = document.getElementById("specific-role"); // Определенная роль
+      const duoBooster = document.getElementById("duo-booster"); // Игра с дуо бустером
+      const gameCount = document.getElementById("gameCount"); // Кол-во игр
+      const server = document.getElementById("server"); // Сервер
+      const couponInput = document.getElementById("coupon-code"); //Купон
+      const applyCouponBtn = document.getElementById("apply-coupon"); // Кнопка применить купон
+      const totalPriceElem = document.getElementById("total-price"); // Итоговая цена
+      const totalTimeElem = document.getElementById("total-time");
+      const currentImage = document.getElementById("current-image");
+      const serverImage = document.getElementById("server-image");
+
+      const rankData = {
+        "unranked": 160,
+        "iron": 160,
+        "bronze": 160,
+        "silver": 180,
+        "gold": 200,
+        "platinum": 220,
+        "emerald": 250,
+        "diamond": 280,
+        "master": 300,
+        "grandmaster": 350,
+      }
+
+      // Функция для смены изображения
+      function updateImage(rankValue, imageElement) {
+        let imageUrl = "";
+
+        // Определяем путь к изображению в зависимости от выбранного значения
+        switch (rankValue) {
+            case "9":
+                imageUrl = "/media/grandmaster_1_2023.png";
+                break;
+            case "8":
+                imageUrl = "/media/master_1_2023.png";
+                break;
+            case "7":
+                imageUrl = "/media/diamond_4_2023.png";
+                break;
+            case "6":
+                imageUrl = "/media/emerald_4_2023.png";
+                break;
+            case "5":
+                imageUrl = "/media/platinum_4_2023.png";
+                break;
+            case "4":
+                imageUrl = "/media/gold_4_2023.png";
+                break;
+            case "3":
+                imageUrl = "/media/silver_4_2023.png";
+                break;
+            case "2":
+                imageUrl = "/media/bronze_4_2023.png";
+                break;
+            case "1":
+                imageUrl = "/media/iron_4_2023.png";
+                break;
+            case "0":
+                imageUrl = "/media/unranked_1_2023.png";
+                break;
+            default:
+                imageUrl = "/media/unranked_1_2023.png"; // Путь к изображению по умолчанию
+        }
+        imageElement.src = imageUrl;
+      }
+
+        // Функция для смены изображения региона
+        function updateServerImage(rankValue, imageElement) {
+          let imageUrl = "";
+
+          switch (rankValue) {
+            case "1":
+                imageUrl = "/media/server_eu_west.png";
+                break;
+            case "0.9":
+                imageUrl = "/media/server_russia.png";
+                break;
+            default:
+                imageUrl = "/media/server_eu_west.png"; // Путь к изображению по умолчанию
+        }
+
+        // Обновляем атрибут src у изображения
+        imageElement.src = imageUrl;
+      }
+
+      // Расчет цены и времени от кол-ва игр
+
+      function calculatePrice() {
+        let price = 0;
+        let time = 0;
+
+        const currentRank = getRankName(currentPos.value);
+        const gameCountValue = parseInt(gameCount.textContent);
+
+        if (rankData[currentRank]) {
+          price = gameCountValue * rankData[currentRank];
+          time = 2 * gameCountValue;
+        } else {
+          console.error('Ошибка: Неверный ранг');
+          return;
+        }
+
+
+
+        // Определенная роль
+        if (specificRole.checked) price *= parseFloat(specificRole.value);
+        if (duoBooster.checked) price *= parseFloat(duoBooster.value);
+
+        // В зависимости от сервера
+        price = price * parseFloat(server.value);
+
+        // Применяем скидку
+        price = price - (price * discount) / 100;
+
+
+        // Обновляем цену и время
+
+        totalPriceElem.textContent = price.toFixed(2)
+        totalTimeElem.textContent = time
+
+        // Применение скидки
+        price = price - (price * discount) / 100;
+      }
+
+      // Функция получения названия ранга
+      function getRankName(rankValue) {
+        switch (rankValue) {
+            case "0": return "unranked";
+            case "1": return "iron";
+            case "2": return "bronze";
+            case "3": return "silver";
+            case "4": return "gold";
+            case "5": return "platinum";
+            case "6": return "emerald";
+            case "7": return "diamond";
+            case "8": return "master";
+            case "9": return "grandmaster";
+            default: return "";
+        }
+      }
+
+      // Слушатели изменений
+      currentPos.addEventListener("change", () => {
+        calculatePrice();
+        updateImage(currentPos.value, currentImage);
+      });
+      specificRole.addEventListener("change", calculatePrice);
+      duoBooster.addEventListener("change", calculatePrice);
+      document.getElementById('gameSlider').addEventListener("input", calculatePrice);
+      server.addEventListener("change", () => {
+        calculatePrice();
+        updateServerImage(server.value, serverImage);
+      });
+
+      // Применение купона
+      applyCouponBtn.addEventListener("click", function () {
+        const coupon = couponInput.value.trim();
+
+        if (coupon === "DISCOUNT10") {
+            discount = 10; // Применяем скидку 10%
+            alert("Применен купон на 10% скидку!");
+        } else {
+            discount = 0; // Если купон неверный, скидка сбрасывается
+            alert("Неверный купон.");
+        }
+
+        calculatePrice();
+      });
+
+      // Первоночальные вызовы функций
+      calculatePrice();
+      updateImage(currentPos.value, currentImage);
+      updateServerImage(server.value, serverImage);
+    });
 </script>
 {% endblock %}
