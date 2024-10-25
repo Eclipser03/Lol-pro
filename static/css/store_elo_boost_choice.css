@@ -195,3 +195,7 @@ select {
 .checkbox:hover {
     cursor: pointer; /* Меняем курсор на указатель при наведении на чекбокс */
 }
+
+.hidden {
+    display: none;
+}
