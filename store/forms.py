@@ -63,18 +63,22 @@ class BoostOrderForms(forms.ModelForm):
     specific_role = forms.BooleanField(
         widget=forms.CheckboxInput(
             attrs={'class': 'checkbox', 'type': 'checkbox', 'id': 'specific-role', 'value': '1.2'}
-        )
+        ), required=False
     )
     duo_booster = forms.BooleanField(
         widget=forms.CheckboxInput(
             attrs={'class': 'checkbox', 'type': 'checkbox', 'id': 'duo-booster', 'value': '1.3'}
-        )
+        ), required=False
     )
     coupon_code = forms.CharField(
-        widget=forms.TextInput(attrs={'id': 'coupon-code', 'placeholder': 'Ввести купон'})
+        widget=forms.TextInput(attrs={'id': 'coupon-code', 'placeholder': 'Ввести купон'}), required=False
     )
-    total_time = forms.DurationField(widget=forms.TextInput(attrs={'id': 'total-time-form', 'class':'hidden'}))
-    total_price = forms.IntegerField(widget=forms.TextInput(attrs={'id': 'total-price-form', 'class':'hidden'}))
+    total_time = forms.DurationField(
+        widget=forms.TextInput(attrs={'id': 'total-time-form', 'class': 'hidden'}), required=False
+    )
+    total_price = forms.IntegerField(
+        widget=forms.TextInput(attrs={'id': 'total-price-form', 'class': 'hidden'}), required=False
+    )
 
     class Meta:
         model = BoostOrder
@@ -93,3 +97,6 @@ class BoostOrderForms(forms.ModelForm):
             'total_time',
             'total_price',
         }
+
+
+# class QualificationForm(forms.ModelForm):

@@ -1,3 +1,4 @@
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 from user.models import User
@@ -9,8 +10,9 @@ from user.models import User
 class Coupon(models.Model):
     name = models.CharField(max_length=20, verbose_name='Купон')
     sale = models.IntegerField(verbose_name='Размер скидки')
-    count = models.IntegerField(verbose_name='Количество купонов')
+    count = models.IntegerField(verbose_name='Количество купонов', default=999)
     end_date = models.DateTimeField(verbose_name='Дата окончания')
+    is_active = models.BooleanField(default=False, verbose_name='Активный')
 
     class Meta:
         verbose_name = 'Купон'
@@ -104,12 +106,76 @@ class BoostOrder(models.Model):
     total_price = models.IntegerField(verbose_name='Цена')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
 
-
     class Meta:
         verbose_name = 'Буст ордер'
         verbose_name_plural = 'Буст ордеры'
 
-
     def __str__(self):
         return f'Заказ буста от {self.user.username}: {self.current_position}\
             до {self.desired_position} на {self.server}'
+
+
+class Qualification(models.Model):
+    RANK_CHOISES = [
+        ('IRON', 'Железо'),
+        ('BRONZE', 'Бронза'),
+        ('SILVER', 'Серебро'),
+        ('GOLD', 'Голд'),
+        ('PLATINUM', 'Платина'),
+        ('EMERALD', 'Эмеральд'),
+        ('DIAMOND', 'Даймонд'),
+        ('MASTER', 'Мастер'),
+        ('GRANDMASTER', 'Грандмастер'),
+    ]
+
+    SERVER_CHOISES = [('EU WEST', 'Вест'), ('RUSSIA', 'Россия')]
+
+    STATUS_CHOICES = [
+        ('CREATED', 'Создан'),
+        ('PAYED', 'Оплачен'),
+        ('IN_PROCCES', 'В процессе'),
+        ('CANCELED', 'Отменен'),
+        ('FINISHED', 'Исполнен'),
+    ]
+
+    QUEUE_CHOICES = [
+        ('SOLO/DUO', 'Соло-дуо'),
+        ('FLEX', 'Флекс'),
+    ]
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='qualification_orders',
+        verbose_name='Пользователь',
+    )
+    previous_position = models.CharField(
+        max_length=20, choices=RANK_CHOISES, verbose_name='Ранг в прошлом сезоне'
+    )
+    specific_role = models.BooleanField(verbose_name='Определенная роль')
+    duo_booster = models.BooleanField(verbose_name='Игра в дуо')
+    game_count = models.IntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(5)], verbose_name='Кол-во игр'
+    )
+    server = models.CharField(max_length=20, choices=SERVER_CHOISES, verbose_name='Сервер')
+    queue_type = models.CharField(max_length=20, choices=QUEUE_CHOICES, verbose_name='Режим игры')
+    coupon_code = models.ForeignKey(
+        Coupon,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='qualification_orders',
+        verbose_name='Купон',
+    )
+    total_time = models.DurationField(verbose_name='Время исполнения')
+    total_price = models.IntegerField(verbose_name='Цена')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
+
+    class Meta:
+        verbose_name = 'Квалификация'
+        verbose_name_plural = 'Квалификации'
+
+    def __str__(self):
+        return f'Заказ квалификации от {self.user.username}: ранг - {self.current_position}\
+            кол-во игр - {self.gamecount} на {self.server}'
