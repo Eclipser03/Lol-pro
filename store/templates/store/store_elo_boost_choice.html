@@ -122,7 +122,7 @@
       {{ store_form.coupon_code }}
       <!-- <input type="text" id="coupon-code" placeholder="Ввести купон"> -->
       <span class="discount">Скидка: <span id="discount-value">0</span> %</span>
-      <button id="apply-coupon">Применить</button>
+      <div id="apply-coupon">Применить</div>
       </div>
 
       <div class="total">
@@ -397,9 +397,9 @@
             price = price - (price * discount) / 100;
 
             // Обновляем итоговую цену
-            totalPriceElem.textContent = price.toFixed(2);
+            totalPriceElem.textContent = price.toFixed(0);
             totalTimeElem.textContent = time
-            formTotalPriceElem.value = price;
+            formTotalPriceElem.value = Number(price.toFixed(0));
             formTotalTimeElem.value = formatTime(time)
           }
 

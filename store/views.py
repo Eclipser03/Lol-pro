@@ -1,7 +1,8 @@
 import json
 
+from django.contrib import messages
 from django.http import JsonResponse
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
 from django.utils import timezone
 from django.views.generic import TemplateView
 
@@ -29,10 +30,19 @@ class StoreEloBoostChoiceView(TemplateView):
         return context
 
     def post(self, request, *args, **kwargs):
-        print(request.POST)
+        print('post', request.POST)
         form = BoostOrderForms(request.POST)
+        form.request = self.request
         if form.is_valid():
             form.save()
+        else:
+            # Отобразим ошибки формы, чтобы увидеть причину неудачи
+            print(form.errors)
+            errors = form.errors.values()
+            for error in errors:
+                for text in error:
+                    messages.error(request, text)
+            return render(request, self.template_name, {'store_form': form})
         return redirect('store:store_elo_boost_choice')
 
 
