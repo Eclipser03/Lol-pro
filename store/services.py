@@ -95,5 +95,40 @@ def calculate_boost(data):
 
     if data.get('coupon_code'):
         price = price - (price * coupon.sale) / 100
+    print(int(price), time)
+    return int(price)
+
+def calculate_qualification(data):
+    price_rank = {
+        0 : {'price': 160}, #unranked
+        1: {'price': 160}, #iron
+        2: {'price': 160}, #bronze
+        3: {'price': 180}, #silver
+        4: {'price': 200}, #gold
+        5: {'price': 220}, #platina
+        6: {'price': 250}, #emerald
+        7: {'price': 280}, #diamond
+        8: {'price': 300}, #master
+        9: {'price': 350}, #grandmaster
+    }
+    print('data-----', data)
+    price = 0
+    time = 0
+
+    previous_position = int(data['previous_position'])
+    game_count = int(data['game_count'])
+    if 'coupon_code' in data:
+        coupon = data['coupon_code']
+
+    price = price_rank[previous_position]['price'] * game_count
+
+    if data['duo_booster']:
+        price *= 1.3
+
+    if data['specific_role']:
+        price *= 1.2
+
+    if data.get('coupon_code'):
+        price = price - (price * coupon.sale) / 100
     print(int(price))
     return int(price)

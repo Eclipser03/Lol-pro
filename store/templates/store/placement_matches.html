@@ -4,12 +4,15 @@
     <link rel="stylesheet" href="{% static 'css/placement_matches.css'%}">
 {% endblock %}
 {% block extra_content %}
-<div class="containerchoice">
+<form action="{% url 'store:placement_matches' %}" method='POST'>
+  {% csrf_token %}
+  <div class="containerchoice">
   <div class="card">
     <img id="current-image" src="/media/gold_4_2023.png" alt="Текущая позиция">
     <h3>РАНГ В ПРОШЛОМ СПЛИТЕ</h3>
     <div class="select-box">
-      <select id="current-position">
+      {{ qualification_form.previous_position }}
+      <!-- <select id="current-position">
         <option value="9">GRANDMASTER</option>
         <option value="8">MASTER</option>
         <option value="7">DIAMOND</option>
@@ -20,17 +23,19 @@
         <option value="2">BRONZE</option>
         <option value="1">IRON</option>
         <option value="0">UNRANKED</option>
-      </select>
+      </select> -->
     </div>
     <div class="option">
       <h3 class="last">Опции:</h3>
       <div class="option-row">
-        <input class="checkbox" type="checkbox" id="specific-role" value="1.2">
+        {{ qualification_form.specific_role }}
+        <!-- <input class="checkbox" type="checkbox" id="specific-role" value="1.2"> -->
         <label for="specific-role">Определенная роль</label>
       </div>
 
       <div class="option-row">
-        <input class="checkbox" type="checkbox" id="duo-booster" value="1.3">
+        {{ qualification_form.duo_booster }}
+        <!-- <input class="checkbox" type="checkbox" id="duo-booster" value="1.3"> -->
         <label for="duo-booster">Играть в дуо с бустером</label>
       </div>
       </div>
@@ -41,7 +46,8 @@
     <h3>КОЛИЧЕСТВО ИГР:</h3>
     <div class="slider-container">
       <span class="gamecount" id="gameCount">1</span>
-      <input type="range" id="gameSlider" name="gameSlider" min="1" max="5" value="1" step="1" oninput="updateGameCount(this.value)">
+      {{ qualification_form.game_count }}
+      <!-- <input type="range" id="gameSlider" name="gameSlider" min="1" max="5" value="1" step="1" oninput="updateGameCount(this.value)"> -->
     </div>
   </div>
 
@@ -51,38 +57,43 @@
     </div>
     <h3>СЕРВЕР И ОЧЕРЕДЬ</h3>
     <div class="select-box">
-      <select id="server">
+      {{ qualification_form.server }}
+      <!-- <select id="server">
         <option value="1">EU WEST</option>
         <option value="0.9">RUSSIA</option>
-      </select>
+      </select> -->
     </div>
     <div class="select-box">
-      <select id="queue-type">
+      {{ qualification_form.queue_type }}
+      <!-- <select id="queue-type">
         <option value="0">SOLO/DUO QUEUE</option>
         <option value="1">FLEX 5V5 QUEUE</option>
-      </select>
+      </select> -->
     </div>
 
   </div>
-</div>
+  </div>
 
-<div class="coupon">
-  <input type="text" id="coupon-code" placeholder="Ввести купон">
-  <span class="discount">Скидка: <span id="discount-value">5%</span></span>
-  <button id="apply-coupon">Применить</button>
-</div>
+  <div class="coupon">
+  {{ qualification_form.coupon_code }}
+  <!-- <input type="text" id="coupon-code" placeholder="Ввести купон"> -->
+  <span class="discount">Скидка: <span id="discount-value">0</span>%</span>
+  <div id="apply-coupon">Применить</div>
+  </div>
 
-<div class="total">
+  <div class="total">
   <div class="purchase">
     <h3>Итоговое время: <span id="total-time"></span> ч.</h3>
     <h3>ИТОГОВАЯ ЦЕНА: <span id="total-price">660</span> руб.</h3>
-    <button>КУПИТЬ</button>
+    {{ qualification_form.total_time }}
+    {{ qualification_form.total_price }}
+    <button type="submit">КУПИТЬ</button>
   </div>
   <div class="description">
     <p>Наш бустер ранга Challenger отыграет квалификационные игры на вашем аккаунте, сделав при этом все возможное, чтобы в конечном итоге вы получили максимальный результат. Гарантируем минимум 70% побед, но как правило, результат получается еще лучше.</p>
   </div>
-</div>
-
+  </div>
+</form>
 <script>
   function updateGameCount(value) {
     document.getElementById('gameCount').textContent = value;
@@ -112,6 +123,9 @@
       const totalTimeElem = document.getElementById("total-time");
       const currentImage = document.getElementById("current-image");
       const serverImage = document.getElementById("server-image");
+      const formTotalPriceElem = document.getElementById("total-price-form");
+      const formTotalTimeElem = document.getElementById("total-time-form");
+      const discountElem = document.getElementById("discount-value");
 
       const rankData = {
         "unranked": 160,
@@ -187,6 +201,19 @@
         imageElement.src = imageUrl;
       }
 
+      function formatTime(timeInHours) {
+        const hours = Math.floor(timeInHours);
+        const minutes = Math.floor((timeInHours % 1) * 60);
+        const seconds = Math.round((((timeInHours % 1) * 60) % 1) * 60);
+
+        // Добавляем ведущие нули для часов, минут и секунд
+        const formattedHours = String(hours).padStart(2, '0');
+        const formattedMinutes = String(minutes).padStart(2, '0');
+        const formattedSeconds = String(seconds).padStart(2, '0');
+
+        return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
+      }
+
       // Расчет цены и времени от кол-ва игр
 
       function calculatePrice() {
@@ -219,11 +246,10 @@
 
         // Обновляем цену и время
 
-        totalPriceElem.textContent = price.toFixed(2)
+        totalPriceElem.textContent = price.toFixed(0)
         totalTimeElem.textContent = time
-
-        // Применение скидки
-        price = price - (price * discount) / 100;
+        formTotalPriceElem.value = Number(price.toFixed(0))
+        formTotalTimeElem.value = formatTime(time)
       }
 
       // Функция получения названия ранга
@@ -256,25 +282,44 @@
         updateServerImage(server.value, serverImage);
       });
 
-      // Применение купона
-      applyCouponBtn.addEventListener("click", function () {
-        const coupon = couponInput.value.trim();
+     // Применение купона
+     applyCouponBtn.addEventListener("click", function () {
+      couponValue = couponInput.value
+      let csrftoken = getCookie("csrftoken");
 
-        if (coupon === "DISCOUNT10") {
-            discount = 10; // Применяем скидку 10%
-            alert("Применен купон на 10% скидку!");
+      fetch("/check-coupon/", {
+        method: 'POST',
+        body: JSON.stringify({"coupon": couponValue}),
+        headers: { "X-CSRFToken": csrftoken,
+         "Content-Type": "application/json" },
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          discount = data.discount;
+          discountElem.textContent = discount;
         } else {
-            discount = 0; // Если купон неверный, скидка сбрасывается
-            alert("Неверный купон.");
+          alert(data.message);
+          discount = 0;
+          discountElem.textContent = discount;
         }
-
         calculatePrice();
-      });
+  })
+  .catch(error => console.error('Ошибка:', 'Сервер не отвечает'));
+  });
 
       // Первоночальные вызовы функций
       calculatePrice();
       updateImage(currentPos.value, currentImage);
       updateServerImage(server.value, serverImage);
     });
+
+
+    function getCookie(name) {
+      let matches = document.cookie.match(new RegExp(
+        "(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"
+      ));
+      return matches ? decodeURIComponent(matches[1]) : undefined;
+    }
 </script>
 {% endblock %}

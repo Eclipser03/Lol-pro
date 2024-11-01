@@ -1,50 +1,44 @@
 from django import forms
+from django.core.validators import MaxValueValidator, MinValueValidator
 
-from store.models import BoostOrder, Coupon
-from store.services import calculate_boost
+from store.models import BoostOrder, Coupon, Qualification
+from store.services import calculate_boost, calculate_qualification
+
 
 position = {
-    '8' : 'GRANDMASTER',
-    '7' : 'MASTER',
-    '6' : 'DIAMOND',
-    '5' : 'EMERALD',
-    '4' : 'PLATINUM',
-    '3' : 'GOLD',
-    '2' : 'SILVER',
-    '1' : 'BRONZE',
-    '0' : 'IRON'
+    '8': 'GRANDMASTER',
+    '7': 'MASTER',
+    '6': 'DIAMOND',
+    '5': 'EMERALD',
+    '4': 'PLATINUM',
+    '3': 'GOLD',
+    '2': 'SILVER',
+    '1': 'BRONZE',
+    '0': 'IRON',
 }
 
-division = {
-    '3' : 'DIVISION 4',
-    '2' : 'DIVISION 3',
-    '1' : 'DIVISION 2',
-    '0' : 'DIVISION 1'
+pre_position = {
+    '9': 'GRANDMASTER',
+    '8': 'MASTER',
+    '7': 'DIAMOND',
+    '6': 'EMERALD',
+    '5': 'PLATINUM',
+    '4': 'GOLD',
+    '3': 'SILVER',
+    '2': 'BRONZE',
+    '1': 'IRON',
+    '0': 'UNRANKED',
 }
 
-lp = {
-    '0': '0-20LP',
-    '1': '21-40LP',
-    '2': '41-60LP',
-    '3': '61-80LP',
-    '4': '81-99LP'
-}
+division = {'3': 'DIVISION 4', '2': 'DIVISION 3', '1': 'DIVISION 2', '0': 'DIVISION 1'}
 
-lp_win = {
-    '1': '18+LP',
-    '1.1': '15-17LP',
-    '1.2': '<15LP'
-}
+lp = {'0': '0-20LP', '1': '21-40LP', '2': '41-60LP', '3': '61-80LP', '4': '81-99LP'}
 
-server_choice = {
-    '1': 'EU WEST',
-    '0.8': 'RUSSIA'
-}
+lp_win = {'1': '18+LP', '1.1': '15-17LP', '1.2': '<15LP'}
 
-queue = {
-    '0': 'SOLO/DUO',
-    '1': 'FLEX'
-}
+server_choice = {'1': 'EU WEST', '0.8': 'RUSSIA'}
+
+queue = {'0': 'SOLO/DUO', '1': 'FLEX'}
 
 
 class BoostOrderForms(forms.ModelForm):
@@ -126,7 +120,7 @@ class BoostOrderForms(forms.ModelForm):
         widget=forms.TextInput(attrs={'id': 'total-price-form', 'class': 'hidden'}), required=False
     )
     user = forms.CharField(
-    required=False,
+        required=False,
     )
 
     class Meta:
@@ -156,7 +150,6 @@ class BoostOrderForms(forms.ModelForm):
         if coupon:
             cleaned_data['coupon_code'] = Coupon.objects.get(name=coupon)
 
-
         if int(cleaned_data['current_position']) > int(cleaned_data['desired_position']):
             raise forms.ValidationError('Текущая позиция не может быть больше желаемой')
 
@@ -184,5 +177,123 @@ class BoostOrderForms(forms.ModelForm):
 
         return cleaned_data
 
-# {# 'total_price': 2000}
-# class QualificationForm(forms.ModelForm):
+    def save(self, commit=True):
+        super().save(commit=False)
+
+        if self.instance.coupon_code:
+            self.instance.coupon_code.count -= 1
+            self.instance.coupon_code.save()
+
+        return self.instance
+
+
+
+class QualificationForm(forms.ModelForm):
+    previous_position = forms.ChoiceField(
+        choices=[
+            ('9', 'GRANDMASTER'),
+            ('8', 'MASTER'),
+            ('7', 'DIAMOND'),
+            ('6', 'EMERALD'),
+            ('5', 'PLATINUM'),
+            ('4', 'GOLD'),
+            ('3', 'SILVER'),
+            ('2', 'BRONZE'),
+            ('1', 'IRON'),
+            ('0', 'UNRANKED'),
+        ],
+        widget=forms.Select(attrs={'id': 'current-position'}),
+    )
+    specific_role = forms.BooleanField(
+        widget=forms.CheckboxInput(
+            attrs={'class': 'checkbox', 'type': 'checkbox', 'id': 'specific-role', 'value': '1.2'}
+        ),
+        required=False,
+    )
+    duo_booster = forms.BooleanField(
+        widget=forms.CheckboxInput(
+            attrs={'class': 'checkbox', 'type': 'checkbox', 'id': 'duo-booster', 'value': '1.3'}
+        ),
+        required=False,
+    )
+    server = forms.ChoiceField(
+        choices=[('1', 'EU WEST'), ('0.8', 'RUSSIA')], widget=forms.Select(attrs={'id': 'server'})
+    )
+    queue_type = forms.ChoiceField(
+        choices=[('0', 'SOLO/DUO'), ('1', 'FLEX')], widget=forms.Select(attrs={'id': 'queue-type'})
+    )
+    coupon_code = forms.CharField(
+        widget=forms.TextInput(attrs={'id': 'coupon-code', 'placeholder': 'Ввести купон'}),
+        required=False,
+    )
+    game_count = forms.IntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(5)],
+        widget=forms.NumberInput(
+            attrs={
+                'class': 'gamecount',
+                'type': 'range',
+                'id': 'gameSlider',
+                'name': 'gameSlider',
+                'min': '1',
+                'max': '5',
+                'value': '1',
+                'step': '1',
+                'oninput': 'updateGameCount(this.value)',
+            }
+        ),
+    )
+    total_time = forms.DurationField(
+        widget=forms.TextInput(attrs={'id': 'total-time-form', 'class': 'hidden'}), required=False
+    )
+    total_price = forms.IntegerField(
+        widget=forms.TextInput(attrs={'id': 'total-price-form', 'class': 'hidden'}), required=False
+    )
+    user = forms.CharField(
+        required=False,
+    )
+
+    class Meta:
+        model = Qualification
+        fields = {
+            'previous_position',
+            'specific_role',
+            'duo_booster',
+            'server',
+            'queue_type',
+            'coupon_code',
+            'game_count',
+            'total_time',
+            'total_price',
+            'user',
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        print('clean data', cleaned_data)
+
+        coupon = cleaned_data.pop('coupon_code')
+        if coupon:
+            cleaned_data['coupon_code'] = Coupon.objects.get(name=coupon)
+
+        if cleaned_data['total_time'].total_seconds() == 0:
+            raise forms.ValidationError('Время не может быть равно 0, где-то ошибка')
+
+        if cleaned_data['total_price'] != calculate_qualification(cleaned_data):
+            raise forms.ValidationError('Цена не совпадает, где-то ошибка')
+
+        cleaned_data['previous_position'] = pre_position[cleaned_data['previous_position']]
+        cleaned_data['server'] = server_choice[cleaned_data['server']]
+        cleaned_data['queue_type'] = queue[cleaned_data['queue_type']]
+        cleaned_data['user'] = self.request.user
+        print('USERRR---', cleaned_data['user'])
+
+        return cleaned_data
+
+    def save(self, commit=True):
+        super().save(commit=False)
+
+        if self.instance.coupon_code:
+            self.instance.coupon_code.count -= 1
+            self.instance.coupon_code.save()
+
+        return self.instance

@@ -177,5 +177,29 @@ class Qualification(models.Model):
         verbose_name_plural = 'Квалификации'
 
     def __str__(self):
-        return f'Заказ квалификации от {self.user.username}: ранг - {self.current_position}\
-            кол-во игр - {self.gamecount} на {self.server}'
+        return f'Заказ квалификации от {self.user.username}: ранг - {self.previous_position}\
+            кол-во игр - {self.game_count} на {self.server}'
+
+
+
+class SkinsOrder(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='skins_orders',
+        verbose_name='Пользователь',
+    )
+
+    char_name = models.CharField(max_length=20, verbose_name='Персонаж')
+    skin_name = models.CharField(max_length=20, verbose_name='Образ')
+    price_char = models.IntegerField(verbose_name='Цена персонажа')
+    price_skin = models.IntegerField(verbose_name='Цена образа')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
+
+    class Meta:
+        verbose_name = 'Скины и персонажи'
+        verbose_name_plural = 'Скины и персонажи'
+
+    def __str__(self):
+        return f'Заказ скина или персонажа от {self.user.username}'

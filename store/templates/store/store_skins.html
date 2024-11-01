@@ -1,0 +1,97 @@
+{% extends "store/store_base.html" %}
+{% load static %}
+{% block extra_head%}
+    <link rel="stylesheet" href="{% static 'css/store_skins.css'%}">
+
+{% endblock %}
+{% block extra_content %}
+  <h2>Купить персонажа или скин:</h2>
+  <div class="container-skin" id="container-skin">
+    <div id="loading" style="display: none;">
+    </div>
+    <div class="skins" id="skins"></div>
+    <div class="buttons">
+      <div>
+        <h3 class="price_char">Цена: 200 руб.</h3>
+        <div class="button">Купить персонажа</div>
+      </div>
+      <div>
+        <h3 class="price_skin">Цена: 0 руб.</h3>
+        <div class="button1">Купить образ</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="{% static 'chars/lib/jquery.min.js' %}"></script>
+
+  <script>
+    const totalPriceCharElem = document.getElementsByClassName("price_char")[0]
+    const totalPriceSkinElem = document.getElementsByClassName("price_skin")[0]
+    const buttonElem = document.getElementsByClassName("button1")[0]
+
+    let name2price = {}
+    let skin2price = {}
+
+    $.getJSON('/static/chars/assets/name2price.json', function (data) {
+      $.each(data, function (key, val) {
+          name2price[key] = val;
+
+
+      });
+  });
+
+  $.getJSON('/static/chars/assets/skins2price.json', function (data) {
+    $.each(data, function (key, val) {
+        skin2price[key] = val;
+    });
+  });
+
+  // Цена персонажа
+ Object.defineProperty(window, 'char_name', {
+      set: function(value) {
+        //console.log('set!', value);
+        let price = name2price[value]
+        //console.log(name2price)
+        if (price) {
+          totalPriceCharElem.textContent = price + " руб."
+        }
+
+      }
+    });
+
+    // Цена образа
+    Object.defineProperty(window, 'skin_name', {
+      set: function(value) {
+        console.log('set!', value);
+        let price = skin2price[value]
+        console.log(skin2price[value])
+        if (price) {
+          totalPriceSkinElem.textContent = price + " руб."
+        }
+
+        else {
+          totalPriceSkinElem.textContent = 0 + " руб."
+          buttonElem.disable = true
+        }
+
+      }
+    });
+
+    window.char_name = "Азир";
+
+
+  </script>
+
+
+    <script src="{% static 'chars/lib/dat.gui.min.js' %}"></script>
+    <script src="{% static 'chars/lib/d3.min.js' %}"></script>
+    <script src="{% static 'chars/lib/gl-matrix-min.js' %}"></script>
+    <script src="{% static 'chars/lib/pako.min.js' %}"></script>
+    <script src="{% static 'chars/lib/three.min.js' %}"></script>
+    <script src="{% static 'chars/lib/LOLLoader.js' %}"></script>
+    <script src="{% static 'chars/lib/inflate.min.js' %}"></script>
+    <script src="{% static 'chars/lib/OrbitControls.js' %}"></script>
+    <script src="{% static 'chars/lib/WebGL.js' %}"></script>
+    <script src="{% static 'chars/lib/stats.min.js' %}"></script>
+    <script src="{% static 'chars/lib/index.js' %}"></script>
+{% endblock %}
