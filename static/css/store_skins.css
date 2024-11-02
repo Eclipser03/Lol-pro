@@ -69,3 +69,12 @@ h3 {
 #loading {
     z-index: 15000;
 }
+
+
+.char1name {
+    display: none;
+}
+
+.skin1name {
+    display: none;
+}

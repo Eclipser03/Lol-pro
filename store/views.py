@@ -7,7 +7,7 @@ from django.shortcuts import redirect, render
 from django.utils import timezone
 from django.views.generic import TemplateView
 
-from store.forms import BoostOrderForms, QualificationForm
+from store.forms import BoostOrderForms, QualificationForm, SkinsOrderForm
 from store.models import Coupon
 
 
@@ -102,3 +102,28 @@ def check_coupon(request):
 
 class StoreSkinsView(TemplateView):
     template_name = 'store/store_skins.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['skinorder_form'] = SkinsOrderForm()
+        return context
+
+    def post(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            messages.warning(request, 'Пожалуйста, войдите в аккаунт, чтобы оформить заказ')
+            return redirect('user:login')
+
+        form = SkinsOrderForm(request.POST)
+        form.request = self.request
+
+        if form.is_valid():
+            form.save()
+        else:
+            # Отобразим ошибки формы, чтобы увидеть причину неудачи
+            print(form.errors)
+            errors = form.errors.values()
+            for error in errors:
+                for text in error:
+                    messages.error(request, text)
+            return render(request, self.template_name, {'skinorder_form': form})
+        return redirect('store:store_skins')

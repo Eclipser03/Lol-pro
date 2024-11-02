@@ -1,7 +1,9 @@
+import json
+import os
 from django import forms
 from django.core.validators import MaxValueValidator, MinValueValidator
-
-from store.models import BoostOrder, Coupon, Qualification
+from django.conf import settings
+from store.models import BoostOrder, Coupon, Qualification, SkinsOrder
 from store.services import calculate_boost, calculate_qualification
 
 
@@ -297,3 +299,51 @@ class QualificationForm(forms.ModelForm):
             self.instance.coupon_code.save()
 
         return self.instance
+
+
+class SkinsOrderForm(forms.ModelForm):
+    char_name = forms.CharField(
+        widget=forms.TextInput(attrs={'class': 'char1name'}), required=False
+    )
+
+    skin_name = forms.CharField(
+        widget=forms.TextInput(attrs={'class': 'skin1name'}), required=False
+    )
+
+    user = forms.CharField(
+        required=False,
+    )
+
+    price_char = forms.IntegerField(required=False)
+    price_skin = forms.IntegerField(required=False)
+
+    class Meta:
+        model = SkinsOrder
+        fields = {
+            'char_name',
+            'skin_name',
+            'user',
+            'price_char',
+            'price_skin',
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        print(cleaned_data)
+
+
+
+        if cleaned_data['char_name']:
+            json_path = os.path.join(settings.BASE_DIR, 'static', 'chars', 'assets', 'name2price.json')
+            with open(json_path, encoding='utf-8') as file:
+                json_data = json.load(file)
+            cleaned_data['price_char'] = json_data[cleaned_data['char_name']]
+
+        if cleaned_data['skin_name']:
+            json_path = os.path.join(settings.BASE_DIR, 'static', 'chars', 'assets', 'skins2price.json')
+            with open(json_path, encoding='utf-8') as file:
+                json_data = json.load(file)
+            cleaned_data['price_skin'] = json_data[cleaned_data['skin_name']]
+        cleaned_data['user'] = self.request.user
+
+        return cleaned_data

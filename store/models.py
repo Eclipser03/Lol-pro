@@ -193,8 +193,8 @@ class SkinsOrder(models.Model):
 
     char_name = models.CharField(max_length=20, verbose_name='Персонаж')
     skin_name = models.CharField(max_length=20, verbose_name='Образ')
-    price_char = models.IntegerField(verbose_name='Цена персонажа')
-    price_skin = models.IntegerField(verbose_name='Цена образа')
+    price_char = models.IntegerField(blank=True,null=True, verbose_name='Цена персонажа')
+    price_skin = models.IntegerField(blank=True,null=True, verbose_name='Цена образа')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
 
     class Meta:
