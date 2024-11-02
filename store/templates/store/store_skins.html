@@ -11,6 +11,19 @@
     </div>
     <div class="skins" id="skins"></div>
     <div class="buttons">
+      <div class="account_name">
+        <div class="form_group">
+          <label for="name">Сервер:</label>
+          <select id="server">
+            <option>EU WEST</option>
+            <option>RUSSIA</option>
+          </select>
+        </div>
+        <div class="form_group">
+          <label for="name">Ник в игре:</label>
+        <input type="text">
+        </div>
+      </div>
       <form action="{% url 'store:store_skins' %}" method='post'>
         {% csrf_token %}
       <div>

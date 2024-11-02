@@ -181,8 +181,9 @@ class Qualification(models.Model):
             кол-во игр - {self.game_count} на {self.server}'
 
 
-
 class SkinsOrder(models.Model):
+    SERVER_CHOISES = [('EU WEST', 'Вест'), ('RUSSIA', 'Россия')]
+
     user = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
@@ -191,11 +192,15 @@ class SkinsOrder(models.Model):
         verbose_name='Пользователь',
     )
 
-    char_name = models.CharField(max_length=20, verbose_name='Персонаж')
-    skin_name = models.CharField(max_length=20, verbose_name='Образ')
-    price_char = models.IntegerField(blank=True,null=True, verbose_name='Цена персонажа')
-    price_skin = models.IntegerField(blank=True,null=True, verbose_name='Цена образа')
+    char_name = models.CharField(max_length=50, verbose_name='Персонаж')
+    skin_name = models.CharField(max_length=50, verbose_name='Образ')
+    price_char = models.IntegerField(blank=True, null=True, verbose_name='Цена персонажа')
+    price_skin = models.IntegerField(blank=True, null=True, verbose_name='Цена образа')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
+    server = server = models.CharField(max_length=20, choices=SERVER_CHOISES, default='EU WEST', verbose_name='Сервер')
+    account_name = models.CharField(
+        max_length=50, verbose_name='Никнейм аккаунта', default='default_name'
+    )
 
     class Meta:
         verbose_name = 'Скины и персонажи'

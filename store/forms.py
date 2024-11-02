@@ -314,6 +314,12 @@ class SkinsOrderForm(forms.ModelForm):
         required=False,
     )
 
+    server = forms.ChoiceField(
+        choices=[('1', 'EU WEST'), ('0', 'RUSSIA')], widget=forms.Select(attrs={'id': 'server'})
+    )
+    account_name = forms.CharField(
+        widget=forms.TextInput(attrs={'class': 'acountname'}))
+
     price_char = forms.IntegerField(required=False)
     price_skin = forms.IntegerField(required=False)
 

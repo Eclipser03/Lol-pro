@@ -28,7 +28,7 @@ h3 {
     background-color: rgb(28, 28, 28);
     width: 100%;
     height: 150px;
-    padding: 0 120px;
+    padding: 0 60px;
 }
 
 
@@ -77,4 +77,31 @@ h3 {
 
 .skin1name {
     display: none;
+}
+
+.account_name {
+    display: flex;
+    flex-direction: column; /* Группы элементов идут в столбик */
+    max-width: 300px; /* Ограничиваем ширину формы */
+}
+
+.form_group {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px; /* Расстояние между полями */
+}
+
+.form_group label {
+    width: 90px; /* Ширина для выравнивания лейблов */
+    margin-right: 10px; /* Отступ между лейблом и полем ввода */
+    text-align: right; /* Выравнивание текста лейбла справа */
+    font-weight: bold;
+}
+
+.form_group select,
+input[type="text"] {
+    flex: 1; /* Поля занимают оставшееся пространство */
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
 }
