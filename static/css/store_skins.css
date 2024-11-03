@@ -79,10 +79,10 @@ h3 {
     display: none;
 }
 
-.account_name {
+.accounts_data {
     display: flex;
-    flex-direction: column; /* Группы элементов идут в столбик */
-    max-width: 300px; /* Ограничиваем ширину формы */
+    flex-direction: column;
+    max-width: 300px;
 }
 
 .form_group {
@@ -104,4 +104,12 @@ input[type="text"] {
     padding: 5px;
     border: 1px solid #ccc;
     border-radius: 4px;
+}
+
+.server1 {
+    display: none;
+}
+
+.account_name1 {
+    display: none;
 }

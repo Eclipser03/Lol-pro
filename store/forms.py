@@ -315,10 +315,10 @@ class SkinsOrderForm(forms.ModelForm):
     )
 
     server = forms.ChoiceField(
-        choices=[('1', 'EU WEST'), ('0', 'RUSSIA')], widget=forms.Select(attrs={'id': 'server'})
+        choices=[('EU WEST', 'EU WEST'), ('RUSSIA', 'RUSSIA')], widget=forms.Select(attrs={'class': 'server1'})
     )
     account_name = forms.CharField(
-        widget=forms.TextInput(attrs={'class': 'acountname'}))
+        widget=forms.TextInput(attrs={'class': 'account_name1'}))
 
     price_char = forms.IntegerField(required=False)
     price_skin = forms.IntegerField(required=False)
@@ -331,6 +331,9 @@ class SkinsOrderForm(forms.ModelForm):
             'user',
             'price_char',
             'price_skin',
+            'server',
+            'account_name',
+
         }
 
     def clean(self):

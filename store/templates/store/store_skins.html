@@ -11,17 +11,17 @@
     </div>
     <div class="skins" id="skins"></div>
     <div class="buttons">
-      <div class="account_name">
+      <div class="accounts_data">
         <div class="form_group">
           <label for="name">Сервер:</label>
           <select id="server">
-            <option>EU WEST</option>
-            <option>RUSSIA</option>
+            <option value="EU WEST">EU WEST</option>
+            <option value="RUSSIA">RUSSIA</option>
           </select>
         </div>
         <div class="form_group">
           <label for="name">Ник в игре:</label>
-        <input type="text">
+          <input id="account_name" type="text" value="{{ user.game_username }}">
         </div>
       </div>
       <form action="{% url 'store:store_skins' %}" method='post'>
@@ -29,6 +29,13 @@
       <div>
         {{ skinorder_form.char_name }}
         <!-- <input class="char1name"/> -->
+         {{ skinorder_form.server }}
+         {{ skinorder_form.account_name }}
+        <!-- <select id="server1">
+          <option>EU WEST</option>
+          <option>RUSSIA</option>
+        </select>
+        <input id="account_name1" type="text"> -->
         <h3 class="price_char">Цена: 200 руб.</h3>
         <button type='sumbit' class="button">Купить персонажа</button>
       </div>
@@ -38,6 +45,13 @@
       <div>
         {{ skinorder_form.skin_name }}
         <!-- <input class="skin1name"/> -->
+        {{ skinorder_form.server }}
+        {{ skinorder_form.account_name }}
+        <!-- <select id="server1">
+          <option>EU WEST</option>
+          <option>RUSSIA</option>
+        </select>
+        <input id="account_name1" type="text"> -->
         <h3 class="price_skin">Цена: 0 руб.</h3>
         <button type='sumbit' class="button1">Купить образ</button>
       </div>
@@ -53,6 +67,14 @@
     const char1NameElem = document.getElementsByClassName("char1name")[0]
     const skin1NameElem = document.getElementsByClassName("skin1name")[0]
     const buttonElem = document.getElementsByClassName("price_skin")[0]
+    const ServerElem = document.getElementById("server")
+    const AccountNameElem = document.getElementById("account_name")
+    const formServerElem = document.getElementsByClassName("server1")[0]
+    const formAccountNameElem = document.getElementsByClassName("account_name1")[0]
+    const formServerElem1 = document.getElementsByClassName("server1")[1]
+    const formAccountNameElem1 = document.getElementsByClassName("account_name1")[1]
+    console.log(formServerElem)
+
 
     let name2price = {}
     let skin2price = {}
@@ -100,13 +122,38 @@
 
         else {
           totalPriceSkinElem.textContent = 0 + " руб."
-          buttonElem.disable = true
+          buttonElem.disabled = true;
         }
 
       }
     });
 
     window.char_name = "Азир";
+
+    const accountName = AccountNameElem.value;
+    formAccountNameElem.value = accountName;
+    formAccountNameElem1.value = accountName;
+
+    // Функция для обработки изменений сервера
+    ServerElem.addEventListener("change", function() {
+      const selectedServer = ServerElem.value;
+      formServerElem.value = selectedServer;
+      formServerElem1.value = selectedServer;
+
+      console.log("Выбран сервер:", selectedServer); // выводим выбранный сервер в консоль
+      // Заполняем значение в нужной переменной или элементе JavaScript
+      // например, server = selectedServer;
+    });
+
+    // Функция для обработки изменений имени аккаунта
+      AccountNameElem.addEventListener("input", function() {
+      const accountName = AccountNameElem.value;
+      formAccountNameElem.value = accountName;
+      formAccountNameElem1.value = accountName;
+      console.log("Введено имя аккаунта:", accountName); // выводим введенное имя в консоль
+      // Заполняем значение в нужной переменной или элементе JavaScript
+      // например, accountNameValue = accountName;
+    });
 
 
   </script>

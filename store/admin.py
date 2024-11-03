@@ -8,4 +8,7 @@ from store.models import BoostOrder, Coupon, Qualification, SkinsOrder
 admin.site.register(Coupon)
 admin.site.register(BoostOrder)
 admin.site.register(Qualification)
-admin.site.register(SkinsOrder)
+
+@admin.register(SkinsOrder)
+class SkinOrderAdmid(admin.ModelAdmin):
+    readonly_fields = ('created_at',)
