@@ -98,20 +98,20 @@ def calculate_boost(data):
     print(int(price), time)
     return int(price)
 
+
 def calculate_qualification(data):
     price_rank = {
-        0 : {'price': 160}, #unranked
-        1: {'price': 160}, #iron
-        2: {'price': 160}, #bronze
-        3: {'price': 180}, #silver
-        4: {'price': 200}, #gold
-        5: {'price': 220}, #platina
-        6: {'price': 250}, #emerald
-        7: {'price': 280}, #diamond
-        8: {'price': 300}, #master
-        9: {'price': 350}, #grandmaster
+        0: {'price': 160},  # unranked
+        1: {'price': 160},  # iron
+        2: {'price': 160},  # bronze
+        3: {'price': 180},  # silver
+        4: {'price': 200},  # gold
+        5: {'price': 220},  # platina
+        6: {'price': 250},  # emerald
+        7: {'price': 280},  # diamond
+        8: {'price': 300},  # master
+        9: {'price': 350},  # grandmaster
     }
-    print('data-----', data)
     price = 0
     time = 0
 
@@ -130,5 +130,4 @@ def calculate_qualification(data):
 
     if data.get('coupon_code'):
         price = price - (price * coupon.sale) / 100
-    print(int(price))
     return int(price)

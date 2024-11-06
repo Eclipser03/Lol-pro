@@ -1,6 +1,7 @@
 from django.views.generic import ListView
 
 from news.models import News
+from news.services import parse_news
 
 
 # Create your views here.
@@ -14,6 +15,7 @@ class NewsView(ListView):
     model = News
     context_object_name = 'news_items'
     ordering = ('-date_published',)
+    # parse_news()
 
     # def get_context_data(self, **kwargs):
     # context = super().get_context_data(**kwargs)  # Получаем стандартный контекст

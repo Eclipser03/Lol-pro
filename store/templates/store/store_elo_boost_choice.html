@@ -131,13 +131,14 @@
         <h3>ИТОГОВАЯ ЦЕНА: <span id="total-price"></span> руб.</h3>
         {{ store_form.total_time }}
         {{ store_form.total_price }}
-        <button type="submit">КУПИТЬ</button>
+        <button id="button_buy" type="submit">КУПИТЬ</button>
       </div>
       <div class="description">
         <p>Выбирая данную услугу вы гарантированно получаете желаемый ранг на вашем сервере. Заказы принимаем во всех очередях: Solo/Duo и Flex 5v5. Выбор расположения заклинаний, Offline статус, и пожелания по VPN – доступны бесплатно. Если вы хотите приобрести повышение аккаунта до Challenger лиги обратитесь к нашему оператору.</p>
       </div>
       </div>
     </form>
+    <div id="couponMessage" style="display: none;" class="coupon-message"></div>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
           let discount = 0; // Процент скидки
@@ -161,6 +162,8 @@
           const formTotalPriceElem = document.getElementById("total-price-form");
           const formTotalTimeElem = document.getElementById("total-time-form");
           const discountElem = document.getElementById("discount-value");
+          const messagesDiv = document.getElementById("messages-container");
+          const buttonBuy = document.getElementById("button_buy")
 
 
 
@@ -505,6 +508,7 @@
           specificRole.addEventListener("change", calculatePrice);
           duoBooster.addEventListener("change", calculatePrice);
 
+          var Flag = false
           // Применение купона
           applyCouponBtn.addEventListener("click", function () {
               couponValue = couponInput.value
@@ -518,18 +522,63 @@
               })
               .then(res => res.json())
               .then(data => {
+
+                const messageType = data.success ? "success" : "warning"
+
+                messagesDiv.innerHTML = '';
+
+                var message = document.createElement('div');
+                message.setAttribute('class', 'alert alert-' + messageType);
+                message.textContent = data.message
+                messagesDiv.appendChild(message)
+
+                  // Отображаем сообщение и задаем таймер для скрытия
+                messagesDiv.style.display = "block";
+                setTimeout(() => {
+                  messagesDiv.style.opacity = "0"; // Плавное исчезновение
+                  setTimeout(() => {
+                    messagesDiv.style.display = "none";
+                    messagesDiv.style.opacity = "1"; // Возвращаем видимость для будущих сообщений
+                  }, 500); // Время исчезновения (в миллисекундах)
+                }, 3000);
+
                 if (data.success) {
                   discount = data.discount;
                   discountElem.textContent = discount;
+                  Flag = true
+                  buttonBuy.disabled = false;
+                  couponInput.style.borderColor='#ddd'
                 } else {
-                  alert(data.message);
+                  // alert(data.message);
                   discount = 0;
                   discountElem.textContent = discount;
+                  couponInput.value = "";
+                  buttonBuy.disabled = false;
+                  couponInput.style.borderColor='#ddd'
                 }
                 calculatePrice();
           })
-          .catch(error => console.error('Ошибка:', 'Сервер не отвечает'));
+          .catch(error => console.error('Ошибка:', 'Сервер не отвечает', error));
           });
+
+          couponInput.addEventListener("input", function () {
+            console.log(couponInput.value, Flag)
+            if (couponInput.value !== "" || !Flag){
+              buttonBuy.disabled = true;
+              couponInput.style.borderColor='red'
+          }
+            if (couponInput.value === "") {
+              buttonBuy.disabled = false;
+              discount = 0;
+              discountElem.textContent = discount;
+              couponInput.style.borderColor='#ddd'
+          }
+        })
+
+          couponInput.addEventListener("change", function () {
+            calculatePrice();
+          })
+
 
           desiredDiv.value = 3
           currentDiv.value = 3

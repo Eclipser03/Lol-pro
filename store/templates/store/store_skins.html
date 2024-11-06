@@ -66,13 +66,14 @@
     const totalPriceSkinElem = document.getElementsByClassName("price_skin")[0]
     const char1NameElem = document.getElementsByClassName("char1name")[0]
     const skin1NameElem = document.getElementsByClassName("skin1name")[0]
-    const buttonElem = document.getElementsByClassName("price_skin")[0]
+    const buttonElem = document.getElementsByClassName("button1")[0]
     const ServerElem = document.getElementById("server")
-    const AccountNameElem = document.getElementById("account_name")
+    const аccountNameElem = document.getElementById("account_name")
     const formServerElem = document.getElementsByClassName("server1")[0]
     const formAccountNameElem = document.getElementsByClassName("account_name1")[0]
     const formServerElem1 = document.getElementsByClassName("server1")[1]
     const formAccountNameElem1 = document.getElementsByClassName("account_name1")[1]
+    const buttonBuyChar = document.getElementsByClassName("button")[0];
     console.log(formServerElem)
 
 
@@ -104,35 +105,52 @@
         if (price) {
           totalPriceCharElem.textContent = price + " руб."
         }
-
+        totalPriceSkinElem.textContent = 0 + " руб.";
+        buttonElem.disabled = true;
+        buttonElem.style.backgroundColor = "#ccc";
+        buttonElem.style.cursor = "not-allowed";
+        buttonElem.style.border = "1px solid #999";
       }
     });
-
+    buttonElem.disabled = true;
+    buttonElem.style.backgroundColor = "#ccc";
+    buttonElem.style.cursor = "not-allowed";
+    buttonElem.style.border = "1px solid #999";
     // Цена образа
     Object.defineProperty(window, 'skin_name', {
       set: function(value) {
         console.log('set!', value);
         skin1NameElem.value = value
         console.log('skin --', skin1NameElem)
+
         let price = skin2price[value]
         console.log(skin2price[value])
         if (price) {
           totalPriceSkinElem.textContent = price + " руб."
+          buttonElem.disabled = false;
+          buttonElem.style.backgroundColor = "";
+          buttonElem.style.cursor = "";
+          buttonElem.style.border = "";
         }
 
         else {
-          totalPriceSkinElem.textContent = 0 + " руб."
+          totalPriceSkinElem.textContent = 0 + " руб.";
           buttonElem.disabled = true;
+          buttonElem.style.backgroundColor = "#ccc";
+          buttonElem.style.cursor = "not-allowed";
+          buttonElem.style.border = "1px solid #999";
         }
-
       }
+
     });
 
     window.char_name = "Азир";
 
-    const accountName = AccountNameElem.value;
+    const accountName = аccountNameElem.value;
     formAccountNameElem.value = accountName;
     formAccountNameElem1.value = accountName;
+
+
 
     // Функция для обработки изменений сервера
     ServerElem.addEventListener("change", function() {
@@ -146,14 +164,32 @@
     });
 
     // Функция для обработки изменений имени аккаунта
-      AccountNameElem.addEventListener("input", function() {
-      const accountName = AccountNameElem.value;
+      аccountNameElem.addEventListener("input", function() {
+      const accountName = аccountNameElem.value;
       formAccountNameElem.value = accountName;
       formAccountNameElem1.value = accountName;
       console.log("Введено имя аккаунта:", accountName); // выводим введенное имя в консоль
       // Заполняем значение в нужной переменной или элементе JavaScript
       // например, accountNameValue = accountName;
     });
+
+    // Функция для проверки, заполнено ли поле с именем аккаунта
+function validateAccountName() {
+  const accountName = аccountNameElem.value.trim();
+
+  // Проверяем, пустое ли поле
+  if (accountName === "") {
+    аccountNameElem.style.border = "3px solid red"; // Подсвечиваем рамку красным
+  } else {
+    аccountNameElem.style.borderColor = ""; // Убираем подсветку рамки
+  }
+}
+
+// Слушаем изменения в поле с именем аккаунта
+аccountNameElem.addEventListener("input", validateAccountName);
+
+// Первоначальная проверка при загрузке страницы
+validateAccountName();
 
 
   </script>

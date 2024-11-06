@@ -55,13 +55,15 @@
   {%endblock%}
   {% block scripts %}
   {% endblock %}
-  {% if messages %}
+
   <div id="messages-container">
+    {% if messages %}
       {% for message in messages %}
           <div class="alert alert-{{ message.tags }}">{{ message }}</div>
       {% endfor %}
+      {% endif %}
   </div>
-{% endif %}
+
 
 
 <script>

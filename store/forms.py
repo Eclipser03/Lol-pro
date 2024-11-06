@@ -1,8 +1,11 @@
+from email import message
 import json
 import os
+
 from django import forms
-from django.core.validators import MaxValueValidator, MinValueValidator
 from django.conf import settings
+from django.core.validators import MaxValueValidator, MinValueValidator
+
 from store.models import BoostOrder, Coupon, Qualification, SkinsOrder
 from store.services import calculate_boost, calculate_qualification
 
@@ -175,12 +178,12 @@ class BoostOrderForms(forms.ModelForm):
         cleaned_data['server'] = server_choice[cleaned_data['server']]
         cleaned_data['queue_type'] = queue[cleaned_data['queue_type']]
         cleaned_data['user'] = self.request.user
-        print(cleaned_data['user'])
+        print('USER---', cleaned_data['user'])
 
         return cleaned_data
 
     def save(self, commit=True):
-        super().save(commit=False)
+        super().save(commit=True)
 
         if self.instance.coupon_code:
             self.instance.coupon_code.count -= 1
@@ -189,8 +192,13 @@ class BoostOrderForms(forms.ModelForm):
         return self.instance
 
 
-
 class QualificationForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        # Извлекаем объект request, если он был передан, и сохраняем его в атрибуте self.request
+        self.request = kwargs.pop('request', None)
+        # Вызываем оригинальный метод __init__ у родительского класса для инициализации формы
+        super().__init__(*args, **kwargs)
+
     previous_position = forms.ChoiceField(
         choices=[
             ('9', 'GRANDMASTER'),
@@ -271,7 +279,11 @@ class QualificationForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        print('clean data', cleaned_data)
+
+        if self.request and self.request.user.is_authenticated:
+            cleaned_data['user'] = self.request.user
+        else:
+            raise forms.ValidationError('Пользователь не авторизован или отсутствует.')
 
         coupon = cleaned_data.pop('coupon_code')
         if coupon:
@@ -286,13 +298,13 @@ class QualificationForm(forms.ModelForm):
         cleaned_data['previous_position'] = pre_position[cleaned_data['previous_position']]
         cleaned_data['server'] = server_choice[cleaned_data['server']]
         cleaned_data['queue_type'] = queue[cleaned_data['queue_type']]
-        cleaned_data['user'] = self.request.user
-        print('USERRR---', cleaned_data['user'])
+        # cleaned_data['user'] = self.request.user
+        # print('USERRR---', cleaned_data['user'])
 
         return cleaned_data
 
     def save(self, commit=True):
-        super().save(commit=False)
+        super().save(commit=True)
 
         if self.instance.coupon_code:
             self.instance.coupon_code.count -= 1
@@ -302,23 +314,19 @@ class QualificationForm(forms.ModelForm):
 
 
 class SkinsOrderForm(forms.ModelForm):
-    char_name = forms.CharField(
-        widget=forms.TextInput(attrs={'class': 'char1name'}), required=False
-    )
+    char_name = forms.CharField(widget=forms.TextInput(attrs={'class': 'char1name'}), required=False)
 
-    skin_name = forms.CharField(
-        widget=forms.TextInput(attrs={'class': 'skin1name'}), required=False
-    )
+    skin_name = forms.CharField(widget=forms.TextInput(attrs={'class': 'skin1name'}), required=False)
 
     user = forms.CharField(
         required=False,
     )
 
     server = forms.ChoiceField(
-        choices=[('EU WEST', 'EU WEST'), ('RUSSIA', 'RUSSIA')], widget=forms.Select(attrs={'class': 'server1'})
+        choices=[('EU WEST', 'EU WEST'), ('RUSSIA', 'RUSSIA')],
+        widget=forms.Select(attrs={'class': 'server1'}),
     )
-    account_name = forms.CharField(
-        widget=forms.TextInput(attrs={'class': 'account_name1'}))
+    account_name = forms.CharField(widget=forms.TextInput(attrs={'class': 'account_name1'}))
 
     price_char = forms.IntegerField(required=False)
     price_skin = forms.IntegerField(required=False)
@@ -333,14 +341,11 @@ class SkinsOrderForm(forms.ModelForm):
             'price_skin',
             'server',
             'account_name',
-
         }
 
     def clean(self):
         cleaned_data = super().clean()
         print(cleaned_data)
-
-
 
         if cleaned_data['char_name']:
             json_path = os.path.join(settings.BASE_DIR, 'static', 'chars', 'assets', 'name2price.json')

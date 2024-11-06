@@ -9,18 +9,21 @@ def parse_news():
     from datetime import datetime  # Импортируем datetime для работы с датами
 
     from selenium import webdriver  # Импортируем webdriver для управления браузером
-    from selenium.webdriver.edge.options import (
-        Options as EdgeOptions,  # Импортируем настройки Edge для создания экземпляра браузера
-    )
+
+    # from selenium.webdriver.edge.options import (
+    #     Options as EdgeOptions,  # Импортируем настройки Edge для создания экземпляра браузера
+    # )
+    from selenium.webdriver.chrome.options import Options
 
     from news.models import News  # Импортируем модель News для записи данных в базу данных
 
     # Устанавливаем параметры для Edge, чтобы отключить ненужные логи
-    options = EdgeOptions()
+    options = Options()
     options.add_experimental_option('excludeSwitches', ['enable-logging'])
 
     # Создаем экземпляр браузера Edge с заданными настройками
-    driver = webdriver.Edge(options=options)
+    # driver = webdriver.Edge(options=options)
+    driver = webdriver.Chrome(options=options)
 
     # Переходим на страницу новостей League of Legends
     driver.get('https://www.leagueoflegends.com/ru-ru/news/game-updates/')
