@@ -130,4 +130,7 @@ def calculate_qualification(data):
 
     if data.get('coupon_code'):
         price = price - (price * coupon.sale) / 100
-    return int(price)
+    if data['server'] == '0.8':
+        price *= 0.8
+    print('прайс---',int(price), price)
+    return round(price)

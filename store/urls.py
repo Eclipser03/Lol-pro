@@ -6,6 +6,7 @@ from store.views import (
     PlacementMatchesView,
     StoreEloBoostChoiceView,
     StoreEloBoostView,
+    StoreRPView,
     StoreSkinsView,
     StoreView,
     check_coupon,
@@ -21,6 +22,7 @@ urlpatterns = [
     path('placement-matches/', PlacementMatchesView.as_view(), name='placement_matches'),
     path('check-coupon/', check_coupon),
     path('store-skins/', StoreSkinsView.as_view(), name='store_skins'),
+    path('store-rp/', StoreRPView.as_view(), name='store_rp'),
 ]
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

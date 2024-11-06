@@ -1,0 +1,84 @@
+{% extends "store/store_base.html" %}
+{% load static %}
+{% block extra_head%}
+    <link rel="stylesheet" href="{% static 'css/store_rp.css'%}">
+
+{% endblock %}
+{% block extra_content %}
+  <h2>Купить RP</h2>
+  <h3>по выгодной цене</h3>
+
+  <form action="{% url 'store:store_rp' %}" method="post">
+  {% csrf_token %}
+
+  <!-- Конвертация валюты -->
+  <div class="input-group">
+      <div class="inputs">
+        <label for="get-rp">Получу:</label>
+        {{ rp_form.rp }}
+        <!-- <input type="number" id="get-rp" placeholder="Введите RP" oninput="convertCurrency()"> -->
+      </div>
+      <span class="arrow-icon">&#8644;</span>
+      <div class="inputs">
+        <label for="pay-rubles">Заплачу:</label>
+        {{ rp_form.price_rub }}
+        <!-- <input type="text" id="pay-rubles" placeholder="Стоимость в рублях" disabled> -->
+      </div>
+
+
+  </div>
+
+  <!-- Ник персонажа -->
+   <div class="server-name">
+    <div class="nickname-group">
+      <label for="name">Сервер:</label>
+      {{ rp_form.server }}
+      <!-- <select id="server">
+        <option value="EU WEST">EU WEST</option>
+        <option value="RUSSIA">RUSSIA</option>
+      </select> -->
+  </div>
+  <div class="nickname-group">
+      <label for="character-nickname">Ник аккаунта:</label>
+      {{ rp_form.account_name }}
+      <!-- <input type="text" id="character-nickname" placeholder="Введите ник"> -->
+  </div>
+   </div>
+
+
+  <!-- Кнопка покупки -->
+  <button type='sumbit' class="buy-button" id="buy-button" onclick="buyRP()">Купить</button>
+</form>
+<script>
+  const conversionRate = 0.23;  // 1 RP = 0.23 рубля
+
+  // Функция для конвертации валюты
+  function convertCurrency() {
+      const rpInput = document.getElementById("get-rp");
+      const rublesInput = document.getElementById("pay-rubles");
+
+      // Получаем введенное значение RP
+      const rpAmount = parseFloat(rpInput.value);
+
+      // Если значение RP корректное, рассчитываем рубли
+      if (!isNaN(rpAmount) && rpAmount >= 0) {
+          rublesInput.value = (rpAmount * conversionRate).toFixed(2) + " руб.";
+      } else {
+          rublesInput.value = '';
+      }
+  }
+
+  // Функция для обработки кнопки "Купить"
+  function buyRP() {
+      const rpAmount = document.getElementById("get-rp").value;
+      const rublesAmount = document.getElementById("pay-rubles").value;
+      const nickname = document.getElementById("character-nickname").value;
+
+      //if (rpAmount && rublesAmount && nickname) {
+          //alert(`Вы купили ${rpAmount} RP за ${rublesAmount} рублей! Ваш ник: ${nickname}`);
+      //} else {
+          //alert("Пожалуйста, заполните все поля.");
+      //}
+  }
+</script>
+{% endblock %}

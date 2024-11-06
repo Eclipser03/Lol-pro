@@ -1,4 +1,3 @@
-from email import message
 import json
 import os
 
@@ -6,7 +5,7 @@ from django import forms
 from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 
-from store.models import BoostOrder, Coupon, Qualification, SkinsOrder
+from store.models import BoostOrder, Coupon, Qualification, RPorder, SkinsOrder
 from store.services import calculate_boost, calculate_qualification
 
 
@@ -361,3 +360,64 @@ class SkinsOrderForm(forms.ModelForm):
         cleaned_data['user'] = self.request.user
 
         return cleaned_data
+
+
+class RPorderForm(forms.ModelForm):
+    rp = forms.IntegerField(
+        widget=forms.NumberInput(
+            attrs={
+                'id': 'get-rp',
+                'placeholder': 'Введите RP',
+                'type': 'number',
+                'oninput': 'convertCurrency()',
+            }
+        ),
+        min_value=0,
+    )
+    price_rub = forms.IntegerField(
+        required=False,
+        widget=forms.TextInput(
+            attrs={
+                'id': 'pay-rubles',
+                'placeholder': 'Стоимость в рублях',
+            }
+        ),
+    )
+
+    server = forms.ChoiceField(
+        choices=[('EU WEST', 'EU WEST'), ('RUSSIA', 'RUSSIA')],
+        widget=forms.Select(attrs={'id': 'server'}),
+    )
+    account_name = forms.CharField(
+        widget=forms.TextInput(attrs={'id': 'character-nickname', 'placeholder': 'Введите ник'})
+    )
+
+    class Meta:
+        model = RPorder
+        fields = {
+            'rp',
+            'price_rub',
+            'server',
+            'account_name',
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        print('КЛЕЕНАН ДАТА---',cleaned_data)
+        cleaned_data['price_rub'] = cleaned_data['rp'] * 0.23
+        return cleaned_data
+
+    def save(self, commit=True, user=None):
+        instance = super().save(commit=False)
+        if user:
+            instance.user = user  # Устанавливаем пользователя перед сохранением
+        if commit:
+            instance.save()
+        return instance
+
+        # rp_order = super().save(commit=False)
+        # if user is not None:
+        #     rp_order.user = user
+        # if commit:
+        #     rp_order.save()
+        # return rp_order

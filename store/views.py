@@ -1,4 +1,5 @@
 import json
+import time
 import uuid
 
 from django.contrib import messages
@@ -8,7 +9,7 @@ from django.template.loader import render_to_string
 from django.utils import timezone
 from django.views.generic import TemplateView
 
-from store.forms import BoostOrderForms, QualificationForm, SkinsOrderForm
+from store.forms import BoostOrderForms, QualificationForm, RPorderForm, SkinsOrderForm
 from store.models import Coupon
 from user.tasks import send_email_task
 
@@ -162,3 +163,35 @@ class StoreSkinsView(TemplateView):
                     messages.error(request, text)
             return render(request, self.template_name, {'skinorder_form': form})
         return redirect('store:store_skins')
+
+class StoreRPView(TemplateView):
+    template_name = 'store/store_rp.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['rp_form'] = RPorderForm()
+        return context
+
+    def post(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            messages.warning(request, 'Пожалуйста, войдите в аккаунт, чтобы оформить заказ')
+            return redirect('user:login')
+
+        form = RPorderForm(request.POST)
+        print('реквестПОСТ---',request.POST)
+        print('реквест---',self.request)
+        if form.is_valid():
+            form.save(user=request.user)
+            messages.success(request, 'Покупка совершена успешно')
+        else:
+            # Отобразим ошибки формы, чтобы увидеть причину неудачи
+            print(form.errors)
+            errors = form.errors.values()
+            for error in errors:
+                for text in error:
+                    messages.error(request, text)
+            return render(request, self.template_name, {'rp_form': form})
+        return redirect('store:store_rp')
+
+
+

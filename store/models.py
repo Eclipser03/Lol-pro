@@ -208,3 +208,29 @@ class SkinsOrder(models.Model):
 
     def __str__(self):
         return f'Заказ скина или персонажа от {self.user.username}'
+
+
+class RPorder(models.Model):
+    SERVER_CHOISES = [('EU WEST', 'Вест'), ('RUSSIA', 'Россия')]
+    user = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='rp_orders',
+        verbose_name='Пользователь',
+    )
+
+    rp = models.IntegerField(verbose_name='Кол-во RP')
+    price_rub = models.IntegerField(verbose_name='Цена')
+    server = models.CharField(max_length=20, choices=SERVER_CHOISES, default='EU WEST', verbose_name='Сервер')
+    account_name = models.CharField(
+        max_length=50, verbose_name='Никнейм аккаунта', default='default_name'
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
+
+    class Meta:
+        verbose_name = 'Риот Поинты'
+        verbose_name_plural = 'Риот Поинты'
+
+    def __str__(self):
+        return f'Заказ Риот Поинтов от {self.user.username}'

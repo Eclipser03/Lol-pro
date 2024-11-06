@@ -234,7 +234,7 @@
           function setFormValues() {
             const { currentRank, desiredRank } = getQueryParams();
 
-             // Карта соответствий для рангов
+            // Карта соответствий для рангов
             const rankMap = {
                 "iron": "0",
                 "bronze": "1",
@@ -251,6 +251,7 @@
             if (currentRank && rankMap[currentRank] !== undefined) {
                 currentPos.value = rankMap[currentRank];
             }
+
 
             // Устанавливаем желаемую позицию
             if (desiredRank && rankMap[desiredRank] !== undefined) {
@@ -484,6 +485,15 @@
               updateDesiredOptions();
               calculatePrice();
               updateImage(currentPos.value, currentImage);
+
+              // Изменяем желаемую позицию, если она меньше текущей
+            if (parseInt(currentPos.value) > parseInt(desiredPos.value)) {
+              desiredPos.value = parseInt(currentPos.value) + 1; // Увеличиваем желаемую позицию на 1
+          }
+
+          updateImage(desiredPos.value, desiredImage);
+          
+            calculatePrice();
           });
 
           currentDiv.addEventListener("change", () => {
