@@ -1,0 +1,142 @@
+{% extends "store/store_base.html" %}
+{% load static %}
+{% block extra_head%}
+<link rel="stylesheet" href="{% static 'css/store_accounts.css' %}">
+{% endblock %}
+{% block extra_content %}
+<!-- <div class="container"> -->
+  <!-- Фильтры -->
+  <div class="filters">
+    <form method="GET" action="{% url 'store:store_accounts' %}">
+      <!-- Фильтр по серверу -->
+      <label for="server">Сервер:</label>
+      <select id="server" name="server">
+        <option value="all">Все</option>
+        <option value="EU West">EU West</option>
+        <option value="Russia">Russia</option>
+        <!-- Добавьте другие серверы, если нужно -->
+      </select>
+
+      <!-- Фильтр по рангу -->
+      <label for="rank">Ранг:</label>
+      <input type="text" id="rank" name="rank" placeholder="Укажите ранг">
+
+      <!-- Фильтр по количеству чемпионов -->
+      <label for="champions">Чемпионы:</label>
+      <input type="number" id="champions_min" name="champions_min" placeholder="От" min="0">
+      <input type="number" id="champions_max" name="champions_max" placeholder="До" min="0">
+
+      <!-- Фильтр по цене -->
+      <label for="price">Цена:</label>
+      <input type="number" id="price_min" name="price_min" placeholder="От" min="0">
+      <input type="number" id="price_max" name="price_max" placeholder="До" min="0">
+
+      <!-- Кнопка для применения фильтров -->
+      <button type="submit">Применить фильтры</button>
+    </form>
+
+    <!-- Кнопка для добавления аккаунта -->
+    <!-- <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addAccountModal">Добавить аккаунт</button> -->
+    <button class="btn" id="addaccount">Добавить аккаунт</button>
+  </div>
+
+  <!-- Заголовки столбцов -->
+  <div class="account-header">
+    <div class="account-server"><strong>Сервер:</strong></div>
+    <div class="account-description"><strong>Описание:</strong></div>
+    <div class="account-seller"><strong>Продавец:</strong></div>
+    <div class="account-price"><strong>Цена:</strong></div>
+  </div>
+
+  <!-- Список аккаунтов -->
+  <div class="account-list">
+    {% for account in accounts %}
+    <a href="{% url 'store:store_account_page' account.id %}" class="accounturl">
+      <div class="account-item">
+        <div class="account-server">{{ account.server }}</div>
+        <div class="account-description">{{ account.short_description }}</div>
+        <div class="account-seller">Продавец: {{ account.user.username }}</div>
+        <div class="account-price">Цена: {{ account.price }} руб.</div>
+      </div>
+    </a>
+
+
+
+    {% empty %}
+    <p>Нет доступных аккаунтов.</p>
+    {% endfor %}
+  </div>
+
+  <!-- Модальное окно для добавления аккаунта -->
+<div class="form_add_account">
+  <div class="form_addaccount">
+    <h2>Добавить аккаунт</h2>
+    <form action="{% url 'store:store_accounts' %}" method='post' enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="inputs">
+        <label>Сервер:</label>
+        {{ account_form.server }}
+        <label>Уровень аккаунта:</label>
+        {{ account_form.lvl }}
+        <label>Кол-во чемпионов:</label>
+        {{ account_form.champions }}
+        <label>Кол-во скинов:</label>
+        {{ account_form.skins }}
+        <label>Ранг:</label>
+        {{ account_form.rang }}
+        <label>Короткое описание:</label>
+        {{ account_form.short_description }}
+        <label>Полное описание:</label>
+        {{ account_form.description }}
+        <label>Цена:</label>
+        {{ account_form.price }}
+        <label>Изображение: (до 10 шт.)</label>
+        <div class="file-upload-wrapper">
+          <input type="file" id="file-input" name="images" multiple>
+          <label for="file-input" class="custom-file-label">Выберите файлы</label>
+          <div id="file-list"></div>
+      </div>
+        <!-- {{image_form.image}} -->
+      </div>
+      <div style="margin: 0 auto;width: 200px; width: min-content;">
+        <button class="savebtn" type="submit">Сохранить аккаунт</button>
+        <!-- <input class="login_submit" type="submit" value="Добавить аккаунт"> -->
+      </div>
+    </form>
+  </div>
+</div>
+
+
+
+<script>
+//Смена почты
+const addaccountBtn = document.getElementById("addaccount");
+const formAddAccount = document.querySelector(".form_add_account");
+const form1 = document.querySelector(".form_addaccount");
+// Открытие и закрытие формы по кнопке
+addaccountBtn.addEventListener("click", function(event) {
+  event.stopPropagation(); // Останавливаем событие, чтобы клик по кнопке не закрывал форму
+  formAddAccount.style.display = formAddAccount.style.display === "block" ? "none" : "block";
+});
+// Закрытие формы при клике вне ее
+document.addEventListener("click", function(event) {
+  if (formAddAccount.style.display === "block") {
+    // Проверяем, был ли клик вне формы
+    if (!form1.contains(event.target) && event.target !== addaccountBtn) {
+      formAddAccount.style.display = "none"; // Скрываем форму
+    }
+  }
+});
+
+document.getElementById('file-input').addEventListener('change', function() {
+  const fileList = document.getElementById('file-list');
+  fileList.innerHTML = "";  // Очищаем список перед добавлением новых файлов
+
+  Array.from(this.files).forEach(file => {
+      const listItem = document.createElement('div');
+      listItem.textContent = file.name;
+      fileList.appendChild(listItem);
+  });
+});
+</script>
+{% endblock %}

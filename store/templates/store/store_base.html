@@ -12,7 +12,7 @@
         <ul>
           <li><a href="{% url 'store:store_skins' %}">Персонажи</a></li>
           <li><a href="{% url 'store:store_rp' %}">RP</a></li>
-          <li><a href="#">Аккаунты</a></li>
+          <li><a href="{% url 'store:store_accounts'%}">Аккаунты</a></li>
           <li><a href="{% url 'store:store_skins' %}">Скины</a></li>
           <li><a href="{% url 'store:store_elo_boost' %}" class="{% if request.path == '/store-elo-boost/' %}active{% endif %} ">Буст</a></li>
 

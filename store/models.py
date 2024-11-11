@@ -1,5 +1,6 @@
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.forms import ValidationError
 
 from user.models import User
 
@@ -197,7 +198,9 @@ class SkinsOrder(models.Model):
     price_char = models.IntegerField(blank=True, null=True, verbose_name='Цена персонажа')
     price_skin = models.IntegerField(blank=True, null=True, verbose_name='Цена образа')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
-    server = server = models.CharField(max_length=20, choices=SERVER_CHOISES, default='EU WEST', verbose_name='Сервер')
+    server = server = models.CharField(
+        max_length=20, choices=SERVER_CHOISES, default='EU WEST', verbose_name='Сервер'
+    )
     account_name = models.CharField(
         max_length=50, verbose_name='Никнейм аккаунта', default='default_name'
     )
@@ -222,7 +225,9 @@ class RPorder(models.Model):
 
     rp = models.IntegerField(verbose_name='Кол-во RP')
     price_rub = models.IntegerField(verbose_name='Цена')
-    server = models.CharField(max_length=20, choices=SERVER_CHOISES, default='EU WEST', verbose_name='Сервер')
+    server = models.CharField(
+        max_length=20, choices=SERVER_CHOISES, default='EU WEST', verbose_name='Сервер'
+    )
     account_name = models.CharField(
         max_length=50, verbose_name='Никнейм аккаунта', default='default_name'
     )
@@ -234,3 +239,105 @@ class RPorder(models.Model):
 
     def __str__(self):
         return f'Заказ Риот Поинтов от {self.user.username}'
+
+
+class AccountObject(models.Model):
+    SERVER_CHOISES = [('EU WEST', 'Вест'), ('RUSSIA', 'Россия')]
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='acounts_objects',
+        verbose_name='Продавец',
+    )
+
+    server = models.CharField(
+        max_length=20, choices=SERVER_CHOISES, default='EU WEST', verbose_name='Сервер'
+    )
+
+    lvl = models.IntegerField(verbose_name='Уровень')
+    champions = models.IntegerField(verbose_name='Количество чемпионов')
+    skins = models.IntegerField(verbose_name='Количество образов')
+    rang = models.CharField(max_length=20, default='Нет ранга', verbose_name='Ранг')
+    short_description = models.CharField(max_length=100, verbose_name='Короткое описание')
+    description = models.TextField(verbose_name='Описание', blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
+    is_active = models.BooleanField(default=False, verbose_name='Проверен')
+    price = models.IntegerField(verbose_name='Цена')
+
+    class Meta:
+        verbose_name = 'Продажа аккаунта'
+        verbose_name_plural = 'Продажа аккаунтов'
+
+    def __str__(self):
+        return f'Продажа аккаунта от {self.user.username}| Цена: {self.price} руб.| Id: {self.id} | Статус: {self.is_active}'
+
+
+class AccountsImage(models.Model):
+    account = models.ForeignKey(AccountObject, on_delete=models.CASCADE, related_name='images')
+    image = models.ImageField(upload_to='acounts_images/')
+
+    class Meta:
+        verbose_name = 'Изображение для аккаунта'
+        verbose_name_plural = 'Изображения для аккаунтов'
+
+    def __str__(self):
+        return f'Изображение аккаунта {self.account}'
+
+
+class AccountOrder(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='acounts_orders',
+        verbose_name='Покупатель',
+    )
+
+    account = models.OneToOneField(
+        AccountObject,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='account_order',
+        verbose_name='Аккаунт',
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
+
+    class Meta:
+        verbose_name = 'Заказ аккаунта'
+        verbose_name_plural = 'Заказы аккаунтов'
+
+    def __str__(self):
+        return f'Аккаунт - {self.account} | Покупатель - {self.user.username}'
+
+    def clean(self):
+        if self.account and self.user == self.account.user:
+            raise ValidationError('Покупатель не может быть продавцом этого аккаунта.')
+        super().clean()
+
+
+class ChatRoom(models.Model):
+    buyer = models.ForeignKey(User, on_delete=models.CASCADE, related_name="buyer_chat_rooms")
+    seller = models.ForeignKey(User, on_delete=models.CASCADE, related_name="seller_chat_rooms")
+
+    class Meta:
+        unique_together = ('buyer', 'seller')
+
+    def __str__(self):
+        return f'Чат между {self.buyer} и {self.seller}'
+
+
+class Message(models.Model):
+    chat_room = models.ForeignKey(ChatRoom, related_name='messages', on_delete=models.CASCADE)
+    author = models.ForeignKey(User, on_delete=models.CASCADE)
+    text = models.CharField(max_length=300)
+    created = models.DateTimeField(auto_now_add=True)
+
+
+    class Meta:
+        ordering = ['-created']
+
+    def __str__(self):
+        return f'{self.author.username} : {self.text}'

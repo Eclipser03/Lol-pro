@@ -1,7 +1,6 @@
 import json
-import time
 import uuid
-
+from django.shortcuts import get_object_or_404
 from django.contrib import messages
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
@@ -9,8 +8,15 @@ from django.template.loader import render_to_string
 from django.utils import timezone
 from django.views.generic import TemplateView
 
-from store.forms import BoostOrderForms, QualificationForm, RPorderForm, SkinsOrderForm
-from store.models import Coupon
+from store.forms import (
+    AccountObjectForm,
+    # AccountsImageForm,
+    BoostOrderForms,
+    QualificationForm,
+    RPorderForm,
+    SkinsOrderForm,
+)
+from store.models import AccountObject, AccountsImage, ChatRoom, Coupon
 from user.tasks import send_email_task
 
 
@@ -140,15 +146,15 @@ class StoreSkinsView(TemplateView):
         item_name = request.POST.get('skin_name') or request.POST.get('char_name')
 
         html_message = render_to_string(
-        'store/store_skins_email.html',
-        {
-            'mail_subject': mail_subject,
-            'username': request.user.username,
-            'purchase_type': purchase_type,
-            'item_name': item_name,
-            'key': key
-        }
-    )
+            'store/store_skins_email.html',
+            {
+                'mail_subject': mail_subject,
+                'username': request.user.username,
+                'purchase_type': purchase_type,
+                'item_name': item_name,
+                'key': key,
+            },
+        )
 
         if form.is_valid():
             form.save()
@@ -164,6 +170,7 @@ class StoreSkinsView(TemplateView):
             return render(request, self.template_name, {'skinorder_form': form})
         return redirect('store:store_skins')
 
+
 class StoreRPView(TemplateView):
     template_name = 'store/store_rp.html'
 
@@ -178,8 +185,8 @@ class StoreRPView(TemplateView):
             return redirect('user:login')
 
         form = RPorderForm(request.POST)
-        print('реквестПОСТ---',request.POST)
-        print('реквест---',self.request)
+        print('реквестПОСТ---', request.POST)
+        print('реквест---', self.request)
         if form.is_valid():
             form.save(user=request.user)
             messages.success(request, 'Покупка совершена успешно')
@@ -194,4 +201,54 @@ class StoreRPView(TemplateView):
         return redirect('store:store_rp')
 
 
+class StoreAccountsView(TemplateView):
+    template_name = 'store/store_accounts.html'
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['accounts'] = list(AccountObject.objects.filter(is_active=True))[::-1]
+
+        context['account_form'] = AccountObjectForm()
+        # context['image_form'] = AccountsImageForm()
+        # print('KANTEKST', context)
+        return context
+
+    def post(self, request, *args, **kwargs):
+        account_form = AccountObjectForm(request.POST, request.FILES)
+        images = request.FILES.getlist('images')
+        context = self.get_context_data(**kwargs)
+
+        if len(images) > 10:
+            account_form.add_error(None, 'Можно загрузить не более 10 изображений.')
+
+        if account_form.is_valid() and len(images) < 11:
+            account = account_form.save(user=request.user)
+            messages.success(request, 'Успешно! После проверки, покупатели смогут купить ваш аккаунт')
+
+            for image in images:
+                AccountsImage.objects.create(account=account, image=image)
+
+            return redirect('store:store_accounts')
+
+        errors = account_form.errors.values()
+        for error in errors:
+            for text in error:
+                messages.error(request, text)
+        return render(
+            request, self.template_name, {'account_form': account_form, 'accounts': context['accounts']}
+        )
+
+
+class StoreAccountPageView(TemplateView):
+    template_name = 'store/store_account_page.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        account = get_object_or_404(AccountObject, id=self.kwargs.get('id'))
+        context['account'] = account
+
+        user = self.request.user
+
+        chat_room, created = ChatRoom.objects.get_or_create(buyer=user, seller=account.user)
+        context['chat_room'] = chat_room
+        return context

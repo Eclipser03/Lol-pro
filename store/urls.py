@@ -4,6 +4,8 @@ from django.urls import path
 
 from store.views import (
     PlacementMatchesView,
+    StoreAccountPageView,
+    StoreAccountsView,
     StoreEloBoostChoiceView,
     StoreEloBoostView,
     StoreRPView,
@@ -23,6 +25,8 @@ urlpatterns = [
     path('check-coupon/', check_coupon),
     path('store-skins/', StoreSkinsView.as_view(), name='store_skins'),
     path('store-rp/', StoreRPView.as_view(), name='store_rp'),
+    path('store-accounts/', StoreAccountsView.as_view(), name='store_accounts'),
+    path('store-account-page/<int:id>/', StoreAccountPageView.as_view(), name='store_account_page'),
 ]
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

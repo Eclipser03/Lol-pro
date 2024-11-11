@@ -5,7 +5,15 @@ from django import forms
 from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 
-from store.models import BoostOrder, Coupon, Qualification, RPorder, SkinsOrder
+from store.models import (
+    AccountObject,
+    # AccountsImage,
+    BoostOrder,
+    Coupon,
+    Qualification,
+    RPorder,
+    SkinsOrder,
+)
 from store.services import calculate_boost, calculate_qualification
 
 
@@ -403,7 +411,7 @@ class RPorderForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        print('КЛЕЕНАН ДАТА---',cleaned_data)
+        print('КЛЕЕНАН ДАТА---', cleaned_data)
         cleaned_data['price_rub'] = cleaned_data['rp'] * 0.23
         return cleaned_data
 
@@ -415,9 +423,55 @@ class RPorderForm(forms.ModelForm):
             instance.save()
         return instance
 
-        # rp_order = super().save(commit=False)
-        # if user is not None:
-        #     rp_order.user = user
-        # if commit:
-        #     rp_order.save()
-        # return rp_order
+
+class AccountObjectForm(forms.ModelForm):
+    server = forms.ChoiceField(
+        choices=[('EU WEST', 'EU WEST'), ('RUSSIA', 'RUSSIA')],
+        widget=forms.Select(attrs={'id': 'server'}),
+    )
+
+    lvl = forms.IntegerField(widget=forms.NumberInput(attrs={}))
+    champions = forms.IntegerField(widget=forms.NumberInput(attrs={}))
+    skins = forms.IntegerField(widget=forms.NumberInput(attrs={}))
+    rang = forms.CharField(widget=forms.TextInput(attrs={}))
+    short_description = forms.CharField(widget=forms.TextInput(attrs={}))
+    description = forms.CharField(
+        widget=forms.Textarea(
+            attrs={'class':'description', 'rows': 4, 'cols': 50, 'placeholder': 'Введите полное описание здесь...'}
+        )
+    )
+    price = forms.IntegerField(widget=forms.TextInput(attrs={'id': 'total-price-form'}))
+
+    class Meta:
+        model = AccountObject
+        fields = [
+            'server',
+            'lvl',
+            'champions',
+            'skins',
+            'rang',
+            'short_description',
+            'description',
+            'price',
+        ]
+
+    def clean(self):
+        clean_data = super().clean()
+        print('КЛеаг ждата сюда:', clean_data)
+        images = self.files.getlist('images')
+        print('JORA-----', images)
+        return clean_data
+
+    def save(self, commit=True, user=None):
+        instance = super().save(commit=False)
+        if user:
+            instance.user = user  # Устанавливаем пользователя перед сохранением
+        if commit:
+            instance.save()
+        return instance
+
+
+# class AccountsImageForm(forms.ModelForm):
+#     class Meta:
+#         model = AccountsImage
+#         fields = ['image']

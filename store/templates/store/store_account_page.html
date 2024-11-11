@@ -1,0 +1,159 @@
+{% extends "user/base.html" %}
+{% load static %}
+{% block head %}
+  <link rel="stylesheet" href="{% static 'css/store_account_page.css' %}">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;700&display=swap" rel="stylesheet">
+{% endblock %}
+{% block content %}
+<div class="container">
+  <!-- Left Section: Order Information -->
+  <div class="order-info">
+    <div class="order-details">
+      <h1>🛒 Оформление заказа</h1>
+      <p><span class="icon">✔️</span>Автоматическая доставка</p>
+    </div>
+
+    <!-- Table with order details -->
+    <table class="order-table">
+      <tr>
+        <th>Сервер:</th>
+        <td>{{ account.server }}</td>
+        <th>Чемпионы:</th>
+        <td>{{ account.champions }}</td>
+      </tr>
+      <tr>
+        <th>Уровень:</th>
+        <td>{{ account.lvl }}</td>
+        <th>Ранг:</th>
+        <td>{{ account.rang }}</td>
+      </tr>
+      <tr>
+        <th>Скины:</th>
+        <td>{{ account.skins }}</td>
+      </tr>
+    </table>
+
+    <!-- Short description -->
+    <div class="description">
+      <h3>Краткое описание:</h3>
+      <p>{{ account.short_description }}</p>
+    </div>
+
+    <!-- Long description -->
+    <div class="long-description">
+      <h3>Полное описание:</h3>
+      <p>{{ account.description|linebreaksbr }}</p> <!-- Убрали лишнюю скобку -->
+    </div>
+
+    <div class="image-gallery">
+      {% if account.images %}
+        {% for image in account.images.all %}
+          <img src="{{ image.image.url }}" alt="Изображение аккаунта" class="thumbnail" onclick="openModal('{{ image.image.url }}')">
+        {% endfor %}
+      {% endif %}
+    </div>
+
+    <!-- Payment section -->
+    <div class="payment">
+      <p class="price">{{ account.price }} руб.</p>
+      <a href="#" class="btn">Купить</a>
+    </div>
+  </div>
+
+  <!-- Right Section: Seller Information -->
+  <div class="seller-info">
+    <h2>Продавец: {{ account.user.username }}</h2>
+    <h1>Чат с продавцом</h1>
+    <div id="chat-log"></div>
+    <input type="text" id="chat-message-input" autocomplete="off" placeholder="Введите сообщение...">
+    <button id="chat-message-submit">Отправить</button>
+  </div>
+</div>
+
+<!-- Modal for viewing large image -->
+<div id="imageModal" class="modal">
+  <span class="close" onclick="closeModal()">&times;</span>
+  <img class="modal-content" id="modalImage">
+  <a class="prev" onclick="changeImage(-1)">&#10094;</a>
+  <a class="next" onclick="changeImage(1)">&#10095;</a>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+  let chatRoomId = "{{ chat_room.id }}";  // Подставить правильный ID
+  let userId = "{{ request.user.id }}";   // Подставить ID пользователя
+  const wsUrl = 'ws://' + window.location.host + '/ws/chat/' + chatRoomId + '/';
+  console.log("WebSocket URL for user:", wsUrl);
+
+  // Создаем подключение WebSocket
+  let chatSocket = new WebSocket(wsUrl);
+
+  chatSocket.onopen = function() {
+      console.log('WebSocket connection opened');
+  };
+
+  chatSocket.onclose = function(e) {
+      console.log('WebSocket connection closed: ', e);
+  };
+
+  chatSocket.onerror = function(e) {
+      console.log('WebSocket error: ', e);
+  };
+
+  chatSocket.onmessage = function(e) {
+      const data = JSON.parse(e.data);
+      console.log('Message received:', data);
+
+      const message = data.message;
+      const senderId = data.sender_id;
+
+      const messageElement = document.createElement('div');
+      messageElement.textContent = (senderId == userId ? "Вы: " : "Продавец: ") + message;
+      document.querySelector('#chat-log').appendChild(messageElement);
+  };
+
+  document.querySelector('#chat-message-submit').onclick = function() {
+      const messageInput = document.querySelector('#chat-message-input');
+      const message = messageInput.value;
+      console.log('Sending message:', message);
+
+      chatSocket.send(JSON.stringify({
+          'message': message,
+          'sender_id': userId
+      }));
+
+      messageInput.value = '';
+  };
+
+  let currentImageIndex = 0;
+  let images = [];
+
+  // Функция для открытия модального окна с изображением
+  function openModal(imageUrl) {
+    const modal = document.getElementById("imageModal");
+    const modalImage = document.getElementById("modalImage");
+
+    images = Array.from(document.querySelectorAll('.thumbnail')).map(img => img.src);
+    currentImageIndex = images.indexOf(imageUrl);
+
+    modal.style.display = "block";
+    modalImage.src = imageUrl;
+  }
+
+  // Функция для закрытия модального окна
+  function closeModal() {
+    document.getElementById("imageModal").style.display = "none";
+  }
+
+  // Функция для смены изображений в модальном окне
+  function changeImage(direction) {
+    currentImageIndex += direction;
+    if (currentImageIndex < 0) {
+      currentImageIndex = images.length - 1; // Переход к последнему изображению
+    } else if (currentImageIndex >= images.length) {
+      currentImageIndex = 0; // Переход к первому изображению
+    }
+    document.getElementById("modalImage").src = images[currentImageIndex];
+  }
+</script>
+{% endblock %}
