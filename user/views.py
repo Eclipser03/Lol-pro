@@ -1,6 +1,5 @@
 from copy import copy
 
-from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import get_user_model, logout
 from django.contrib.auth.decorators import login_required
@@ -13,15 +12,16 @@ from django.contrib.auth.views import (
     PasswordResetView,
 )
 from django.contrib.sites.shortcuts import get_current_site
-from django.core.mail import send_mail
+from django.db.models import Count, Q
 from django.forms import model_to_dict
-from django.shortcuts import redirect
+from django.shortcuts import get_object_or_404, redirect
 from django.template.loader import render_to_string
 from django.urls import reverse_lazy
 from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
-from django.views.generic import CreateView
+from django.views.generic import CreateView, TemplateView
 
+from store.models import ChatRoom
 from user.forms import (
     CustomPasswordResetForm,
     CustomSetPasswordForm,
@@ -53,7 +53,7 @@ class MyLoginView(RedirectAuthUser, LoginView):
         else:
             # Сессия будет закрыта после закрытия браузера
             self.request.session.set_expiry(0)
- 
+
         return super().form_valid(form)
 
 
@@ -197,3 +197,28 @@ def confirm_email_change(request, uidb64, token, new_email_encoded):
     else:
         messages.error(request, 'Ссылка недействительна или устарела.')
         return redirect('user:profile')
+
+
+class MessagesView(TemplateView):
+    template_name = 'user/messages.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['chats'] = sorted(
+            ChatRoom.objects.annotate(count_messages=Count('messages')).filter(
+                Q(seller=self.request.user) | Q(buyer=self.request.user),
+                count_messages__gt=0,
+            ),
+            key=lambda chat: chat.messages.last().created,
+        )
+        chat_id = self.request.GET.get('chat_id')
+
+        if chat_id:
+            selected_chat = get_object_or_404(
+                ChatRoom, Q(seller=self.request.user) | Q(buyer=self.request.user), id=chat_id
+            )
+
+            context['selected_chat'] = selected_chat
+            # print('SUKA', selected_chat.messages)
+            # context['message'] = selected_chat.messages.all().order_by('created') if selected_chat else []
+        return context

@@ -247,8 +247,9 @@ class StoreAccountPageView(TemplateView):
         account = get_object_or_404(AccountObject, id=self.kwargs.get('id'))
         context['account'] = account
 
-        user = self.request.user
+        if self.request.user == account.user:
+            return context
 
-        chat_room, created = ChatRoom.objects.get_or_create(buyer=user, seller=account.user)
+        chat_room, created = ChatRoom.objects.get_or_create(buyer=self.request.user, seller=account.user)
         context['chat_room'] = chat_room
         return context

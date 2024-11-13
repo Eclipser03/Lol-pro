@@ -11,7 +11,7 @@ from user.views import (
     logout_user,
 )
 
-from .views import confirm_email_change
+from .views import MessagesView, confirm_email_change
 
 
 app_name = 'user'
@@ -28,6 +28,7 @@ urlpatterns = [
         confirm_email_change,
         name='confirm_email_change',
     ),
+    path('messages/', MessagesView.as_view(), name='messages'),
 ]
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

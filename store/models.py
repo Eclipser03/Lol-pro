@@ -326,7 +326,7 @@ class ChatRoom(models.Model):
         unique_together = ('buyer', 'seller')
 
     def __str__(self):
-        return f'Чат между {self.buyer} и {self.seller}'
+        return f'Чат между {self.buyer} и {self.seller} | номер: {self.id}'
 
 
 class Message(models.Model):
@@ -337,7 +337,7 @@ class Message(models.Model):
 
 
     class Meta:
-        ordering = ['-created']
+        ordering = ['created']
 
     def __str__(self):
         return f'{self.author.username} : {self.text}'

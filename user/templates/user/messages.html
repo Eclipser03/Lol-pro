@@ -1,0 +1,142 @@
+{% extends "store/store_base.html" %}
+{% load static %}
+{% block extra_head%}
+<link rel="stylesheet" href="{% static 'css/messages.css' %}">
+
+{% endblock %}
+{% block extra_content %}
+<div class="chat-container">
+  <!-- Секция списка чатов -->
+  <div class="chat-list">
+      <h3>Сообщения</h3>
+      {% for chat in chats %}
+        <a href="?chat_id={{ chat.id }}" class="chat-item {% if chat.id == chat_id %}active{% endif %}" data-chat-id="{{ chat.id }}">
+            <div class="avatar">FP</div>
+            <div class="chat-info">
+                <span class="username">{{ chat.messages.first.author }}</span>
+                <span class="last-message">{{ chat.messages.first.text }}</span>
+            </div>
+            <span class="timestamp">{{ chat.messages.first.created|date:"H:i" }}</span>
+        </a>
+      {% endfor %}
+  </div>
+
+  <!-- Секция окна чата -->
+  <div class="chat-window">
+      <div class="chat-header">
+          <div class="avatar">FP</div>
+          <div class="user-info">
+              <span class="username">{% if user == selected_chat.buyer %} {{ selected_chat.seller }} {% else %} {{ selected_chat.buyer }} {% endif %}</span>
+              <span class="status">Онлайн</span>
+          </div>
+      </div>
+      <div class="chat-messages">
+        {% for sms in selected_chat.messages.all %}
+        {% if sms.author == user %}
+          <div class="authormessage">
+            <p><span class="sender">Вы</span>: {{ sms.text }} <span class="time">{{ sms.created|date:"H:i" }}</span></p>
+          </div>
+        {% else %}
+          <div class="friendmessage">
+            <p><span class="sender">{{ sms.author.username }}</span>: {{ sms.text }} <span class="time">{{ sms.created|date:"H:i" }}</span></p>
+          </div>
+        {% endif %}
+      {% endfor %}
+      </div>
+      <div class="chat-input">
+          <input type="text" placeholder="Написать...">
+          <button class="send-btn">Отправить</button>
+      </div>
+  </div>
+</div>
+
+
+{% endblock %}
+{% block scripts %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+      // Получаем chat_id из параметра URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const currentChatId = urlParams.get("chat_id") || "{{ chats.last.id }}";  // Используем последний чат по умолчанию
+
+      // Инициализация WebSocket соединения
+      const protocol = window.location.protocol === "https:" ? "wss://" : "ws://";
+      const chatSocket = new WebSocket(protocol + window.location.host + '/ws/chat/' + currentChatId + '/');
+
+      chatSocket.onmessage = function (e) {
+          const data = JSON.parse(e.data);
+          const message = data.message;
+          const username = data.username || "Неизвестный пользователь";
+          const created = data.created;
+          
+          const currentUser = "{{ user.username }}";
+
+          if (message) {
+              // Отображаем новое сообщение
+              const chatMessages = document.querySelector(".chat-messages");
+              const messageElement = document.createElement("div");
+
+              // Определяем, кто автор сообщения и отображаем его
+              if (username === currentUser) {
+                  messageElement.classList.add("authormessage");
+                  messageElement.innerHTML = `<p><span class="sender">Вы</span>: ${message} <span class="time">${created}</span></p>`;
+              } else {
+                  messageElement.classList.add("friendmessage");
+                  messageElement.innerHTML = `<p><span class="sender">${username}</span>: ${message} <span class="time">${created}</span></p>`;
+              }
+
+              chatMessages.appendChild(messageElement);
+              chatMessages.scrollTop = chatMessages.scrollHeight; // Прокрутка вниз
+
+              // Обновляем последний чат в списке
+              updateLastMessageInChatList(currentChatId, message, created, username);
+          } else {
+              console.error("Message field is missing in data", data);
+          }
+      };
+
+      // Обновляем последний чат в левой колонке
+      function updateLastMessageInChatList(chatId, message, created, username) {
+          const chatItem = document.querySelector(`.chat-item[data-chat-id='${chatId}']`);
+          if (chatItem) {
+              const usernameElement = chatItem.querySelector(".username");
+              const lastMessageElement = chatItem.querySelector(".last-message");
+              const timestampElement = chatItem.querySelector(".timestamp");
+
+              usernameElement.textContent = username;
+              lastMessageElement.textContent = message;
+              timestampElement.textContent = created ? created : "Только что";
+          }
+      }
+
+      // Обработчик отправки сообщения
+      const inputField = document.querySelector(".chat-input input");
+      const sendButton = document.querySelector(".send-btn");
+
+      sendButton.onclick = function () {
+          const message = inputField.value;
+          if (message.trim() !== "") {
+              chatSocket.send(JSON.stringify({ 'message': message }));
+              inputField.value = "";  // Очистка поля ввода
+          }
+      };
+
+      // Подсветка активного чата при загрузке страницы
+      document.querySelectorAll('.chat-item').forEach(item => {
+          item.addEventListener('click', function() {
+              document.querySelectorAll('.chat-item').forEach(chat => chat.classList.remove('active'));
+              item.classList.add('active');
+          });
+      });
+
+      // Подсвечиваем активный чат по умолчанию при загрузке страницы
+      document.querySelectorAll('.chat-item').forEach(item => {
+          const chatId = item.getAttribute('data-chat-id');
+          if (chatId === currentChatId) {
+              item.classList.add('active');
+          }
+      });
+  });
+  </script>
+
+{% endblock %}
