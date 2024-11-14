@@ -250,6 +250,7 @@ class StoreAccountPageView(TemplateView):
         if self.request.user == account.user:
             return context
 
-        chat_room, created = ChatRoom.objects.get_or_create(buyer=self.request.user, seller=account.user)
-        context['chat_room'] = chat_room
+        if not self.request.user.is_anonymous:
+            chat_room, created = ChatRoom.objects.get_or_create(buyer=self.request.user, seller=account.user, account=account)
+            context['chat_room'] = chat_room
         return context

@@ -1,3 +1,4 @@
+from turtle import mode
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.forms import ValidationError
@@ -321,9 +322,10 @@ class AccountOrder(models.Model):
 class ChatRoom(models.Model):
     buyer = models.ForeignKey(User, on_delete=models.CASCADE, related_name="buyer_chat_rooms")
     seller = models.ForeignKey(User, on_delete=models.CASCADE, related_name="seller_chat_rooms")
+    account = models.ForeignKey(AccountObject, on_delete=models.CASCADE, related_name="acount_chat_rooms", default=2)
 
     class Meta:
-        unique_together = ('buyer', 'seller')
+        unique_together = ('buyer', 'seller', 'account')
 
     def __str__(self):
         return f'Чат между {self.buyer} и {self.seller} | номер: {self.id}'

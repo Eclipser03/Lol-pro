@@ -209,7 +209,7 @@ class MessagesView(TemplateView):
                 Q(seller=self.request.user) | Q(buyer=self.request.user),
                 count_messages__gt=0,
             ),
-            key=lambda chat: chat.messages.last().created,
+            key=lambda chat: chat.messages.last().created, reverse=True
         )
         chat_id = self.request.GET.get('chat_id')
 
@@ -219,6 +219,4 @@ class MessagesView(TemplateView):
             )
 
             context['selected_chat'] = selected_chat
-            # print('SUKA', selected_chat.messages)
-            # context['message'] = selected_chat.messages.all().order_by('created') if selected_chat else []
         return context

@@ -8,8 +8,9 @@ from .models import ChatRoom, Message
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.room_id = self.scope['url_route']['kwargs']['room_id']
-        # print('СЕЛФ СКОП---',self.scope, 'USUS', self.room_id)
-        self.room_group_name = f'chat_{self.room_id}'
+        self.account_id = self.scope['url_route']['kwargs']['account_id']
+        print('СЕЛФ СКОП---',self.scope, 'USUS', self.room_id)
+        self.room_group_name = f'chat_{self.room_id}_{self.account_id}'
 
         # Присоединяемся к группе
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)

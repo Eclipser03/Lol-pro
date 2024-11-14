@@ -10,13 +10,13 @@
   <div class="chat-list">
       <h3>Сообщения</h3>
       {% for chat in chats %}
-        <a href="?chat_id={{ chat.id }}" class="chat-item {% if chat.id == chat_id %}active{% endif %}" data-chat-id="{{ chat.id }}">
+        <a href="?chat_id={{ chat.id }}&account_id={{ chat.account.id }}" class="chat-item {% if chat.id == chat_id %}active{% endif %}" data-chat-id="{{ chat.id }}">
             <div class="avatar">FP</div>
             <div class="chat-info">
-                <span class="username">{{ chat.messages.first.author }}</span>
-                <span class="last-message">{{ chat.messages.first.text }}</span>
+                <span class="username">{{ chat.messages.last.author }}</span>
+                <span class="last-message">{{ chat.messages.last.text }}</span>
             </div>
-            <span class="timestamp">{{ chat.messages.first.created|date:"H:i" }}</span>
+            <span class="timestamp">{{ chat.messages.last.created|date:"H:i" }}</span>
         </a>
       {% endfor %}
   </div>
@@ -24,10 +24,15 @@
   <!-- Секция окна чата -->
   <div class="chat-window">
       <div class="chat-header">
-          <div class="avatar">FP</div>
+          {% if selected_chat.account.id %}
+          <img src="{% if user == selected_chat.buyer %} {{ selected_chat.seller.avatar.url }} {% else %} {{ selected_chat.buyer.avatar.url }} {% endif %}" alt="" class="avatar1">
+          {% endif %}
           <div class="user-info">
               <span class="username">{% if user == selected_chat.buyer %} {{ selected_chat.seller }} {% else %} {{ selected_chat.buyer }} {% endif %}</span>
-              <span class="status">Онлайн</span>
+              {% if selected_chat.account.id %}
+                <a href="{% url 'store:store_account_page' selected_chat.account.id %}"><span class="acc_name">{{ selected_chat.account.short_description }}</span></a>
+              {% endif %}
+
           </div>
       </div>
       <div class="chat-messages">
@@ -43,10 +48,12 @@
         {% endif %}
       {% endfor %}
       </div>
+      {% if selected_chat.messages %}
       <div class="chat-input">
           <input type="text" placeholder="Написать...">
           <button class="send-btn">Отправить</button>
       </div>
+      {% endif %}
   </div>
 </div>
 
@@ -58,17 +65,18 @@
       // Получаем chat_id из параметра URL
       const urlParams = new URLSearchParams(window.location.search);
       const currentChatId = urlParams.get("chat_id") || "{{ chats.last.id }}";  // Используем последний чат по умолчанию
+      const accountId = urlParams.get("account_id")
 
       // Инициализация WebSocket соединения
       const protocol = window.location.protocol === "https:" ? "wss://" : "ws://";
-      const chatSocket = new WebSocket(protocol + window.location.host + '/ws/chat/' + currentChatId + '/');
+      const chatSocket = new WebSocket(protocol + window.location.host + '/ws/chat/' + currentChatId + '/' + accountId + '/');
 
       chatSocket.onmessage = function (e) {
           const data = JSON.parse(e.data);
           const message = data.message;
           const username = data.username || "Неизвестный пользователь";
           const created = data.created;
-          
+
           const currentUser = "{{ user.username }}";
 
           if (message) {
@@ -95,6 +103,15 @@
           }
       };
 
+
+        // Прокручиваем чат до последнего сообщения при загрузке страницы
+      function scrollToBottom() {
+        const chatMessages = document.querySelector(".chat-messages");
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
+
+      scrollToBottom();
+
       // Обновляем последний чат в левой колонке
       function updateLastMessageInChatList(chatId, message, created, username) {
           const chatItem = document.querySelector(`.chat-item[data-chat-id='${chatId}']`);
@@ -120,6 +137,15 @@
               inputField.value = "";  // Очистка поля ввода
           }
       };
+
+      // Отправка по нажатию на Enter
+      inputField.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter' && !event.shiftKey) { // Проверяем, что Enter нажат без Shift
+            event.preventDefault(); // Предотвращаем добавление новой строки
+            sendButton.onclick()
+        }
+      });
+
 
       // Подсветка активного чата при загрузке страницы
       document.querySelectorAll('.chat-item').forEach(item => {

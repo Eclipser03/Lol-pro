@@ -84,8 +84,8 @@
     margin-left: 10px;
 }
 
-.status {
-    color: green;
+.acc_name {
+    color: #333;
     font-size: 0.9em;
 }
 
@@ -152,7 +152,7 @@
     color: white;
     border-radius: 20px;
     padding: 10px 15px;
-    width: max-content;
+    max-width: 70%;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     word-wrap: break-word;
     font-size: 14px;
@@ -236,7 +236,7 @@
 .avatar {
     width: 40px;
     height: 40px;
-    background-color: #007aff; /* Голубой цвет, как у Apple */
+    background-color: #007aff;
     color: white;
     font-size: 18px;
     border-radius: 50%;
@@ -245,6 +245,15 @@
     align-items: center;
     margin-right: 15px;
     font-weight: bold;
+}
+
+.avatar1 {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 /* Информация о чате */
@@ -268,6 +277,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    max-width: 100px;
 }
 
 .timestamp {

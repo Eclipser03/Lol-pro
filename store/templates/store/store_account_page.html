@@ -63,9 +63,31 @@
   <!-- Right Section: Seller Information -->
    {% if chat_room %}
   <div class="seller-info">
-    <h2>Продавец: {{ account.user.username }}</h2>
-    <h1>Чат с продавцом</h1>
-    <div id="chat-log"></div>
+    <div class="prew">
+      <img src="{{ account.user.avatar.url }}" alt="" class="avatar1">
+      <h2>Продавец: {{ account.user.username }}</h2>
+    </div>
+    <div class="chat-log">
+      {% for sms in chat_room.messages.all %}
+        {% if sms.author == user %}
+          <!-- Сообщение от текущего пользователя (вы) -->
+          <div class="message_you">
+            <p>
+              <span class="sender">Вы</span>: {{ sms.text }}</p>
+              <p><span class="time">{{ sms.created|date:"H:i" }}</span></p>
+
+          </div>
+        {% else %}
+          <!-- Сообщение от другого пользователя (например, продавца) -->
+          <div class="message_seller">
+            <p>
+              <span class="sender">{{ sms.author.username }}</span>: {{ sms.text }}</p>
+              <p><span class="time">{{ sms.created|date:"H:i" }}</span></p>
+
+          </div>
+        {% endif %}
+      {% endfor %}
+    </div>
     <input type="text" id="chat-message-input" autocomplete="off" placeholder="Введите сообщение...">
     <button id="chat-message-submit">Отправить</button>
   </div>
@@ -84,9 +106,12 @@
 {% block scripts %}
 <script>
   let chatRoomId = "{{ chat_room.id }}";  // Подставить правильный ID
-  let userId = "{{ request.user.id }}";   // Подставить ID пользователя
-  const wsUrl = 'ws://' + window.location.host + '/ws/chat/' + chatRoomId + '/';
+  let accountId = "{{ account.id }}"
+  let userId = "{{ request.user }}";   // Подставить ID пользователя
+  const wsUrl = 'ws://' + window.location.host + '/ws/chat/' + chatRoomId + '/' + accountId + '/';
   console.log("WebSocket URL for user:", wsUrl);
+  console.log("userID", userId)
+
 
   // Создаем подключение WebSocket
   let chatSocket = new WebSocket(wsUrl);
@@ -108,12 +133,40 @@
       console.log('Message received:', data);
 
       const message = data.message;
-      const senderId = data.sender_id;
+      const username = data.username;
+      const created = data.created;
 
-      const messageElement = document.createElement('div');
+      const currentUser = "{{ user.username }}";
+
+      if (message) {
+        const chatMessages = document.querySelector(".chat-log");
+        const messageElement = document.createElement('div');
+
+        if (username === currentUser) {
+          messageElement.classList.add("message_you");
+          messageElement.innerHTML = `<p><span class="sender">Вы</span>: ${message} <span class="time">${created}</span></p>`;
+        } else {
+          messageElement.classList.add("message_seller");
+          messageElement.innerHTML = `<p><span class="sender">${username}</span>: ${message} <span class="time">${created}</span></p>`;
+        }
+
+        chatMessages.appendChild(messageElement);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+
+      }
+
       messageElement.textContent = (senderId == userId ? "Вы: " : "Продавец: ") + message;
       document.querySelector('#chat-log').appendChild(messageElement);
   };
+
+
+  // Прокручиваем чат до последнего сообщения при загрузке страницы
+  function scrollToBottom() {
+    const chatMessages = document.querySelector(".chat-log");
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  scrollToBottom();
 
   document.querySelector('#chat-message-submit').onclick = function() {
       const messageInput = document.querySelector('#chat-message-input');
@@ -127,6 +180,7 @@
 
       messageInput.value = '';
   };
+
 
   let currentImageIndex = 0;
   let images = [];
@@ -143,6 +197,25 @@
     modalImage.src = imageUrl;
   }
 
+  // Отправка сообщения по Enter
+document.querySelector('#chat-message-input').addEventListener('keydown', function(event) {
+  if (event.key === 'Enter' && !event.shiftKey) {  // Проверка нажатия Enter без Shift
+      event.preventDefault();  // Предотвращаем добавление новой строки
+      const messageInput = document.querySelector('#chat-message-input');
+      const message = messageInput.value.trim();
+
+      if (message === '') return;  // Не отправлять пустое сообщение
+
+      console.log('Sending message:', message);
+
+      chatSocket.send(JSON.stringify({
+          'message': message,
+          'sender_id': userId
+      }));
+
+      messageInput.value = '';  // Очистить поле ввода после отправки
+  }
+});
   // Функция для закрытия модального окна
   function closeModal() {
     document.getElementById("imageModal").style.display = "none";
@@ -158,5 +231,6 @@
     }
     document.getElementById("modalImage").src = images[currentImageIndex];
   }
+
 </script>
 {% endblock %}
