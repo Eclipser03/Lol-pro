@@ -1,5 +1,7 @@
 import json
+from urllib import request
 import uuid
+from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404
 from django.contrib import messages
 from django.http import JsonResponse
@@ -206,11 +208,72 @@ class StoreAccountsView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['accounts'] = list(AccountObject.objects.filter(is_active=True))[::-1]
+        acounts = AccountObject.objects.filter(is_active=True)
+        server = self.request.GET.get('server')
+        rank = self.request.GET.get('rank', None)
+        champions_min = self.request.GET.get('champions_min', None)
+        champions_max = self.request.GET.get('champions_max', None)
+        price_min = self.request.GET.get('price_min', None)
+        price_max = self.request.GET.get('price_max', None)
+        print('rank=', server)
+
+
+        if champions_min is not None:
+            try:
+                champions_min = int(champions_min)
+            except ValueError:
+                champions_min = None
+
+        if champions_max is not None:
+            try:
+                champions_max = int(champions_max)
+            except ValueError:
+                champions_max = None
+        if price_min is not None:
+            try:
+                price_min = int(price_min)
+            except ValueError:
+                price_min = None
+
+        if price_max is not None:
+            try:
+                price_max = int(price_max)
+            except ValueError:
+                price_max = None
+
+        # Фильтрация
+        if server and server != 'all':
+            acounts = acounts.filter(server=server)
+
+        if rank:
+            acounts = acounts.filter(rang=rank)
+
+        if champions_min and champions_max:
+            acounts = acounts.filter(champions__range=(champions_min, champions_max))
+        if champions_min and champions_max is None:
+            acounts = acounts.filter(champions__gte=champions_min)
+        if champions_min is None and champions_max:
+            acounts = acounts.filter(champions__lte=champions_max)
+
+        if price_min and price_max:
+            acounts = acounts.filter(price__gte=price_min, price__lte=price_max)
+        if price_min and champions_max is None:
+            acounts = acounts.filter(price__gte=price_min)
+        if price_min is None and champions_max:
+            acounts = acounts.filter(price__lte=price_max)
+
+
+
+        page_number = self.request.GET.get('page', 1)
+        paginator = Paginator(acounts, 10)
+        current_page = paginator.page(page_number)
+
+        context['accounts'] = list(current_page)[::-1]
+        context['paginator'] = paginator
+        context['current_page'] = current_page
 
         context['account_form'] = AccountObjectForm()
-        # context['image_form'] = AccountsImageForm()
-        # print('KANTEKST', context)
+        print('CONTEXT',context)
         return context
 
     def post(self, request, *args, **kwargs):

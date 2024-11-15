@@ -65,6 +65,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'user.middleware.ActiveUserMiddleware'
 ]
 
 ROOT_URLCONF = 'lol_pay.urls'
@@ -208,3 +209,12 @@ CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 
 
 ASGI_APPLICATION = 'lol_pay.asgi.application'
+
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': (BASE_DIR / 'cache'),
+    }
+}
+

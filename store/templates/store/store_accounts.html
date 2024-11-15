@@ -12,14 +12,27 @@
       <label for="server">Сервер:</label>
       <select id="server" name="server">
         <option value="all">Все</option>
-        <option value="EU West">EU West</option>
-        <option value="Russia">Russia</option>
+        <option value="EU WEST">EU West</option>
+        <option value="RUSSIA">Russia</option>
         <!-- Добавьте другие серверы, если нужно -->
       </select>
 
       <!-- Фильтр по рангу -->
       <label for="rank">Ранг:</label>
-      <input type="text" id="rank" name="rank" placeholder="Укажите ранг">
+      <select id="rank" name="rank">
+        <option value="">Любой</option>
+        <option value="NO RANK">Нет ранга</option>
+        <option value="IRON">Железо</option>
+        <option value="BRONZE">Бронза</option>
+        <option value="SILVER">Серебро</option>
+        <option value="GOLD">Золото</option>
+        <option value="PLATINUM">Платина</option>
+        <option value="EMERALD">Изумруд</option>
+        <option value="DIAMOND">Алмаз</option>
+        <option value="MASTER">Мастер</option>
+        <option value="GRANDMASTER">Грандмастер</option>
+        <!-- Добавьте другие серверы, если нужно -->
+      </select>
 
       <!-- Фильтр по количеству чемпионов -->
       <label for="champions">Чемпионы:</label>
@@ -33,6 +46,9 @@
 
       <!-- Кнопка для применения фильтров -->
       <button type="submit">Применить фильтры</button>
+
+      <!-- Кнопка для сброса фильтров -->
+      <button type="button" id="reset-filters">Сбросить фильтры</button>
     </form>
 
     <!-- Кнопка для добавления аккаунта -->
@@ -105,7 +121,19 @@
     </form>
   </div>
 </div>
+<div class="pagination">
+  {% if current_page.has_previous %}
+  <a class="first" href="?page=1"><<</a>
+  <a class="prev" href="?page={{ current_page.previous_page_number }}">Предыдущая</a>
+  {% endif %}
 
+  <span class="pagination-info">Страница <span id="current-page">{{ current_page.number }}</span> из <span id="total-pages">{{ paginator.num_pages }}</span></span>
+
+  {% if current_page.has_next %}
+  <a class="next" href="?page={{ current_page.next_page_number }}">Следующая</a>
+  {% endif %}
+
+</div>
 
 
 <script>
@@ -138,5 +166,15 @@ document.getElementById('file-input').addEventListener('change', function() {
       fileList.appendChild(listItem);
   });
 });
+
+
+  document.getElementById('reset-filters').addEventListener('click', function() {
+      const form = document.querySelector('form');
+      // Очищаем все поля ввода в форме
+      form.querySelectorAll('input').forEach(input => input.value = '');
+      // Отправляем форму без параметров
+      window.location.href = form.action;
+  });
+
 </script>
 {% endblock %}

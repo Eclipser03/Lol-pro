@@ -245,6 +245,19 @@ class RPorder(models.Model):
 class AccountObject(models.Model):
     SERVER_CHOISES = [('EU WEST', 'Вест'), ('RUSSIA', 'Россия')]
 
+    RANK_CHOISES = [
+        ('NO RANK', 'Нет ранга'),
+        ('IRON', 'Железо'),
+        ('BRONZE', 'Бронза'),
+        ('SILVER', 'Серебро'),
+        ('GOLD', 'Голд'),
+        ('PLATINUM', 'Платина'),
+        ('EMERALD', 'Эмеральд'),
+        ('DIAMOND', 'Даймонд'),
+        ('MASTER', 'Мастер'),
+        ('GRANDMASTER', 'Грандмастер'),
+    ]
+
     user = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
@@ -260,7 +273,9 @@ class AccountObject(models.Model):
     lvl = models.IntegerField(verbose_name='Уровень')
     champions = models.IntegerField(verbose_name='Количество чемпионов')
     skins = models.IntegerField(verbose_name='Количество образов')
-    rang = models.CharField(max_length=20, default='Нет ранга', verbose_name='Ранг')
+    rang = models.CharField(
+        max_length=20, choices=RANK_CHOISES, default='NO RANK', verbose_name='Ранг'
+    )
     short_description = models.CharField(max_length=100, verbose_name='Короткое описание')
     description = models.TextField(verbose_name='Описание', blank=True)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')

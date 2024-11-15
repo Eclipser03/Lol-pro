@@ -63,9 +63,12 @@
   <!-- Right Section: Seller Information -->
    {% if chat_room %}
   <div class="seller-info">
-    <div class="prew">
+    <div class="info_seller">
       <img src="{{ account.user.avatar.url }}" alt="" class="avatar1">
-      <h2>Продавец: {{ account.user.username }}</h2>
+      <div class="text-block">
+        <h2>Продавец: {{ account.user.username }}</h2>
+        <p class="status {% if account.user.is_online %}online{% else %}offline{% endif %}">{% if account.user.is_online %} Онлайн {% else %} Оффлайн {% endif %}</p>
+      </div>
     </div>
     <div class="chat-log">
       {% for sms in chat_room.messages.all %}

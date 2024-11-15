@@ -9,31 +9,63 @@
   <!-- Секция списка чатов -->
   <div class="chat-list">
       <h3>Сообщения</h3>
-      {% for chat in chats %}
-        <a href="?chat_id={{ chat.id }}&account_id={{ chat.account.id }}" class="chat-item {% if chat.id == chat_id %}active{% endif %}" data-chat-id="{{ chat.id }}">
-            <div class="avatar">FP</div>
-            <div class="chat-info">
-                <span class="username">{{ chat.messages.last.author }}</span>
-                <span class="last-message">{{ chat.messages.last.text }}</span>
-            </div>
-            <span class="timestamp">{{ chat.messages.last.created|date:"H:i" }}</span>
-        </a>
-      {% endfor %}
+      <div class="chat-list-item">
+        {% for chat in chats %}
+          <a href="?chat_id={{ chat.id }}&account_id={{ chat.account.id }}" class="chat-item {% if chat.id == chat_id %}active{% endif %}" data-chat-id="{{ chat.id }}">
+              <div class="avatar">FP</div>
+              <div class="chat-info">
+                  <span class="username">{{ chat.messages.last.author }}</span>
+                  <span class="last-message">{{ chat.messages.last.text }}</span>
+              </div>
+              <span class="timestamp">{{ chat.messages.last.created|date:"H:i" }}</span>
+          </a>
+        {% endfor %}
+      </div>
   </div>
 
   <!-- Секция окна чата -->
   <div class="chat-window">
       <div class="chat-header">
-          {% if selected_chat.account.id %}
-          <img src="{% if user == selected_chat.buyer %} {{ selected_chat.seller.avatar.url }} {% else %} {{ selected_chat.buyer.avatar.url }} {% endif %}" alt="" class="avatar1">
-          {% endif %}
-          <div class="user-info">
-              <span class="username">{% if user == selected_chat.buyer %} {{ selected_chat.seller }} {% else %} {{ selected_chat.buyer }} {% endif %}</span>
-              {% if selected_chat.account.id %}
-                <a href="{% url 'store:store_account_page' selected_chat.account.id %}"><span class="acc_name">{{ selected_chat.account.short_description }}</span></a>
-              {% endif %}
-
-          </div>
+        {% if selected_chat.account.id %}
+            <img src="{% if user == selected_chat.buyer %} {{ selected_chat.seller.avatar.url }} {% else %} {{ selected_chat.buyer.avatar.url }} {% endif %}" alt="" class="avatar1">
+        {% endif %}
+        <div class="user-info">
+            <span class="username">
+                {% if user == selected_chat.buyer %}
+                    {{ selected_chat.seller }}
+                {% else %}
+                    {{ selected_chat.buyer }}
+                {% endif %}
+            </span>
+            <span class="status {% if selected_chat.account.id %}
+                {% if user == selected_chat.buyer %}
+                    {% if selected_chat.seller.is_online %} online {% else %} offline {% endif %}
+                {% else %}
+                    {% if selected_chat.buyer.is_online %} online {% else %} offline {% endif %}
+                {% endif %}
+            {% endif %}">
+                {% if selected_chat.account.id %}
+                    {% if user == selected_chat.buyer %}
+                        {% if selected_chat.seller.is_online %}
+                            Онлайн
+                        {% else %}
+                            Оффлайн
+                        {% endif %}
+                    {% else %}
+                        {% if selected_chat.buyer.is_online %}
+                            Онлайн
+                        {% else %}
+                            Оффлайн
+                        {% endif %}
+                    {% endif %}
+                {% endif %}
+            </span>
+            {% if selected_chat.account.id %}
+                <a href="{% url 'store:store_account_page' selected_chat.account.id %}">
+                    <span class="acc_name">{{ selected_chat.account.short_description }}</span>
+                </a>
+            {% endif %}
+        </div>
       </div>
       <div class="chat-messages">
         {% for sms in selected_chat.messages.all %}
@@ -123,6 +155,10 @@
               usernameElement.textContent = username;
               lastMessageElement.textContent = message;
               timestampElement.textContent = created ? created : "Только что";
+
+              // Перемещаем элемент чата наверх списка
+              const chatList = document.querySelector('.chat-list-item');
+              chatList.prepend(chatItem); // Вставляем элемент в начало контейнера
           }
       }
 

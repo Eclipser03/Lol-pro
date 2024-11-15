@@ -11,13 +11,14 @@
   .filters {
     display: flex;
     flex-wrap: wrap;
-    gap: 15px;
+    gap: 20px;
     padding: 20px;
     background-color: #ffffff;
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     margin-bottom: 20px;
     justify-content: center;
+    align-items: center;
   }
 
   .filters label {
@@ -125,11 +126,6 @@ gap: 10px;
     }
   }
 
-.filters {
-display: flex;
-align-items: center;
-gap: 10px;
-}
 
 .account-header{
 display: grid;
@@ -225,6 +221,19 @@ padding: 0px 20px;
     font-size: 18px;
 }
 
+#reset-filters{
+    margin-top: 20px;
+    padding: 10px 20px;
+    background-color: #b5b5b5;
+    color: #ffffff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+
+
 .login_submit:hover {
     background-color: #0045cc; /* Более темный оттенок синего для эффекта затенения */
 }
@@ -300,4 +309,34 @@ input[type="file"] {
 
 .savebtn:hover{
     background-color: #0045cc; /* Более темный оттенок синего для эффекта затенения */
+}
+
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-top: 20px;
+    padding: 10px 0;
+}
+
+.pagination a {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 8px 16px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.pagination a:hover {
+    background-color: #0056b3;
+}
+
+.pagination-info {
+    font-size: 14px;
+    color: #555;
 }

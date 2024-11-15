@@ -9,7 +9,7 @@
 display: flex;
 max-width: 1400px;
 min-height: 1000px;
-max-height: max-content;
+max-height: 1100px;
 margin: 100px auto;
 padding: 20px;
 background-color: #fff;
@@ -216,12 +216,14 @@ background-color: rgba(0, 0, 0, 0.8);
 .seller-info {
     width: 700px;
     margin: 0 auto;
-    padding: 20px;
+    padding: 0 20px;
     background-color: #f4f7f6;
     border-radius: 16px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     text-align: center;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+    height: 100%;
+    gap: 20px;
 }
 
 .seller-info h1 {
@@ -237,8 +239,9 @@ background-color: rgba(0, 0, 0, 0.8);
 }
 
 .chat-log {
+    flex-grow: 1;
     width: 100%;
-    height: 780px;
+    max-height: 60vh;
     border-radius: 12px;
     border: 1px solid #ddd;
     background-color: #fff;
@@ -262,6 +265,7 @@ background-color: rgba(0, 0, 0, 0.8);
     margin-right: 10px;
     background-color: #f9f9f9;
     transition: background-color 0.3s ease;
+    margin-bottom: 20px;
 }
 
 #chat-message-input:focus {
@@ -364,21 +368,41 @@ button:active {
     transform: scale(0.98);
 }
 
-
-.avatar1 {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-right: 20px;
+.info_seller {
+    display: flex; /* Выравнивание элементов в строку */
+    align-items: center; /* Центрирование по вертикали */
+    justify-content: flex-start; /* Выравнивание по левому краю */
+    margin: 10px 0; /* Отступы сверху и снизу */
 }
 
-.prew {
-    display: flex;
-    align-items: center;
-    /* justify-content: center; */
-    margin-bottom: 15px;
-    margin-left: 20px;
+.avatar1 {
+width: 50px; /* Размер аватара */
+height: 50px; /* Фиксированная высота */
+border-radius: 50%; /* Сделать аватар круглым */
+margin-right: 15px; /* Отступ справа от аватара */
+}
+
+.text-block {
+display: flex;
+flex-direction: column; /* Текстовые элементы располагаются вертикально */
+gap: 5px; /* Отступы между текстовыми элементами */
+}
+
+.text-block h2 {
+margin: 0;
+font-size: 16px; /* Размер заголовка */
+}
+
+.text-block .status {
+margin: 0;
+font-size: 14px; /* Размер текста статуса */
+color: #555; /* Цвет текста статуса */
+}
+
+.status.online {
+color: green; /* Зеленый цвет для статуса "Онлайн" */
+}
+
+.status.offline {
+color: red; /* Красный цвет для статуса "Оффлайн" */
 }
