@@ -179,3 +179,7 @@ class UpdateUserEmail(forms.Form):
             raise forms.ValidationError('Этот email уже используется.')
 
         return new_email
+
+
+class UpdateBalanceUser(forms.Form):
+    balance = forms.IntegerField(widget=forms.NumberInput(attrs={'placeholder': 'Введите сумму'}))

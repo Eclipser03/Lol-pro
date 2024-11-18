@@ -46,11 +46,17 @@
           {% if user.discord %}<p> {{ user.discord }} </p>{% endif %}
         </button>
       </div>
+      <div class="line">
+        <p>Баланс:</p>
+          <p> {{ user.balance }} руб.</p>
+        </button>
+      </div>
     </div>
 
     <div class="profile_buttons">
       <button class="btn" id="changePasswordBtn">Изменить пароль</button>
       <button class="btn" id="changeEmailBtn">Изменить почту</button>
+      <button class="btn" id="changeBalanceBtn">Пополнить баланс</button>
     </div>
   </div>
 
@@ -131,6 +137,22 @@
   </div>
 </div>
 
+<!-- Модальное окно для пополнение баланса-->
+<div class="form_change_balance">
+  <div class="form_balance">
+    <h2>Пополнение баланса</h2>
+    <form action="{% url 'user:profile' %}" method='post'>
+      {% csrf_token %}
+      <div class="inputs">
+        {{ update_balance.balance }}
+      </div>
+      <div style="margin: 0 auto;width: 200px; width: min-content;">
+        <input class="login_submit" name='update_balance' type="submit">
+      </div>
+    </form>
+  </div>
+</div>
+
 <!-- Модальное окно для никнейма -->
 <div id="nicknameModal" class="modal" style="display:none;">
   <div class="modal-content">
@@ -198,6 +220,25 @@ document.addEventListener("click", function(event) {
     // Проверяем, был ли клик вне формы
     if (!form1.contains(event.target) && event.target !== changeEmailBtn) {
       formChangeEmail.style.display = "none"; // Скрываем форму
+    }
+  }
+});
+
+// Пополнение баланса
+const changeBalancelBtn = document.getElementById("changeBalanceBtn");
+const formChangeBalance = document.querySelector(".form_change_balance");
+const form2 = document.querySelector(".form_balance");
+// Открытие и закрытие формы по кнопке
+changeBalanceBtn.addEventListener("click", function(event) {
+  event.stopPropagation(); // Останавливаем событие, чтобы клик по кнопке не закрывал форму
+  formChangeBalance.style.display = formChangeBalance.style.display === "block" ? "none" : "block";
+});
+// Закрытие формы при клике вне ее
+document.addEventListener("click", function(event) {
+  if (formChangeBalance.style.display === "block") {
+    // Проверяем, был ли клик вне формы
+    if (!form2.contains(event.target) && event.target !== changeBalancelBtn) {
+      formChangeBalance.style.display = "none"; // Скрываем форму
     }
   }
 });

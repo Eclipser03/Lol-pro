@@ -54,10 +54,10 @@
     </div>
 
     <!-- Payment section -->
-    <div class="payment">
-      <p class="price">{{ account.price }} руб.</p>
-      <a href="#" class="btn">Купить</a>
-    </div>
+      <div class="payment">
+        <button type="submit" id="bybtn" class="btn">Купить</button>
+      </div>
+
   </div>
 
   <!-- Right Section: Seller Information -->
@@ -105,6 +105,8 @@
   <a class="prev" onclick="changeImage(-1)">&#10094;</a>
   <a class="next" onclick="changeImage(1)">&#10095;</a>
 </div>
+
+
 {% endblock %}
 {% block scripts %}
 <script>
@@ -112,9 +114,9 @@
   let accountId = "{{ account.id }}"
   let userId = "{{ request.user }}";   // Подставить ID пользователя
   const wsUrl = 'ws://' + window.location.host + '/ws/chat/' + chatRoomId + '/' + accountId + '/';
+  const byBtn = document.getElementById('bybtn');
   console.log("WebSocket URL for user:", wsUrl);
   console.log("userID", userId)
-
 
   // Создаем подключение WebSocket
   let chatSocket = new WebSocket(wsUrl);
@@ -135,9 +137,12 @@
       const data = JSON.parse(e.data);
       console.log('Message received:', data);
 
-      const message = data.message;
-      const username = data.username;
-      const created = data.created;
+      const type = data.type
+      if (type === 'chat_message') {
+        const message = data.message;
+        const username = data.username;
+        const created = data.created;
+
 
       const currentUser = "{{ user.username }}";
 
@@ -160,7 +165,26 @@
 
       messageElement.textContent = (senderId == userId ? "Вы: " : "Продавец: ") + message;
       document.querySelector('#chat-log').appendChild(messageElement);
-  };
+  }
+   if (type === 'error') {
+        const messagesDiv = document.getElementById("messages-container");
+        var message = document.createElement('div');
+        message.setAttribute('class', 'alert alert-' + "warning");
+        message.textContent = data.message
+        console.log(messagesDiv)
+        messagesDiv.appendChild(message)
+     // Отображаем сообщение и задаем таймер для скрытия
+     messagesDiv.style.display = "block";
+     setTimeout(() => {
+       messagesDiv.style.opacity = "0"; // Плавное исчезновение
+       setTimeout(() => {
+         messagesDiv.style.display = "none";
+         messagesDiv.style.opacity = "1"; // Возвращаем видимость для будущих сообщений
+       }, 500); // Время исчезновения (в миллисекундах)
+     }, 3000);
+   }
+};
+
 
 
   // Прокручиваем чат до последнего сообщения при загрузке страницы
@@ -177,12 +201,19 @@
       console.log('Sending message:', message);
 
       chatSocket.send(JSON.stringify({
+          'type': 'chat_message',
           'message': message,
           'sender_id': userId
       }));
 
       messageInput.value = '';
   };
+
+  document.getElementById('bybtn').onclick = function() {
+    chatSocket.send(JSON.stringify({
+        'type': 'buy_account',
+    }));
+};
 
 
   let currentImageIndex = 0;
@@ -234,6 +265,7 @@ document.querySelector('#chat-message-input').addEventListener('keydown', functi
     }
     document.getElementById("modalImage").src = images[currentImageIndex];
   }
+
 
 </script>
 {% endblock %}

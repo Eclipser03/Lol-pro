@@ -2,14 +2,13 @@ import json
 
 from channels.generic.websocket import AsyncWebsocketConsumer
 
-from .models import ChatRoom, Message
+from .models import AccountObject, ChatRoom, Message
 
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.room_id = self.scope['url_route']['kwargs']['room_id']
         self.account_id = self.scope['url_route']['kwargs']['account_id']
-        print('СЕЛФ СКОП---',self.scope, 'USUS', self.room_id)
         self.room_group_name = f'chat_{self.room_id}_{self.account_id}'
 
         # Присоединяемся к группе
@@ -24,20 +23,46 @@ class ChatConsumer(AsyncWebsocketConsumer):
     # Получаем сообщение от WebSocket
     async def receive(self, text_data):
         text_data_json = json.loads(text_data)
-        message = text_data_json['message']
 
-        chat_room = await ChatRoom.objects.aget(id=self.room_id)
-        sms = await self.create_message(chat_room, self.scope['user'], message)
+
+
+        self.chat_room = await ChatRoom.objects.aget(id=self.room_id)
         # Отправляем сообщение в группу
-        await self.channel_layer.group_send(
-            self.room_group_name,
-            {
-                'type': 'chat_message',
-                'message': message,
-                'username': self.scope['user'].username,
-                'created': str(sms.created.strftime('%H:%M')),
-            },
-        )
+        if text_data_json['type'] == 'chat_message':
+            message = text_data_json['message']
+            sms = await self.create_message(self.chat_room, self.scope['user'], message)
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'chat_message',
+                    'message': message,
+                    'username': self.scope['user'].username,
+                    'created': str(sms.created.strftime('%H:%M')),
+                },
+            )
+        else:
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {'type': 'buy_account', 'userid': self.scope['user'].id},
+            )
+
+    async def buy_account(self, event):
+        userid = event['userid']
+        user = self.scope['user']
+        account = await AccountObject.objects.aget(acount_chat_rooms=self.chat_room)
+        if user.balance >= account.price:
+            user.balance -= account.price
+            await user.asave()
+        else:
+            await self.send(
+                text_data=json.dumps(
+                    {'type': 'error', 'message': 'У вас не достаточно средств', 'userid': userid}
+                )
+            )
+            return
+        account.is_active = False
+        await account.asave()
+
 
     # Получаем сообщение от группы
     async def chat_message(self, event):
@@ -47,7 +72,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         # Отправляем сообщение обратно клиенту
         await self.send(
-            text_data=json.dumps({'message': message, 'username': username, 'created': created})
+            text_data=json.dumps(
+                {'type': 'chat_message', 'message': message, 'username': username, 'created': created}
+            )
         )
 
     async def create_message(self, chat_room, author, text):

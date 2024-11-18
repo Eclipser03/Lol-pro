@@ -2,6 +2,7 @@ from django.contrib import admin
 
 from store.models import (
     AccountObject,
+    AccountOrder,
     AccountsImage,
     BoostOrder,
     ChatRoom,
@@ -21,6 +22,7 @@ admin.site.register(Qualification)
 admin.site.register(RPorder)
 admin.site.register(ChatRoom)
 admin.site.register(Message)
+admin.site.register(AccountOrder)
 
 
 @admin.register(SkinsOrder)

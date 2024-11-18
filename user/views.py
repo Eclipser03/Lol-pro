@@ -27,6 +27,7 @@ from user.forms import (
     CustomSetPasswordForm,
     ProfileChangePasswordForm,
     ProfileUpdateForm,
+    UpdateBalanceUser,
     UpdateUserEmail,
     UserLoginForm,
     UserRegistrationForm,
@@ -108,7 +109,7 @@ def FORM_FILL(post, obj):
     return post
 
 
-# Смена аватарки, никнейма, дискорда, пароля, почты
+# Смена аватарки, никнейма, дискорда, пароля, почты, пополнение баланса
 class ProfileView(LoginRequiredMixin, PasswordChangeView):
     form_class = ProfileChangePasswordForm
     template_name = 'user/profile.html'
@@ -118,9 +119,18 @@ class ProfileView(LoginRequiredMixin, PasswordChangeView):
         context = super().get_context_data(**kwargs)
         context['profile_form'] = ProfileUpdateForm(instance=self.request.user)
         context['update_email'] = UpdateUserEmail()
+        context['update_balance'] = UpdateBalanceUser()
         return context
 
     def post(self, request, *args, **kwargs):
+        if 'update_balance' in request.POST:
+            update_balance_form = UpdateBalanceUser(request.POST)
+            if update_balance_form.is_valid():
+                request.user.balance += update_balance_form.cleaned_data['balance']
+                request.user.save()
+                messages.success(request, 'Баланс успешно пополнен!')
+            return redirect('user:profile')
+
         if 'update_profile' in request.POST:
             print(request.POST)
             profile_form = ProfileUpdateForm(
