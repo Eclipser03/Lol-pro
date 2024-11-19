@@ -1,6 +1,9 @@
+from email import message
 import json
 
 from channels.generic.websocket import AsyncWebsocketConsumer
+
+from user.models import User
 
 from .models import AccountObject, ChatRoom, Message
 
@@ -24,8 +27,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def receive(self, text_data):
         text_data_json = json.loads(text_data)
 
-
-
         self.chat_room = await ChatRoom.objects.aget(id=self.room_id)
         # Отправляем сообщение в группу
         if text_data_json['type'] == 'chat_message':
@@ -40,29 +41,67 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     'created': str(sms.created.strftime('%H:%M')),
                 },
             )
-        else:
+        if text_data_json['type'] == 'buy_account':
+            message = f"Пользователь {self.scope['user'].username} купил аккаунт."
+            sms = await self.create_message(self.chat_room, self.scope['user'], message)
             await self.channel_layer.group_send(
                 self.room_group_name,
-                {'type': 'buy_account', 'userid': self.scope['user'].id},
+                {'type': 'buy_account', 'userid': self.scope['user'].id, 'message': message},
             )
+        if text_data_json['type'] == 'buy_account_acept':
+            message = f"Покупка подтверждена пользователем {self.scope['user'].username}."
+            sms = await self.create_message(self.chat_room, self.scope['user'], message)
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {'type': 'buy_account_acept', 'userid': self.scope['user'].id, 'message': message},
+            )
+
+    async def buy_account_acept(self, event):
+        userid = event['userid']
+        account = await AccountObject.objects.aget(acount_chat_rooms=self.chat_room)
+        seller = await User.objects.aget(seller_chat_rooms=self.chat_room)
+        message = event['message']  # noqa: F811
+        if not account.is_confirmed:
+            seller.balance += account.price
+            account.is_confirmed = True
+            await seller.asave()
+            await account.asave()
+        else:
+            await self.send(
+                text_data=json.dumps({'type': 'error', 'message': 'Ошибка', 'userid': userid})
+            )
+        await self.send(
+            text_data=json.dumps(
+                {
+                    'type': 'buy_account_acept',
+                    'message': message
+                }
+            )
+        )
+        return
 
     async def buy_account(self, event):
         userid = event['userid']
         user = self.scope['user']
         account = await AccountObject.objects.aget(acount_chat_rooms=self.chat_room)
-        if user.balance >= account.price:
+        if user.balance >= account.price and account.is_active:
             user.balance -= account.price
             await user.asave()
-        else:
+            account.is_active = False
+            await account.asave()
             await self.send(
                 text_data=json.dumps(
-                    {'type': 'error', 'message': 'У вас не достаточно средств', 'userid': userid}
+                    {
+                        'type': 'buy_account',
+                        'userid': userid,
+                    }
                 )
             )
+        else:
+            await self.send(
+                text_data=json.dumps({'type': 'error', 'message': 'Ошибка', 'userid': userid})
+            )
             return
-        account.is_active = False
-        await account.asave()
-
 
     # Получаем сообщение от группы
     async def chat_message(self, event):

@@ -115,8 +115,6 @@
   let userId = "{{ request.user }}";   // Подставить ID пользователя
   const wsUrl = 'ws://' + window.location.host + '/ws/chat/' + chatRoomId + '/' + accountId + '/';
   const byBtn = document.getElementById('bybtn');
-  console.log("WebSocket URL for user:", wsUrl);
-  console.log("userID", userId)
 
   // Создаем подключение WebSocket
   let chatSocket = new WebSocket(wsUrl);
@@ -138,7 +136,7 @@
       console.log('Message received:', data);
 
       const type = data.type
-      if (type === 'chat_message') {
+    if (type === 'chat_message') {
         const message = data.message;
         const username = data.username;
         const created = data.created;
@@ -146,7 +144,7 @@
 
       const currentUser = "{{ user.username }}";
 
-      if (message) {
+        console.log('123',data)
         const chatMessages = document.querySelector(".chat-log");
         const messageElement = document.createElement('div');
 
@@ -159,19 +157,14 @@
         }
 
         chatMessages.appendChild(messageElement);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
+        chatMessages.scrollTop = chatMessages.scrollHeight
 
-      }
-
-      messageElement.textContent = (senderId == userId ? "Вы: " : "Продавец: ") + message;
-      document.querySelector('#chat-log').appendChild(messageElement);
   }
    if (type === 'error') {
         const messagesDiv = document.getElementById("messages-container");
         var message = document.createElement('div');
         message.setAttribute('class', 'alert alert-' + "warning");
         message.textContent = data.message
-        console.log(messagesDiv)
         messagesDiv.appendChild(message)
      // Отображаем сообщение и задаем таймер для скрытия
      messagesDiv.style.display = "block";
@@ -183,7 +176,84 @@
        }, 500); // Время исчезновения (в миллисекундах)
      }, 3000);
    }
+   if (type === 'buy_account') {
+      console.log(data)
+      const currentUser = "{{ user.username }}";
+      const userId = data.userid
+      const seller = "{{ chat_room.seller.username }}";
+      const buyer = "{{ chat_room.buyer.username }}";
+      const chatMessages = document.querySelector(".chat-log");
+      const messageElement = document.createElement('div');
+      messageElement.classList.add("buy_notification");
+      console.log('1111', currentUser, seller, buyer)
+
+      if (currentUser === seller) {
+        messageElement.innerHTML = `
+        <div class="notification_seller">
+          <p>Покупатель <strong>${buyer}</strong> приобрел ваш аккаунт.</p>
+          <p>Пожалуйста, предоставьте ему логин и пароль для входа.</p>
+        </div>
+      `;
+      } else if (currentUser === buyer) {
+        messageElement.innerHTML = `
+          <div class="notification_buyer">
+            <p>Вы успешно приобрели аккаунт у продавца <strong>${seller}</strong>.</p>
+            <p>Ожидайте логин и пароль для входа.</p>
+            <button class="confirm_purchase" onclick="confirmPurchase()">Подтвердить покупку</button>
+          </div>
+        `;
+   }
+   chatMessages.appendChild(messageElement);
+   chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  if (type === 'buy_account_acept') {
+    const seller = "{{ chat_room.seller.username }}";
+    const buyer = "{{ chat_room.buyer.username }}";
+    const currentUser = "{{ user.username }}";
+    const chatMessages = document.querySelector(".chat-log");
+    const messageElement = document.createElement('div');
+    messageElement.classList.add("buy_notification");
+
+    if (currentUser === seller) {
+      messageElement.innerHTML = `
+      <div class="notification_seller">
+        <p>Покупатель <strong>${buyer}</strong> подтвердил покупку, ваш баланс пополнен.</p>
+      </div>
+    `;
+    chatMessages.appendChild(messageElement);
+    } else if (currentUser === buyer) {
+
+
+      messageElement.innerHTML = `
+        <div class="notification_buyer">
+          <p>Вы успешно подтвердили покупку!</p>
+        </div>
+      `;
+  }
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
 };
+
+function confirmPurchase() {
+  chatSocket.send(JSON.stringify({
+      'type': 'buy_account_acept',
+  }));
+
+  // Удаляем кнопку после нажатия и обновляем текст
+  const button = document.querySelector('.confirm_purchase');
+  if (button) {
+    button.parentElement.innerHTML = `
+      <p>Вы успешно подтвердили покупку!</p>
+    `;
+  }
+  // Удаляем кнопку "Купить", если она есть
+  const buyButton = document.getElementById('bybtn'); // Убедитесь, что это ID кнопки "Купить"
+  if (buyButton) {
+    buyButton.remove();
+  }
+};
+
 
 
 
@@ -244,7 +314,8 @@ document.querySelector('#chat-message-input').addEventListener('keydown', functi
 
       chatSocket.send(JSON.stringify({
           'message': message,
-          'sender_id': userId
+          'sender_id': userId,
+          'type': 'chat_message'
       }));
 
       messageInput.value = '';  // Очистить поле ввода после отправки

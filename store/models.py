@@ -280,6 +280,8 @@ class AccountObject(models.Model):
     description = models.TextField(verbose_name='Описание', blank=True)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
     is_active = models.BooleanField(default=False, verbose_name='Проверен')
+    is_confirmed = models.BooleanField(default=False, verbose_name='Покупка подтверждена')
+
     price = models.IntegerField(verbose_name='Цена')
 
     class Meta:

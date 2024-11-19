@@ -322,3 +322,35 @@
     color: red;
     font-weight: bold;
 }
+
+
+.buy_notification {
+margin: 10px 0;
+padding: 15px;
+border-radius: 5px;
+background-color: #f9f9f9;
+border: 1px solid #ccc;
+}
+
+.notification_seller p{
+color: #d9534f;
+font-weight: bold;
+}
+
+.notification_buyer p{
+color: #5bc0de;
+}
+
+.notification_buyer .confirm_purchase {
+margin-top: 10px;
+padding: 8px 12px;
+background-color: #5cb85c;
+border: none;
+color: white;
+cursor: pointer;
+border-radius: 3px;
+}
+
+.notification_buyer .confirm_purchase:hover {
+background-color: #4cae4c;
+}
