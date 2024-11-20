@@ -53,10 +53,11 @@
       {% endif %}
     </div>
 
-    <!-- Payment section -->
+      {% if account.is_active %}
       <div class="payment">
         <button type="submit" id="bybtn" class="btn">Купить</button>
       </div>
+      {% endif %}
 
   </div>
 
@@ -72,6 +73,7 @@
     </div>
     <div class="chat-log">
       {% for sms in chat_room.messages.all %}
+      {% if sms.massage_type == 'chat_message'%}
         {% if sms.author == user %}
           <!-- Сообщение от текущего пользователя (вы) -->
           <div class="message_you">
@@ -89,6 +91,42 @@
 
           </div>
         {% endif %}
+      {% endif %}
+      {% if sms.massage_type == 'buy_account'%}
+        {% if sms.author == user %}
+        <div class="buy_notification">
+          <div class="notification_buyer">
+            <p>Вы успешно приобрели аккаунт у продавца <strong>{{ chat_room.seller.username }}</strong>.</p>
+            <p>Ожидайте логин и пароль для входа.</p>
+            {% if not account.is_confirmed %}
+              <button class="confirm_purchase" onclick="confirmPurchase()">Подтвердить покупку</button>
+            {% endif %}
+          </div>
+        </div>
+        {% else %}
+        <div class="buy_notification">
+          <div class="notification_seller">
+            <p>Покупатель <strong>{{ chat_room.buyer.username }}</strong> приобрел ваш аккаунт.</p>
+            <p>Пожалуйста, предоставьте ему логин и пароль для входа.</p>
+          </div>
+        </div>
+        {% endif %}
+      {% endif %}
+      {% if sms.massage_type == 'buy_account_acept'%}
+          {% if sms.author == user %}
+          <div class="buy_notification">
+            <div class="notification_buyer">
+              <p>Вы успешно подтвердили покупку!</p>
+            </div>
+          </div>
+          {% else %}
+          <div class="buy_notification">
+            <div class="notification_seller">
+              <p>Покупатель <strong>{{ chat_room.buyer.username }}</strong> подтвердил покупку, ваш баланс пополнен.</p>
+            </div>
+          </div>
+          {% endif %}
+      {% endif %}
       {% endfor %}
     </div>
     <input type="text" id="chat-message-input" autocomplete="off" placeholder="Введите сообщение...">
@@ -214,6 +252,7 @@
     const chatMessages = document.querySelector(".chat-log");
     const messageElement = document.createElement('div');
     messageElement.classList.add("buy_notification");
+    console.log(444, currentUser, buyer, seller)
 
     if (currentUser === seller) {
       messageElement.innerHTML = `
@@ -221,16 +260,16 @@
         <p>Покупатель <strong>${buyer}</strong> подтвердил покупку, ваш баланс пополнен.</p>
       </div>
     `;
-    chatMessages.appendChild(messageElement);
     } else if (currentUser === buyer) {
-
-
+      const button = document.querySelector('.confirm_purchase');
+      button.style.display = 'none'
       messageElement.innerHTML = `
         <div class="notification_buyer">
           <p>Вы успешно подтвердили покупку!</p>
         </div>
       `;
   }
+  chatMessages.appendChild(messageElement);
   chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 };
@@ -240,13 +279,6 @@ function confirmPurchase() {
       'type': 'buy_account_acept',
   }));
 
-  // Удаляем кнопку после нажатия и обновляем текст
-  const button = document.querySelector('.confirm_purchase');
-  if (button) {
-    button.parentElement.innerHTML = `
-      <p>Вы успешно подтвердили покупку!</p>
-    `;
-  }
   // Удаляем кнопку "Купить", если она есть
   const buyButton = document.getElementById('bybtn'); // Убедитесь, что это ID кнопки "Купить"
   if (buyButton) {

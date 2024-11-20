@@ -1,4 +1,3 @@
-from turtle import mode
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.forms import ValidationError
@@ -273,9 +272,7 @@ class AccountObject(models.Model):
     lvl = models.IntegerField(verbose_name='Уровень')
     champions = models.IntegerField(verbose_name='Количество чемпионов')
     skins = models.IntegerField(verbose_name='Количество образов')
-    rang = models.CharField(
-        max_length=20, choices=RANK_CHOISES, default='NO RANK', verbose_name='Ранг'
-    )
+    rang = models.CharField(max_length=20, choices=RANK_CHOISES, default='NO RANK', verbose_name='Ранг')
     short_description = models.CharField(max_length=100, verbose_name='Короткое описание')
     description = models.TextField(verbose_name='Описание', blank=True)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
@@ -337,9 +334,11 @@ class AccountOrder(models.Model):
 
 
 class ChatRoom(models.Model):
-    buyer = models.ForeignKey(User, on_delete=models.CASCADE, related_name="buyer_chat_rooms")
-    seller = models.ForeignKey(User, on_delete=models.CASCADE, related_name="seller_chat_rooms")
-    account = models.ForeignKey(AccountObject, on_delete=models.CASCADE, related_name="acount_chat_rooms", default=2)
+    buyer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='buyer_chat_rooms')
+    seller = models.ForeignKey(User, on_delete=models.CASCADE, related_name='seller_chat_rooms')
+    account = models.ForeignKey(
+        AccountObject, on_delete=models.CASCADE, related_name='acount_chat_rooms', default=2
+    )
 
     class Meta:
         unique_together = ('buyer', 'seller', 'account')
@@ -349,11 +348,18 @@ class ChatRoom(models.Model):
 
 
 class Message(models.Model):
+    MASSAGETYPE_CHOISES = [
+        ('chat_message', 'сообщение'),
+        ('buy_account', 'бронирование аккаунта'),
+        ('buy_account_acept', 'подтверждение покупки'),
+    ]
     chat_room = models.ForeignKey(ChatRoom, related_name='messages', on_delete=models.CASCADE)
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     text = models.CharField(max_length=300)
     created = models.DateTimeField(auto_now_add=True)
-
+    massage_type = models.CharField(
+        choices=MASSAGETYPE_CHOISES, verbose_name='Тип сообщения', blank=True, null=True
+    )
 
     class Meta:
         ordering = ['created']

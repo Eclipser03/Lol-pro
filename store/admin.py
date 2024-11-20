@@ -21,7 +21,6 @@ admin.site.register(BoostOrder)
 admin.site.register(Qualification)
 admin.site.register(RPorder)
 admin.site.register(ChatRoom)
-admin.site.register(Message)
 admin.site.register(AccountOrder)
 
 
@@ -38,3 +37,9 @@ class AccountsImageInLine(admin.TabularInline):
 @admin.register(AccountObject)
 class AccountsAdmin(admin.ModelAdmin):
     inlines = [AccountsImageInLine]
+
+
+class MessageAdmin(admin.ModelAdmin):
+    list_display = ('author', 'text', 'massage_type')
+
+admin.site.register(Message, MessageAdmin)

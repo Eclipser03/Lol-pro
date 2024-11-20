@@ -69,15 +69,52 @@
       </div>
       <div class="chat-messages">
         {% for sms in selected_chat.messages.all %}
-        {% if sms.author == user %}
-          <div class="authormessage">
-            <p><span class="sender">Вы</span>: {{ sms.text }} <span class="time">{{ sms.created|date:"H:i" }}</span></p>
-          </div>
-        {% else %}
-          <div class="friendmessage">
-            <p><span class="sender">{{ sms.author.username }}</span>: {{ sms.text }} <span class="time">{{ sms.created|date:"H:i" }}</span></p>
-          </div>
-        {% endif %}
+          {% if sms.massage_type == 'chat_message'%}
+            {% if sms.author == user %}
+              <div class="authormessage">
+                <p><span class="sender">Вы</span>: {{ sms.text }} <span class="time">{{ sms.created|date:"H:i" }}</span></p>
+              </div>
+            {% else %}
+              <div class="friendmessage">
+                <p><span class="sender">{{ sms.author.username }}</span>: {{ sms.text }} <span class="time">{{ sms.created|date:"H:i" }}</span></p>
+              </div>
+            {% endif %}
+          {% endif %}
+          {% if sms.massage_type == 'buy_account'%}
+            {% if sms.author == user %}
+              <div class="buy_notification">
+                <div class="notification_buyer">
+                  <p>Вы успешно приобрели аккаунт у продавца <strong>{{ selected_chat.seller.username }}</strong>.</p>
+                  <p>Ожидайте логин и пароль для входа.</p>
+                  {% if not selected_chat.account.is_confirmed %}
+                    <button class="confirm_purchase" onclick="confirmPurchase()">Подтвердить покупку</button>
+                  {% endif %}
+                </div>
+              </div>
+            {% else %}
+              <div class="buy_notification">
+                <div class="notification_seller">
+                  <p>Покупатель <strong>{{ selected_chat.buyer.username }}</strong> приобрел ваш аккаунт.</p>
+                  <p>Пожалуйста, предоставьте ему логин и пароль для входа.</p>
+                </div>
+              </div>
+            {% endif %}
+          {% endif %}
+          {% if sms.massage_type == 'buy_account_acept'%}
+            {% if sms.author == user %}
+              <div class="buy_notification">
+                <div class="notification_buyer">
+                  <p>Вы успешно подтвердили покупку!</p>
+                </div>
+              </div>
+            {% else %}
+              <div class="buy_notification">
+                <div class="notification_seller">
+                  <p>Покупатель <strong>{{ selected_chat.buyer.username }}</strong> подтвердил покупку, ваш баланс пополнен.</p>
+                </div>
+              </div>
+            {% endif %}
+          {% endif %}
       {% endfor %}
       </div>
       {% if selected_chat.messages %}
@@ -93,175 +130,177 @@
 {% endblock %}
 {% block scripts %}
 <script>
-  document.addEventListener("DOMContentLoaded", function () {
-      // Получаем chat_id из параметра URL
-      const urlParams = new URLSearchParams(window.location.search);
-      const currentChatId = urlParams.get("chat_id") || "{{ chats.last.id }}";  // Используем последний чат по умолчанию
-      const accountId = urlParams.get("account_id")
 
-      // Инициализация WebSocket соединения
-      const protocol = window.location.protocol === "https:" ? "wss://" : "ws://";
-      const chatSocket = new WebSocket(protocol + window.location.host + '/ws/chat/' + currentChatId + '/' + accountId + '/');
+// Получаем chat_id из параметра URL
+const urlParams = new URLSearchParams(window.location.search);
+const currentChatId = urlParams.get("chat_id") || "{{ chats.last.id }}";  // Используем последний чат по умолчанию
+const accountId = urlParams.get("account_id")
 
-      chatSocket.onmessage = function (e) {
-          const data = JSON.parse(e.data);
-          const message = data.message;
-          const username = data.username || "Неизвестный пользователь";
-          const created = data.created;
-          const type = data.type
+// Инициализация WebSocket соединения
+const protocol = window.location.protocol === "https:" ? "wss://" : "ws://";
+const chatSocket = new WebSocket(protocol + window.location.host + '/ws/chat/' + currentChatId + '/' + accountId + '/');
 
-          const currentUser = "{{ user.username }}";
+chatSocket.onmessage = function (e) {
+    const data = JSON.parse(e.data);
+    const message = data.message;
+    const username = data.username || "Неизвестный пользователь";
+    const created = data.created;
+    const type = data.type
 
-          if (type === 'chat_message') {
-              // Отображаем новое сообщение
-              const chatMessages = document.querySelector(".chat-messages");
-              const messageElement = document.createElement("div");
+    const currentUser = "{{ user.username }}";
 
-              // Определяем, кто автор сообщения и отображаем его
-              if (username === currentUser) {
-                  messageElement.classList.add("authormessage");
-                  messageElement.innerHTML = `<p><span class="sender">Вы</span>: ${message} <span class="time">${created}</span></p>`;
-              } else {
-                  messageElement.classList.add("friendmessage");
-                  messageElement.innerHTML = `<p><span class="sender">${username}</span>: ${message} <span class="time">${created}</span></p>`;
-              }
-
-              chatMessages.appendChild(messageElement);
-              chatMessages.scrollTop = chatMessages.scrollHeight; // Прокрутка вниз
-
-              // Обновляем последний чат в списке
-              updateLastMessageInChatList(currentChatId, message, created, username);
-          }
-
-          if (type === 'buy_account') {
-            console.log(data)
-            const currentUser = "{{ user.username }}";
-            const userId = data.userid
-            const seller = "{{ selected_chat.seller.username }}";
-            const buyer = "{{ selected_chat.buyer.username }}";
-            const chatMessages = document.querySelector(".chat-messages");
-            const messageElement = document.createElement('div');
-            messageElement.classList.add("buy_notification");
-            console.log('1111', currentUser, seller, buyer)
-
-            if (currentUser === seller) {
-              messageElement.innerHTML = `
-              <div class="notification_seller">
-                <p>Покупатель <strong>${buyer}</strong> приобрел ваш аккаунт.</p>
-                <p>Пожалуйста, предоставьте ему логин и пароль для входа.</p>
-              </div>
-            `;
-            } else if (currentUser === buyer) {
-              messageElement.innerHTML = `
-                <div class="notification_buyer">
-                  <p>Вы успешно приобрели аккаунт у продавца <strong>${seller}</strong>.</p>
-                  <p>Ожидайте логин и пароль для входа.</p>
-                  <button class="confirm_purchase" onclick="confirmPurchase()">Подтвердить покупку</button>
-                </div>
-              `;
-         }
-         chatMessages.appendChild(messageElement);
-         chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-
-          if (type === 'buy_account_acept') {
-          const seller = "{{ chat_room.seller.username }}";
-          const buyer = "{{ chat_room.buyer.username }}";
-          const currentUser = "{{ user.username }}";
-          const chatMessages = document.querySelector(".chat-messages");
-          const messageElement = document.createElement('div');
-          messageElement.classList.add("buy_notification");
-
-          if (currentUser === seller) {
-            messageElement.innerHTML = `
-            <div class="notification_seller">
-              <p>Покупатель <strong>${buyer}</strong> подтвердил покупку, ваш баланс пополнен.</p>
-            </div>
-          `;
-          chatMessages.appendChild(messageElement);
-          } else if (currentUser === buyer) {
-            if (confirmButton) {
-              confirmButton.parentElement.innerHTML = `
-                <p>Вы успешно подтвердили покупку!</p>
-              `;
-            }
-
-            messageElement.innerHTML = `
-              <div class="notification_buyer">
-                <p>Вы успешно подтвердили покупку!</p>
-              </div>
-            `;
-            chatMessages.appendChild(messageElement);
-        }
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-      }
-
-      };
-
-
-        // Прокручиваем чат до последнего сообщения при загрузке страницы
-      function scrollToBottom() {
+    if (type === 'chat_message') {
+        // Отображаем новое сообщение
         const chatMessages = document.querySelector(".chat-messages");
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-      }
+        const messageElement = document.createElement("div");
 
-      scrollToBottom();
-
-      // Обновляем последний чат в левой колонке
-      function updateLastMessageInChatList(chatId, message, created, username) {
-          const chatItem = document.querySelector(`.chat-item[data-chat-id='${chatId}']`);
-          if (chatItem) {
-              const usernameElement = chatItem.querySelector(".username");
-              const lastMessageElement = chatItem.querySelector(".last-message");
-              const timestampElement = chatItem.querySelector(".timestamp");
-
-              usernameElement.textContent = username;
-              lastMessageElement.textContent = message;
-              timestampElement.textContent = created ? created : "Только что";
-
-              // Перемещаем элемент чата наверх списка
-              const chatList = document.querySelector('.chat-list-item');
-              chatList.prepend(chatItem); // Вставляем элемент в начало контейнера
-          }
-      }
-
-      // Обработчик отправки сообщения
-      const inputField = document.querySelector(".chat-input input");
-      const sendButton = document.querySelector(".send-btn");
-
-      sendButton.onclick = function () {
-          const message = inputField.value;
-          if (message.trim() !== "") {
-              chatSocket.send(JSON.stringify({ 'message': message, 'type':'chat_message' }));
-              inputField.value = "";  // Очистка поля ввода
-          }
-      };
-
-      // Отправка по нажатию на Enter
-      inputField.addEventListener('keydown', function(event) {
-        if (event.key === 'Enter' && !event.shiftKey) { // Проверяем, что Enter нажат без Shift
-            event.preventDefault(); // Предотвращаем добавление новой строки
-            sendButton.onclick()
+        // Определяем, кто автор сообщения и отображаем его
+        if (username === currentUser) {
+            messageElement.classList.add("authormessage");
+            messageElement.innerHTML = `<p><span class="sender">Вы</span>: ${message} <span class="time">${created}</span></p>`;
+        } else {
+            messageElement.classList.add("friendmessage");
+            messageElement.innerHTML = `<p><span class="sender">${username}</span>: ${message} <span class="time">${created}</span></p>`;
         }
-      });
+
+        chatMessages.appendChild(messageElement);
+        chatMessages.scrollTop = chatMessages.scrollHeight; // Прокрутка вниз
+
+        // Обновляем последний чат в списке
+        updateLastMessageInChatList(currentChatId, message, created, username);
+    }
+
+    if (type === 'buy_account') {
+      const currentUser = "{{ user.username }}";
+      const seller = "{{ selected_chat.seller.username }}";
+      const buyer = "{{ selected_chat.buyer.username }}";
+      const chatMessages = document.querySelector(".chat-messages");
+      const messageElement = document.createElement('div');
+      messageElement.classList.add("buy_notification");
+      console.log('1111', currentUser, seller, buyer)
+
+      if (currentUser === seller) {
+        messageElement.innerHTML = `
+        <div class="notification_seller">
+          <p>Покупатель <strong>${buyer}</strong> приобрел ваш аккаунт.</p>
+          <p>Пожалуйста, предоставьте ему логин и пароль для входа.</p>
+        </div>
+      `;
+      } else if (currentUser === buyer) {
+        messageElement.innerHTML = `
+          <div class="notification_buyer">
+            <p>Вы успешно приобрели аккаунт у продавца <strong>${seller}</strong>.</p>
+            <p>Ожидайте логин и пароль для входа.</p>
+            <button class="confirm_purchase" onclick="confirmPurchase()">Подтвердить покупку</button>
+          </div>
+        `;
+    }
+    chatMessages.appendChild(messageElement);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+    if (type === 'buy_account_acept') {
+    const seller = "{{ selected_chat.seller.username }}";
+    const buyer = "{{ selected_chat.buyer.username }}";
+    const currentUser = "{{ user.username }}";
+    const chatMessages = document.querySelector(".chat-messages");
+    const messageElement = document.createElement('div');
+    messageElement.classList.add("buy_notification");
+    console.log(222, currentUser, seller, buyer)
+
+    if (currentUser === seller) {
+      messageElement.innerHTML = `
+      <div class="notification_seller">
+        <p>Покупатель <strong>${buyer}</strong> подтвердил покупку, ваш баланс пополнен.</p>
+      </div>
+    `;
+    } else if (currentUser === buyer) {
+      const button = document.querySelector('.confirm_purchase');
+      button.style.display = 'none'
+      messageElement.innerHTML = `
+      <div class="notification_buyer">
+        <p>Вы успешно подтвердили покупку!</p>
+      </div>
+    `;
+  }
+  chatMessages.appendChild(messageElement);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}}
 
 
-      // Подсветка активного чата при загрузке страницы
-      document.querySelectorAll('.chat-item').forEach(item => {
-          item.addEventListener('click', function() {
-              document.querySelectorAll('.chat-item').forEach(chat => chat.classList.remove('active'));
-              item.classList.add('active');
-          });
-      });
 
-      // Подсвечиваем активный чат по умолчанию при загрузке страницы
-      document.querySelectorAll('.chat-item').forEach(item => {
+function confirmPurchase() {
+  chatSocket.send(JSON.stringify({
+      'type': 'buy_account_acept',
+  }));
+};
+
+
+
+
+  // Прокручиваем чат до последнего сообщения при загрузке страницы
+function scrollToBottom() {
+  const chatMessages = document.querySelector(".chat-messages");
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+scrollToBottom();
+
+// Обновляем последний чат в левой колонке
+function updateLastMessageInChatList(chatId, message, created, username) {
+    const chatItem = document.querySelector(`.chat-item[data-chat-id='${chatId}']`);
+    if (chatItem) {
+        const usernameElement = chatItem.querySelector(".username");
+        const lastMessageElement = chatItem.querySelector(".last-message");
+        const timestampElement = chatItem.querySelector(".timestamp");
+
+        usernameElement.textContent = username;
+        lastMessageElement.textContent = message;
+        timestampElement.textContent = created ? created : "Только что";
+
+        // Перемещаем элемент чата наверх списка
+        const chatList = document.querySelector('.chat-list-item');
+        chatList.prepend(chatItem); // Вставляем элемент в начало контейнера
+    }
+}
+
+// Обработчик отправки сообщения
+const inputField = document.querySelector(".chat-input input");
+const sendButton = document.querySelector(".send-btn");
+
+sendButton.onclick = function () {
+    const message = inputField.value;
+    if (message.trim() !== "") {
+        chatSocket.send(JSON.stringify({ 'message': message, 'type':'chat_message' }));
+        inputField.value = "";  // Очистка поля ввода
+    }
+};
+
+// Отправка по нажатию на Enter
+inputField.addEventListener('keydown', function(event) {
+  if (event.key === 'Enter' && !event.shiftKey) { // Проверяем, что Enter нажат без Shift
+      event.preventDefault(); // Предотвращаем добавление новой строки
+      sendButton.onclick()
+  }
+});
+
+
+// Подсветка активного чата при загрузке страницы
+document.querySelectorAll('.chat-item').forEach(item => {
+    item.addEventListener('click', function() {
+        document.querySelectorAll('.chat-item').forEach(chat => chat.classList.remove('active'));
+        item.classList.add('active');
+    });
+});
+
+// Подсвечиваем активный чат по умолчанию при загрузке страницы
+document.querySelectorAll('.chat-item').forEach(item => {
           const chatId = item.getAttribute('data-chat-id');
           if (chatId === currentChatId) {
               item.classList.add('active');
           }
       });
-  });
+
   </script>
 
 {% endblock %}
