@@ -68,17 +68,44 @@
 
 
 <script>
-  // Автоматическое скрытие каждого сообщения через 5 секунд
-  const messages = document.querySelectorAll('.alert');
-  messages.forEach((message, index) => {
+let wsUrl = 'ws://' + window.location.host + '/ws/notification/';
+let notificationSocket = new WebSocket(wsUrl);
+
+// Обработчик получения сообщений
+notificationSocket.onmessage = function(event) {
+  const data = JSON.parse(event.data);
+
+  if (data.type === 'notification') {
+      // Создаем новый элемент для сообщения
+      const messageDiv = document.createElement('div');
+      messageDiv.className = 'alert alert-success'; // alert-info или другой класс для стилизации
+      messageDiv.textContent = data.message;
+
+      // Добавляем сообщение в контейнер
+      const messagesContainer = document.getElementById('messages-container');
+      messagesContainer.appendChild(messageDiv);
+
+      // Удаляем сообщение через 5 секунд
       setTimeout(() => {
-          message.style.opacity = '0';
-          message.style.transform = 'translateX(30px)'; // Добавляем анимацию исчезновения
-          setTimeout(() => {
-              message.remove(); // Удаляем сообщение из DOM после анимации
-          }, 500); // Ждем анимацию исчезновения
-      }, 5000); // Каждое сообщение скрывается через 5 секунд, добавляем время для каждого нового сообщения
-  });
+          messageDiv.style.opacity = '0';
+          messageDiv.style.transform = 'translateX(30px)';
+          setTimeout(() => messageDiv.remove(), 500);
+      }, 5000);
+  }
+};
+
+
+// Автоматическое скрытие каждого сообщения через 5 секунд
+const messages = document.querySelectorAll('.alert');
+messages.forEach((message, index) => {
+    setTimeout(() => {
+        message.style.opacity = '0';
+        message.style.transform = 'translateX(30px)'; // Добавляем анимацию исчезновения
+        setTimeout(() => {
+            message.remove(); // Удаляем сообщение из DOM после анимации
+        }, 500); // Ждем анимацию исчезновения
+    }, 5000); // Каждое сообщение скрывается через 5 секунд, добавляем время для каждого нового сообщения
+});
 </script>
 </body>
 </html>

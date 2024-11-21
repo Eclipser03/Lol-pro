@@ -62,19 +62,37 @@
 
   <div class="my_purchases">
     <h1>Мои покупки</h1>
-    <div class="purchases">
-      <div>
-        <p>skin1</p>
-        <p>790 руб.</p>
-      </div>
-      <div>
-        <p>skin2</p>
-        <p>850 руб.</p>
-      </div>
-      <div>
-        <p>450 RP</p>
-        <p>700 руб.</p>
-      </div>
+    <div class="purchases scrollable">
+      {% for product in all_products %}
+        {% if product.total_price %}
+          <div>
+            <p>{{ product }}</p>
+            <p>{{ product.total_price }} руб.</p>
+          </div>
+        {% endif %}
+        {% if product.price_rub %}
+          <div>
+            <p>{{ product }}</p>
+            <p>{{ product.price_rub }} руб.</p>
+          </div>
+        {% endif %}
+        {% if product.price_char or product.price_skin %}
+          {% with product.price_char|default:0 as price_char %}
+          {% with product.price_skin|default:0 as price_skin %}
+          <div>
+            <p>{{ product }}</p>
+            <p>{{ price_char|add:price_skin }} руб.</p>
+          </div>
+          {% endwith %}
+          {% endwith %}
+        {% endif %}
+        {% if product.account.price %}
+          <div>
+            <p>{{ product }}</p>
+            <p>{{ product.account.price }} руб.</p>
+          </div>
+        {% endif %}
+      {% endfor %}
     </div>
   </div>
 

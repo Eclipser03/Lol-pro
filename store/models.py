@@ -112,8 +112,7 @@ class BoostOrder(models.Model):
         verbose_name_plural = 'Буст ордеры'
 
     def __str__(self):
-        return f'Заказ буста от {self.user.username}: {self.current_position}\
-            до {self.desired_position} на {self.server}'
+        return f'Буст {self.current_position} - {self.desired_position}. {self.server}'
 
 
 class Qualification(models.Model):
@@ -178,8 +177,7 @@ class Qualification(models.Model):
         verbose_name_plural = 'Квалификации'
 
     def __str__(self):
-        return f'Заказ квалификации от {self.user.username}: ранг - {self.previous_position}\
-            кол-во игр - {self.game_count} на {self.server}'
+        return f'Квалификация. Кол-во игр: {self.game_count}. {self.server}'
 
 
 class SkinsOrder(models.Model):
@@ -210,7 +208,10 @@ class SkinsOrder(models.Model):
         verbose_name_plural = 'Скины и персонажи'
 
     def __str__(self):
-        return f'Заказ скина или персонажа от {self.user.username}'
+        if self.char_name:
+            return f'Заказ персонажа {self.char_name}'
+        if self.skin_name:
+            return f'Заказ образа {self.skin_name}'
 
 
 class RPorder(models.Model):
@@ -325,7 +326,7 @@ class AccountOrder(models.Model):
         verbose_name_plural = 'Заказы аккаунтов'
 
     def __str__(self):
-        return f'Аккаунт - {self.account} | Покупатель - {self.user.username}'
+        return f'Аккаунт. Чемпионы: {self.account.champions}. Уровень {self.account.lvl}'
 
     def clean(self):
         if self.account and self.user == self.account.user:

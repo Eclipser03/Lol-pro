@@ -359,3 +359,27 @@ input{
     text-decoration: none;
     cursor: pointer;
 }
+
+
+.my_purchases {
+    max-width: 100%; /* Установите максимальную ширину, если необходимо */
+}
+
+.scrollable {
+    max-height: 600px; /* Ограничиваем высоту */
+    overflow-y: auto; /* Включаем вертикальную прокрутку */
+    padding-top: 50px; /* Опционально: внутренний отступ */
+}
+
+.scrollable::-webkit-scrollbar {
+    width: 8px; /* Ширина полосы прокрутки (для Chrome, Safari, Edge) */
+}
+
+.scrollable::-webkit-scrollbar-thumb {
+    background: #888888; /* Цвет ползунка */
+    border-radius: 4px; /* Скругление ползунка */
+}
+
+.scrollable::-webkit-scrollbar-thumb:hover {
+    background: #555; /* Цвет ползунка при наведении */
+}

@@ -1,4 +1,6 @@
 from copy import copy
+from urllib import request
+from venv import create
 
 from django.contrib import messages
 from django.contrib.auth import get_user_model, logout
@@ -21,7 +23,7 @@ from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.views.generic import CreateView, TemplateView
 
-from store.models import ChatRoom
+from store.models import AccountOrder, BoostOrder, ChatRoom, Qualification, RPorder, SkinsOrder
 from user.forms import (
     CustomPasswordResetForm,
     CustomSetPasswordForm,
@@ -120,6 +122,15 @@ class ProfileView(LoginRequiredMixin, PasswordChangeView):
         context['profile_form'] = ProfileUpdateForm(instance=self.request.user)
         context['update_email'] = UpdateUserEmail()
         context['update_balance'] = UpdateBalanceUser()
+        all_products = (
+            list(BoostOrder.objects.filter(user=self.request.user))
+            + list(Qualification.objects.filter(user=self.request.user))
+            + list(SkinsOrder.objects.filter(user=self.request.user))
+            + list(RPorder.objects.filter(user=self.request.user))
+            + list(AccountOrder.objects.filter(user=self.request.user))
+        )
+        all_products = sorted(all_products, key=lambda product: product.created_at, reverse=True)
+        context['all_products'] = all_products
         return context
 
     def post(self, request, *args, **kwargs):
@@ -219,7 +230,8 @@ class MessagesView(TemplateView):
                 Q(seller=self.request.user) | Q(buyer=self.request.user),
                 count_messages__gt=0,
             ),
-            key=lambda chat: chat.messages.last().created, reverse=True
+            key=lambda chat: chat.messages.last().created,
+            reverse=True,
         )
         chat_id = self.request.GET.get('chat_id')
 

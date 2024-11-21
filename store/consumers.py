@@ -1,10 +1,12 @@
 import json
 
+
+from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 
 from user.models import User
 
-from .models import AccountObject, ChatRoom, Message
+from .models import AccountObject, AccountOrder, ChatRoom, Message
 
 
 class ChatConsumer(AsyncWebsocketConsumer):
@@ -13,6 +15,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
         self.account_id = self.scope['url_route']['kwargs']['account_id']
         self.room_group_name = f'chat_{self.room_id}_{self.account_id}'
         self.chat_room = await ChatRoom.objects.aget(id=self.room_id)
+        self.recipient = (
+            self.chat_room.seller_id
+            if self.chat_room.seller_id != self.scope['user'].id
+            else self.chat_room.buyer_id
+        )
         # Присоединяемся к группе
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
 
@@ -39,6 +46,14 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     'created': str(sms.created.strftime('%H:%M')),
                 },
             )
+
+            await self.channel_layer.group_send(
+                f'user_{self.recipient}',
+                {
+                    'type': 'send_notification',
+                    'message': f'Новое сообщение от {self.scope['user'].username}',
+                },
+            )
         if text_data_json['type'] == 'buy_account':
             message = f"Пользователь {self.scope['user'].username} купил аккаунт."
             sms = await self.create_message(self.chat_room, self.scope['user'], message, 'buy_account')
@@ -46,12 +61,31 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 self.room_group_name,
                 {'type': 'buy_account', 'userid': self.scope['user'].id, 'message': message},
             )
+
+            await self.channel_layer.group_send(
+                f'user_{self.recipient}',
+                {
+                    'type': 'send_notification',
+                    'message': f'{self.scope['user'].username} оплатил ваш аккаунт',
+                },
+            )
+
         if text_data_json['type'] == 'buy_account_acept':
             message = f"Покупка подтверждена пользователем {self.scope['user'].username}."
-            sms = await self.create_message(self.chat_room, self.scope['user'], message, 'buy_account_acept')
+            sms = await self.create_message(
+                self.chat_room, self.scope['user'], message, 'buy_account_acept'
+            )
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {'type': 'buy_account_acept', 'userid': self.scope['user'].id, 'message': message},
+            )
+
+            await self.channel_layer.group_send(
+                f'user_{self.recipient}',
+                {
+                    'type': 'send_notification',
+                    'message': 'Покупка подтвержден, деньги зачислены на ваш счет',
+                },
             )
 
     async def buy_account_acept(self, event):
@@ -64,6 +98,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
             account.is_confirmed = True
             await seller.asave()
             await account.asave()
+            data = {'account': account}
+            await self.create_record(data)
         else:
             await self.send(
                 text_data=json.dumps({'type': 'error', 'message': 'Ошибка', 'userid': userid})
@@ -111,3 +147,26 @@ class ChatConsumer(AsyncWebsocketConsumer):
         return await Message.objects.acreate(
             chat_room=chat_room, author=author, text=text, massage_type=massagetype
         )
+
+    @database_sync_to_async
+    def create_record(self, data):
+        buyer = self.chat_room.buyer
+        return AccountOrder.objects.create(user=buyer, account=data['account'])
+
+
+class NotificationConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        if self.scope['user'].is_anonymous:
+            await self.close()
+        else:
+            self.user_group_name = f'user_{self.scope['user'].id}'
+            await self.channel_layer.group_add(self.user_group_name, self.channel_name)
+            await self.accept()
+
+    async def disconnect(self, code):
+        await self.channel_layer.group_discard(self.user_group_name, self.channel_name)
+
+    async def send_notification(self, event):
+        message1 = event['message']
+        print('1321', message1, event)
+        await self.send(text_data=json.dumps({'type': 'notification', 'message': message1}))
