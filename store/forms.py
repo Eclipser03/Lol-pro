@@ -191,6 +191,9 @@ class BoostOrderForms(forms.ModelForm):
 
     def save(self, commit=True):
         super().save(commit=True)
+        user = self.request.user
+        user.balance -= self.instance.total_price
+        user.save()
 
         if self.instance.coupon_code:
             self.instance.coupon_code.count -= 1
@@ -312,6 +315,9 @@ class QualificationForm(forms.ModelForm):
 
     def save(self, commit=True):
         super().save(commit=True)
+        user = self.request.user
+        user.balance -= self.instance.total_price
+        user.save()
 
         if self.instance.coupon_code:
             self.instance.coupon_code.count -= 1
@@ -369,6 +375,14 @@ class SkinsOrderForm(forms.ModelForm):
 
         return cleaned_data
 
+    def save(self, commit=True):
+        super().save(commit=True)
+        user = self.request.user
+        user.balance -= self.instance.price_skin or self.instance.price_char
+        user.save()
+
+        return self.instance
+
 
 class RPorderForm(forms.ModelForm):
     rp = forms.IntegerField(
@@ -411,14 +425,15 @@ class RPorderForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        print('КЛЕЕНАН ДАТА---', cleaned_data)
-        cleaned_data['price_rub'] = cleaned_data['rp'] * 0.23
+        cleaned_data['price_rub'] = int(cleaned_data['rp'] * 0.23)
         return cleaned_data
 
     def save(self, commit=True, user=None):
         instance = super().save(commit=False)
         if user:
             instance.user = user  # Устанавливаем пользователя перед сохранением
+            user.balance -= self.instance.price_rub
+            user.save()
         if commit:
             instance.save()
         return instance
@@ -437,7 +452,12 @@ class AccountObjectForm(forms.ModelForm):
     short_description = forms.CharField(widget=forms.TextInput(attrs={}))
     description = forms.CharField(
         widget=forms.Textarea(
-            attrs={'class':'description', 'rows': 4, 'cols': 50, 'placeholder': 'Введите полное описание здесь...'}
+            attrs={
+                'class': 'description',
+                'rows': 4,
+                'cols': 50,
+                'placeholder': 'Введите полное описание здесь...',
+            }
         )
     )
     price = forms.IntegerField(widget=forms.TextInput(attrs={'id': 'total-price-form'}))

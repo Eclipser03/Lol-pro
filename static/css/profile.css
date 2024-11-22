@@ -383,3 +383,11 @@ input{
 .scrollable::-webkit-scrollbar-thumb:hover {
     background: #555; /* Цвет ползунка при наведении */
 }
+
+
+.scrollable div {
+    border: 2px solid #c8c8c8;
+    border-radius: 10px;
+    padding: 15px 10px;
+    margin-bottom: 20px;
+}

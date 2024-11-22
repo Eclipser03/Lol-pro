@@ -17,12 +17,16 @@ from store.models import (
 # Register your models here.
 
 admin.site.register(Coupon)
-admin.site.register(BoostOrder)
 admin.site.register(Qualification)
 admin.site.register(RPorder)
 admin.site.register(ChatRoom)
 admin.site.register(AccountOrder)
 
+
+@admin.register(BoostOrder)
+class BoostOrderAdmin(admin.ModelAdmin):
+    list_display = ['__str__', 'user', 'created_at']
+    readonly_fields = ('created_at',)
 
 @admin.register(SkinsOrder)
 class SkinOrderAdmid(admin.ModelAdmin):
@@ -41,5 +45,6 @@ class AccountsAdmin(admin.ModelAdmin):
 
 class MessageAdmin(admin.ModelAdmin):
     list_display = ('author', 'text', 'massage_type')
+
 
 admin.site.register(Message, MessageAdmin)

@@ -1,6 +1,5 @@
 import json
 
-
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 
@@ -52,6 +51,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 {
                     'type': 'send_notification',
                     'message': f'Новое сообщение от {self.scope['user'].username}',
+                    'created': str(sms.created.strftime('%H:%M')),
+                    'username': self.scope['user'].username,
+                    'chat_room': self.chat_room.id,
                 },
             )
         if text_data_json['type'] == 'buy_account':
@@ -67,6 +69,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 {
                     'type': 'send_notification',
                     'message': f'{self.scope['user'].username} оплатил ваш аккаунт',
+                    'created': str(sms.created.strftime('%H:%M')),
+                    'username': self.scope['user'].username,
+                    'chat_room': self.chat_room.id,
                 },
             )
 
@@ -85,6 +90,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 {
                     'type': 'send_notification',
                     'message': 'Покупка подтвержден, деньги зачислены на ваш счет',
+                    'created': str(sms.created.strftime('%H:%M')),
+                    'username': self.scope['user'].username,
+                    'chat_room': self.chat_room.id,
                 },
             )
 
@@ -168,5 +176,18 @@ class NotificationConsumer(AsyncWebsocketConsumer):
 
     async def send_notification(self, event):
         message1 = event['message']
-        print('1321', message1, event)
-        await self.send(text_data=json.dumps({'type': 'notification', 'message': message1}))
+        created = event['created']
+        username = event['username']
+        chat_room = event['chat_room']
+        print('1321', message1, created, event)
+        await self.send(
+            text_data=json.dumps(
+                {
+                    'type': 'notification',
+                    'message': message1,
+                    'created': created,
+                    'username': username,
+                    'chat_room': chat_room,
+                }
+            )
+        )

@@ -139,6 +139,7 @@ const accountId = urlParams.get("account_id")
 // Инициализация WebSocket соединения
 const protocol = window.location.protocol === "https:" ? "wss://" : "ws://";
 const chatSocket = new WebSocket(protocol + window.location.host + '/ws/chat/' + currentChatId + '/' + accountId + '/');
+const notificationSocket = new WebSocket('ws://' + window.location.host + '/ws/notification/');
 
 chatSocket.onmessage = function (e) {
     const data = JSON.parse(e.data);
@@ -165,9 +166,6 @@ chatSocket.onmessage = function (e) {
 
         chatMessages.appendChild(messageElement);
         chatMessages.scrollTop = chatMessages.scrollHeight; // Прокрутка вниз
-
-        // Обновляем последний чат в списке
-        updateLastMessageInChatList(currentChatId, message, created, username);
     }
 
     if (type === 'buy_account') {
@@ -225,15 +223,14 @@ chatSocket.onmessage = function (e) {
   }
   chatMessages.appendChild(messageElement);
   chatMessages.scrollTop = chatMessages.scrollHeight;
-}}
+}
+
+}
 
 
 
-function confirmPurchase() {
-  chatSocket.send(JSON.stringify({
-      'type': 'buy_account_acept',
-  }));
-};
+
+
 
 
 
@@ -264,6 +261,22 @@ function updateLastMessageInChatList(chatId, message, created, username) {
     }
 }
 
+notificationSocket.onmessage = function(event) {
+  const data = JSON.parse(event.data);
+  const username = data.username
+  const message = data.message;
+  const created = data.created;
+  const chatID = data.chat_room
+  console.log('DATA', data)
+  if (data.type === 'notification') {
+    updateLastMessageInChatList(chatID, message, created, username);
+  }
+}
+function confirmPurchase() {
+  chatSocket.send(JSON.stringify({
+      'type': 'buy_account_acept',
+  }));
+};
 // Обработчик отправки сообщения
 const inputField = document.querySelector(".chat-input input");
 const sendButton = document.querySelector(".send-btn");

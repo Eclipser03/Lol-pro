@@ -225,6 +225,12 @@
       messageElement.classList.add("buy_notification");
       console.log('1111', currentUser, seller, buyer)
 
+      // Удаляем кнопку "Купить", если она есть
+  const buyButton = document.getElementById('bybtn'); // Убедитесь, что это ID кнопки "Купить"
+  if (buyButton) {
+    buyButton.remove();
+  }
+
       if (currentUser === seller) {
         messageElement.innerHTML = `
         <div class="notification_seller">
@@ -278,12 +284,6 @@ function confirmPurchase() {
   chatSocket.send(JSON.stringify({
       'type': 'buy_account_acept',
   }));
-
-  // Удаляем кнопку "Купить", если она есть
-  const buyButton = document.getElementById('bybtn'); // Убедитесь, что это ID кнопки "Купить"
-  if (buyButton) {
-    buyButton.remove();
-  }
 };
 
 

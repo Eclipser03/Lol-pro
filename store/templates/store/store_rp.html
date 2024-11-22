@@ -62,7 +62,7 @@
 
       // Если значение RP корректное, рассчитываем рубли
       if (!isNaN(rpAmount) && rpAmount >= 0) {
-          rublesInput.value = (rpAmount * conversionRate).toFixed(2) + " руб.";
+          rublesInput.value = (rpAmount * conversionRate).toFixed(0);
       } else {
           rublesInput.value = '';
       }

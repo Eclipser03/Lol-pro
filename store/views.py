@@ -1,11 +1,10 @@
 import json
-from urllib import request
 import uuid
-from django.core.paginator import Paginator
-from django.shortcuts import get_object_or_404
+
 from django.contrib import messages
+from django.core.paginator import Paginator
 from django.http import JsonResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.utils import timezone
 from django.views.generic import TemplateView
@@ -51,6 +50,9 @@ class StoreEloBoostChoiceView(TemplateView):
         form.request = self.request
         if form.is_valid():
             form.save()
+            # user = self.request.user
+            # user.balance -= 100
+            # user.save()
             messages.success(request, 'Покупка совершена успешно')
         else:
             # Отобразим ошибки формы, чтобы увидеть причину неудачи
@@ -217,7 +219,6 @@ class StoreAccountsView(TemplateView):
         price_max = self.request.GET.get('price_max', None)
         print('rank=', server)
 
-
         if champions_min is not None:
             try:
                 champions_min = int(champions_min)
@@ -262,8 +263,6 @@ class StoreAccountsView(TemplateView):
         if price_min is None and champions_max:
             acounts = acounts.filter(price__lte=price_max)
 
-
-
         page_number = self.request.GET.get('page', 1)
         paginator = Paginator(acounts, 10)
         current_page = paginator.page(page_number)
@@ -273,7 +272,7 @@ class StoreAccountsView(TemplateView):
         context['current_page'] = current_page
 
         context['account_form'] = AccountObjectForm()
-        print('CONTEXT',context)
+        print('CONTEXT', context)
         return context
 
     def post(self, request, *args, **kwargs):
@@ -314,6 +313,8 @@ class StoreAccountPageView(TemplateView):
             return context
 
         if not self.request.user.is_anonymous:
-            chat_room, created = ChatRoom.objects.get_or_create(buyer=self.request.user, seller=account.user, account=account)
+            chat_room, created = ChatRoom.objects.get_or_create(
+                buyer=self.request.user, seller=account.user, account=account
+            )
             context['chat_room'] = chat_room
         return context

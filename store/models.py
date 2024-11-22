@@ -115,6 +115,7 @@ class BoostOrder(models.Model):
         return f'Буст {self.current_position} - {self.desired_position}. {self.server}'
 
 
+
 class Qualification(models.Model):
     RANK_CHOISES = [
         ('IRON', 'Железо'),

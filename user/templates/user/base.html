@@ -30,6 +30,9 @@
       <a href="#" class="">FAQ</a>
     </div>
     <div class="dropdown">
+      <div class="balance">
+        <p>Баланс: {{ user.balance }} руб.</p>
+      </div>
       {% if user.is_authenticated %}
           <button class="dropbtn">
             <img src="{{ user.avatar.url }}" alt="User Avatar" class="user-avatar">
@@ -70,6 +73,9 @@
 <script>
 let wsUrl = 'ws://' + window.location.host + '/ws/notification/';
 let notificationSocket = new WebSocket(wsUrl);
+
+const currentPath = window.location.pathname;
+console.log('SSS',currentPath)
 
 // Обработчик получения сообщений
 notificationSocket.onmessage = function(event) {

@@ -186,3 +186,8 @@ header a{
     background-color: #f44336;
     color: white;
 }
+
+.balance {
+    font-size: 18px;
+    margin-bottom: 5px;
+}
