@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_recaptcha',
+    'django.contrib.humanize',
     'user',
     'main',
     'news',
@@ -217,4 +218,3 @@ CACHES = {
         'LOCATION': (BASE_DIR / 'cache'),
     }
 }
-

@@ -183,3 +183,9 @@ class UpdateUserEmail(forms.Form):
 
 class UpdateBalanceUser(forms.Form):
     balance = forms.IntegerField(widget=forms.NumberInput(attrs={'placeholder': 'Введите сумму'}))
+
+    def clean_balance(self):
+        if self.cleaned_data['balance'] < 0:
+            raise forms.ValidationError('Введите положительную сумму')
+
+        return self.cleaned_data['balance']

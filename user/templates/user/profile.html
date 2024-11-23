@@ -65,13 +65,13 @@
     <div class="purchases scrollable">
       {% for product in all_products %}
         {% if product.total_price %}
-          <div>
+          <div class="product_div">
             <p>{{ product }}</p>
             <p>{{ product.total_price }} руб.</p>
           </div>
         {% endif %}
         {% if product.price_rub %}
-          <div>
+          <div class="product_div">
             <p>{{ product }}</p>
             <p>{{ product.price_rub }} руб.</p>
           </div>
@@ -79,7 +79,7 @@
         {% if product.price_char or product.price_skin %}
           {% with product.price_char|default:0 as price_char %}
           {% with product.price_skin|default:0 as price_skin %}
-          <div>
+          <div class="product_div">
             <p>{{ product }}</p>
             <p>{{ price_char|add:price_skin }} руб.</p>
           </div>
@@ -87,7 +87,7 @@
           {% endwith %}
         {% endif %}
         {% if product.account.price %}
-          <div>
+          <div class="product_div">
             <p>{{ product }}</p>
             <p>{{ product.account.price }} руб.</p>
           </div>
@@ -98,25 +98,25 @@
 
   <div class="bookings">
     <h1>Мои записи</h1>
-    <div class="bookings_border">
-      <div class="booking-item">
-        <div>
-          <p>Эло буст от Серебро 4 до Золото 4</p>
+    <div class="bookings_border scrollable">
+      {% for boostorder in boostorders %}
+      <div class="booking-item" onclick="toggleDetails(this)">
+        <div class="summary">
+          <p>{{ boostorder }}</p>
           <img src="{% static 'images/arrow.png' %}" alt="" style="width: 11px; height: 11px;">
         </div>
-        <div>
-          <p>Сервер:EUW</p>
-          <p>Ментор: eclipser</p>
-        </div>
-        <div>
-          <p>Связь: Discord</p>
+        <div class="details" style="display: none;">
+          <div>
+            <p>Сервер: {{ boostorder.server }}</p>
+            {% load humanize %}
+            <p>Цена: {{ boostorder.total_price|intcomma }} руб.</p>
+          </div>
+          <div>
+            <p>Дата заказа: {{ boostorder.created_at|date:"j E Y" }}</p>
+          </div>
         </div>
       </div>
-      <div class="booking-item1">
-        <p>Коучинг:</p>
-        <p>26.09.2024</p>
-        <img src="{% static 'images/arrow.png' %}" alt="">
-      </div>
+      {% endfor %}
     </div>
   </div>
 </div>
@@ -322,6 +322,20 @@ function uploadAvatar() {
 
       // После выбора файла автоматически отправляем форму
       form.submit();
+  }
+}
+
+
+function toggleDetails(item) {
+  const details = item.querySelector(".details");
+  const arrow = item.querySelector("img");
+
+  if (details.style.display === "none" || !details.style.display) {
+    details.style.display = "block";
+    arrow.classList.add("rotated"); // Поворот стрелки
+  } else {
+    details.style.display = "none";
+    arrow.classList.remove("rotated"); // Возврат стрелки в исходное положение
   }
 }
 

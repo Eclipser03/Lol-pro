@@ -3,6 +3,7 @@ from django.conf.urls.static import static
 from django.urls import path
 
 from store.views import (
+    FaqView,
     PlacementMatchesView,
     StoreAccountPageView,
     StoreAccountsView,
@@ -27,6 +28,7 @@ urlpatterns = [
     path('store-rp/', StoreRPView.as_view(), name='store_rp'),
     path('store-accounts/', StoreAccountsView.as_view(), name='store_accounts'),
     path('store-account-page/<int:id>/', StoreAccountPageView.as_view(), name='store_account_page'),
+    path('faq', FaqView.as_view(), name='faq'),
 ]
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

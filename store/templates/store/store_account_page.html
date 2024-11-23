@@ -151,11 +151,12 @@
   let chatRoomId = "{{ chat_room.id }}";  // Подставить правильный ID
   let accountId = "{{ account.id }}"
   let userId = "{{ request.user }}";   // Подставить ID пользователя
-  const wsUrl = 'ws://' + window.location.host + '/ws/chat/' + chatRoomId + '/' + accountId + '/';
+  const wsUrl6 = 'ws://' + window.location.host + '/ws/chat/' + chatRoomId + '/' + accountId + '/';
   const byBtn = document.getElementById('bybtn');
+  const notificationSocket = new WebSocket('ws://' + window.location.host + '/ws/notification/');
 
   // Создаем подключение WebSocket
-  let chatSocket = new WebSocket(wsUrl);
+  let chatSocket = new WebSocket(wsUrl6);
 
   chatSocket.onopen = function() {
       console.log('WebSocket connection opened');
@@ -286,6 +287,30 @@ function confirmPurchase() {
   }));
 };
 
+
+notificationSocket.onmessage = function(event) {
+  let chatRoomId = "{{ chat_room.id }}"
+  const data = JSON.parse(event.data);
+  const chatroom = data.chat_room
+  console.log('DATA1', data)
+  if (chatroom != chatRoomId && data.type === 'notification') {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'alert alert-success'; // alert-info или другой класс для стилизации
+    messageDiv.textContent = data.message;
+
+    // Добавляем сообщение в контейнер
+    const messagesContainer = document.getElementById('messages-container');
+    messagesContainer.appendChild(messageDiv);
+
+    // Удаляем сообщение через 5 секунд
+    setTimeout(() => {
+        messageDiv.style.opacity = '0';
+        messageDiv.style.transform = 'translateX(30px)';
+        setTimeout(() => messageDiv.remove(), 500);
+    }, 5000);
+  }
+
+}
 
 
 

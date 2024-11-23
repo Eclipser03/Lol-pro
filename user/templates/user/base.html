@@ -25,9 +25,9 @@
       <a href="{% url 'main:home' %}" class="">Главная</a>
       <a href="{% url 'store:store' %}" class="">Магазин</a>
       <a href="{% url 'news:news' %}" class="">Новости</a>
-      <a href="#" class="">Услуги</a>
+      <a href="{% url 'store:store_elo_boost' %}" class="">Услуги</a>
       <a href="#" class="">Отзывы</a>
-      <a href="#" class="">FAQ</a>
+      <a href="{% url 'store:faq' %}" class="">FAQ</a>
     </div>
     <div class="dropdown">
       <div class="balance">
@@ -80,6 +80,7 @@ console.log('SSS',currentPath)
 // Обработчик получения сообщений
 notificationSocket.onmessage = function(event) {
   const data = JSON.parse(event.data);
+  console.log('GOGO', data)
 
   if (data.type === 'notification') {
       // Создаем новый элемент для сообщения

@@ -92,18 +92,19 @@
 }
 
 .booking-item {
-    width: 420px;
-    height: 110px;
     border: 2px solid white;
     border-radius: 10px;
     padding: 14px 24px;
-    margin-left: 50px;
+    margin-left: 30px;
+    margin-bottom: 20px;
+    margin-right: 15px;
+    cursor: pointer;
 }
 
-.booking-item div {
+.booking-item div:not(:last-child) {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 8px;
+    margin-bottom: 20px;
 }
 
 .booking-item1 {
@@ -385,9 +386,19 @@ input{
 }
 
 
-.scrollable div {
+.scrollable .product_div {
     border: 2px solid #c8c8c8;
     border-radius: 10px;
     padding: 15px 10px;
     margin-bottom: 20px;
+}
+
+.details {
+transition: max-height 0.3s ease-out;
+overflow: hidden;
+}
+
+img.rotated {
+transform: rotate(180deg);
+transition: transform 0.3s ease-out;
 }

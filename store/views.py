@@ -318,3 +318,7 @@ class StoreAccountPageView(TemplateView):
             )
             context['chat_room'] = chat_room
         return context
+
+
+class FaqView(TemplateView):
+    template_name = 'store/faq.html'
