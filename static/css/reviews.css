@@ -1,0 +1,217 @@
+.container {
+    align-items: center;
+    text-align: center;
+    margin-top: 80px;
+}
+
+.container h1 {
+    font-size: 40px;
+    margin-bottom: 50px;
+}
+
+.write_reviews {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.feedback-container {
+    margin-top: 100px;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    width: 800px;
+    height: 345px;
+}
+
+/* Заголовок */
+.feedback-container h2 {
+font-size: 24px;
+margin-bottom: 15px;
+color: #333;
+}
+
+/* Форма */
+.feedback-form {
+display: flex;
+flex-direction: column;
+}
+
+/* Текстовая метка */
+.feedback-form label {
+font-size: 18px;
+margin-bottom: 5px;
+color: #555;
+}
+
+/* Текстовое поле */
+.feedback-form textarea {
+resize: none;
+height: 100px;
+padding: 10px;
+font-size: 18px;
+border: 1px solid #ddd;
+border-radius: 5px;
+margin-bottom: 15px;
+}
+
+/* Рейтинг */
+.rating {
+display: flex;
+flex-direction: column;
+margin-bottom: 15px;
+}
+
+.rating p {
+margin: 0 0 5px;
+color: #555;
+font-size: 18px;
+}
+
+.stars {
+display: flex;
+gap: 5px;
+}
+
+.star {
+font-size: 28px;
+cursor: pointer;
+color: #ccc;
+transition: color 0.3s;
+}
+
+.star.selected,
+.star.hover {
+color: #f5c518;
+}
+
+.feedback-form button {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 10px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.feedback-form button:hover {
+    background-color: #0056b3;
+}
+
+
+.read_reviews {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 60%;
+    margin: auto;
+}
+
+/* Общие стили */
+.review-container {
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    background: #f9f9f9;
+}
+
+.review {
+margin-bottom: 15px;
+padding-bottom: 15px;
+border-bottom: 1px solid #dadada;
+}
+
+.review:last-child {
+border-bottom: none;
+padding-bottom: 0;
+}
+
+/* Заголовок отзыва */
+.review-header {
+display: flex;
+justify-content: space-between;
+align-items: center;
+font-size: 18px;
+color: #555;
+margin-bottom: 8px;
+}
+
+.review-author {
+font-weight: bold;
+color: #0073e6;
+}
+
+.review-date {
+color: #747474;
+}
+
+/* Рейтинг */
+.review-stars {
+color: #FFD700;
+font-size: 20px;
+margin-bottom: 8px;
+}
+
+/* Текст отзыва */
+.review-text {
+font-size: 16px;
+line-height: 1.5;
+color: #333;
+}
+
+/* Кнопка ответа */
+.reply-button {
+background: #0073e6;
+color: #fff;
+border: none;
+border-radius: 5px;
+padding: 8px 12px;
+cursor: pointer;
+font-size: 16px;
+margin-top: 10px;
+}
+
+.reply-button:hover {
+background: #005bb5;
+}
+
+/* Форма ответа */
+.reply-form {
+margin-top: 15px;
+}
+
+.reply-form textarea {
+width: 100%;
+border: 1px solid #ddd;
+border-radius: 5px;
+padding: 10px;
+font-size: 16px;
+resize: none;
+}
+
+.reply-form .submit-reply {
+margin-top: 10px;
+background: #28a745;
+color: #fff;
+border: none;
+border-radius: 5px;
+padding: 8px 12px;
+cursor: pointer;
+font-size: 16px;
+}
+
+.reply-form .submit-reply:hover {
+background: #218838;
+}
+
+/* Вложенные отзывы */
+.nested-reviews {
+margin-top: 20px;
+margin-left: 20px;
+border-left: 2px solid #ddd;
+padding-left: 15px;
+}

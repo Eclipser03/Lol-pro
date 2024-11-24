@@ -1,0 +1,111 @@
+{% extends "user/base.html" %}
+{% load static %}
+{% block head %}
+  <link rel="stylesheet" href="{% static 'css/reviews.css'%}">
+{% endblock %}
+{%block content%}
+<div class="container">
+  <h1 class="">Отзывы о сайте</h1>
+  <div class="container_reviews">
+    <div class="read_reviews">
+      <div class="review-container">
+        <!-- Основной отзыв -->
+        <div class="review">
+          <div class="review-header">
+            <span class="review-author">Eclipser</span>
+            <span class="review-date">30.10.2024</span>
+          </div>
+          <div class="review-stars">★★★★★</div>
+          <p class="review-text">Большое спасибо мужчинам с элобуст, сделали всё очень быстро и качественно, единственный честный и хороший сервис.</p>
+          <button class="reply-button" onclick="toggleReplyForm(this)">Ответить</button>
+        </div>
+
+        <!-- Форма для ответа -->
+        <div class="reply-form" style="display: none;">
+          <textarea placeholder="Напишите ваш ответ" rows="3"></textarea>
+          <button class="submit-reply" onclick="submitReply(this)">Отправить</button>
+        </div>
+
+        <!-- Вложенные отзывы -->
+        <div class="nested-reviews">
+          <!-- Пример вложенного отзыва -->
+          <div class="review">
+            <div class="review-header">
+              <span class="review-author">Admin</span>
+              <span class="review-date">31.10.2024</span>
+            </div>
+            <p class="review-text">Спасибо за ваш отзыв, мы рады, что вам понравилось!</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="write_reviews">
+      <div class="feedback-container">
+        <h2>Оставить отзыв</h2>
+        <form action="#" method="POST" class="feedback-form">
+          <label for="feedback-text">Ваш отзыв:</label>
+          <textarea id="feedback-text" name="feedback" placeholder="Напишите свой отзыв здесь..." required></textarea>
+
+          <div class="rating">
+            <p>Оцените нас:</p>
+            <div class="stars">
+              <span class="star" data-value="1">★</span>
+              <span class="star" data-value="2">★</span>
+              <span class="star" data-value="3">★</span>
+              <span class="star" data-value="4">★</span>
+              <span class="star" data-value="5">★</span>
+            </div>
+          </div>
+
+          <button type="submit">Отправить отзыв</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+{% endblock %}
+{% block scripts %}
+<script>
+  function toggleReplyForm(button) {
+    const replyForm = button.parentElement.nextElementSibling;
+    replyForm.style.display = replyForm.style.display === "none" ? "block" : "none";
+  }
+
+  function submitReply(button) {
+    const replyForm = button.parentElement;
+    const textarea = replyForm.querySelector("textarea");
+    const replyText = textarea.value.trim();
+
+    if (replyText === "") {
+      alert("Пожалуйста, напишите ваш ответ.");
+      return;
+    }
+
+    // Создаем новый вложенный отзыв
+    const nestedReviews = replyForm.nextElementSibling || document.createElement("div");
+    nestedReviews.classList.add("nested-reviews");
+
+    const newReview = document.createElement("div");
+    newReview.classList.add("review");
+    newReview.innerHTML = `
+      <div class="review-header">
+        <span class="review-author">Ваше имя</span>
+        <span class="review-date">${new Date().toLocaleDateString()}</span>
+      </div>
+      <p class="review-text">${replyText}</p>
+    `;
+
+    nestedReviews.appendChild(newReview);
+    replyForm.after(nestedReviews);
+
+    // Очищаем текстовое поле и скрываем форму
+    textarea.value = "";
+    replyForm.style.display = "none";
+  }
+</script>
+{% endblock %}

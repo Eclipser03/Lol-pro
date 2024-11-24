@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django_recaptcha',
     'django.contrib.humanize',
+    'mptt',
     'user',
     'main',
     'news',
