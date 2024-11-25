@@ -16,7 +16,7 @@ class ReviewModel(MPTTModel):
         User, on_delete=models.CASCADE, related_name='reviews', verbose_name='Пользователь'
     )
     stars = models.CharField(max_length=2, choices=STARS_CHOISES, verbose_name='Оценка', blank=True)
-    reviews = models.CharField(max_length=300, verbose_name='Описание')
+    reviews = models.TextField(verbose_name='Описание')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
     parent = TreeForeignKey(
         'self', on_delete=models.CASCADE, null=True, blank=True, related_name='children'
