@@ -135,7 +135,104 @@
   {% else %}
   {% endif %}
 </div>
+<div class="container1">
+  <h1 class="">Отзывы о продавце</h1>
+  <div class="container_reviews">
+    <div class="read_reviews">
+      {% for review in account.user.reviews_seller.all %}
+      <div class="review-container" data-review-id="{{ review.id }}">
+        <!-- Основной отзыв -->
+        <div class="review">
+          <div class="review-header">
+            <div class="review-author-info">
+            <img src="{{ review.buyer.avatar.url }}" alt="Avatar" class="review-avatar">
+            <span class="review-author">{{ review.buyer.username }}</span>
+            </div>
+            <div>
+              <span class="review-date">{{ review.created_at }}</span>
+            </div>
+          </div>
+          <div class="review-stars" data-stars="{{ review.stars }}"></div>
+          <p class="review-text">{{ review.reviews }}</p>
+          {% if review.seller == request.user %}
+          <button class="reply-button" onclick="toggleReplyForm(this)">Ответить</button>
+          {% endif %}
+        </div>
 
+        <!-- Форма для ответа -->
+
+            <div class="reply-form" style="display: none;">
+              <form action="{% url 'store:store_account_page' account.id %}" method="POST">
+                {% csrf_token %}
+                {{ form.reviews }}
+                {{ form.parent }}
+
+              <button type="submit" class="submit-reply">Отправить</button>
+              </form>
+            </div>
+
+
+        {% if review.children.exists %}
+        <!-- Вложенные отзывы -->
+        <div class="nested-reviews">
+          <!-- Пример вложенного отзыва -->
+          <div class="review">
+            {% for child in review.children.all|dictsort:"created_at" %}
+            <div class="review-header">
+              <div class="review-author-info">
+              <img src="{{ child.seller.avatar.url }}" alt="Avatar" class="review-avatar">
+              <span class="review-author">{{ child.user.username }}</span>
+              </div>
+              <div><span class="review-date">{{ child.created_at }}</span></div>
+            </div>
+            <p class="review-text">{{ child.reviews }}</p>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="pagination">
+      {% if current_page.has_previous %}
+        <a class="first" href="?page=1"><<</a>
+        <a class="prev" href="?page={{ current_page.previous_page_number }}">Предыдущая</a>
+        {% endif %}
+
+        <span class="pagination-info">Страница <span id="current-page">{{ current_page.number }}</span> из <span id="total-pages">{{ paginator.num_pages }}</span></span>
+
+        {% if current_page.has_next %}
+        <a class="next" href="?page={{ current_page.next_page_number }}">Следующая</a>
+      {% endif %}
+    </div>
+
+    <div class="write_reviews">
+      <div class="feedback-container">
+        <h2>Оставить отзыв</h2>
+        <form action="{% url 'store:store_account_page' account.id %}" method="POST" class="feedback-form">
+          {% csrf_token %}
+          <!-- <label for="feedback-text">Ваш отзыв:</label> -->
+          {{ form.reviews }}
+          <!-- <textarea id="feedback-text" name="feedback" placeholder="Напишите свой отзыв здесь..." required></textarea> -->
+
+          <div class="star-rating">
+            {{ form.stars }}
+            <div class="stars">
+              <span class="star" data-value="1">★</span>
+              <span class="star" data-value="2">★</span>
+              <span class="star" data-value="3">★</span>
+              <span class="star" data-value="4">★</span>
+              <span class="star" data-value="5">★</span>
+            </div>
+          </div>
+
+          <button type="submit">Отправить отзыв</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
 <!-- Modal for viewing large image -->
 <div id="imageModal" class="modal">
   <span class="close" onclick="closeModal()">&times;</span>
@@ -393,6 +490,89 @@ document.querySelector('#chat-message-input').addEventListener('keydown', functi
     }
     document.getElementById("modalImage").src = images[currentImageIndex];
   }
+
+
+
+
+
+
+
+
+
+
+function toggleReplyForm(button) {
+  const replyForm = button.parentElement.nextElementSibling;
+  replyForm.style.display = replyForm.style.display === "none" ? "block" : "none";
+  const reviewContainer = button.closest(".review-container");
+  const reviewId = reviewContainer.getAttribute("data-review-id");
+  let parent = replyForm.querySelector(".parent")
+  parent.value = reviewId
+  console.log(reviewId)
+}
+
+// Отображение звезд в отзыве
+document.addEventListener("DOMContentLoaded", function () {
+  const starContainers = document.querySelectorAll(".review-stars");
+
+  starContainers.forEach(container => {
+    const starCount = parseInt(container.getAttribute("data-stars")) || 0;
+
+    // Создаем 5 звезд
+    for (let i = 1; i <= 5; i++) {
+      const star = document.createElement("div");
+      star.classList.add("star");
+      if (i <= starCount) {
+        star.classList.add("active");
+      }
+      container.appendChild(star);
+    }
+  });
+});
+
+
+document.addEventListener("DOMContentLoaded", function () {
+  const stars = document.querySelectorAll(".stars .star");
+  const ratingInput = document.querySelector(".star-input");
+  const form = document.querySelector(".feedback-form");
+
+  stars.forEach(star => {
+    star.addEventListener("click", () => {
+      const value = parseInt(star.getAttribute("data-value"));
+
+      // Устанавливаем рейтинг в скрытое поле
+      ratingInput.value = value;
+
+      // Обновляем активные звезды
+      stars.forEach(s => {
+        s.classList.toggle("active", parseInt(s.getAttribute("data-value")) <= value);
+      });
+    });
+
+    // Подсветка при наведении
+    star.addEventListener("mouseover", () => {
+      const value = parseInt(star.getAttribute("data-value"));
+      stars.forEach(s => {
+        s.classList.toggle("active", parseInt(s.getAttribute("data-value")) <= value);
+      });
+    });
+
+    // Убираем подсветку при уходе мыши
+    star.addEventListener("mouseout", () => {
+      const currentValue = parseInt(ratingInput.value) || 0;
+      stars.forEach(s => {
+        s.classList.toggle("active", parseInt(s.getAttribute("data-value")) <= currentValue);
+      });
+    });
+  });
+
+  // Проверка на обязательность выбора звезд перед отправкой формы
+  form.addEventListener("submit", function (event) {
+    if (!ratingInput.value) {
+      alert("Пожалуйста, выберите рейтинг.");
+      event.preventDefault(); // Предотвращаем отправку формы
+    }
+  });
+});
 
 
 </script>

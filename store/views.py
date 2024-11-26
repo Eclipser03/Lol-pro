@@ -15,6 +15,7 @@ from store.forms import (
     BoostOrderForms,
     QualificationForm,
     RPorderForm,
+    ReviewsSellerForm,
     SkinsOrderForm,
 )
 from store.models import AccountObject, AccountsImage, ChatRoom, Coupon
@@ -264,7 +265,7 @@ class StoreAccountsView(TemplateView):
             acounts = acounts.filter(price__lte=price_max)
 
         page_number = self.request.GET.get('page', 1)
-        paginator = Paginator(acounts, 2)
+        paginator = Paginator(acounts, 10)
         current_page = paginator.page(page_number)
 
         context['accounts'] = list(current_page)[::-1]
@@ -308,6 +309,7 @@ class StoreAccountPageView(TemplateView):
         context = super().get_context_data(**kwargs)
         account = get_object_or_404(AccountObject, id=self.kwargs.get('id'))
         context['account'] = account
+        context['form'] = ReviewsSellerForm()
 
         if self.request.user == account.user:
             return context
@@ -318,6 +320,23 @@ class StoreAccountPageView(TemplateView):
             )
             context['chat_room'] = chat_room
         return context
+
+    def post(self, request, *args, **kwargs):
+        print('KWARGS',kwargs)
+        form = ReviewsSellerForm(request.POST)
+        form.request = self.request
+        form.product = get_object_or_404(AccountObject, id=self.kwargs.get('id'))
+        print("POST", request.POST)
+        if form.is_valid():
+            form.save()
+        else:
+            errors = form.errors.values()
+            print(form.errors)
+            for error in errors:
+                for text in error:
+                    messages.error(request, text)
+            return render(request, self.template_name, {'form': form})
+        return redirect(request.META.get('HTTP_REFERER', '/'))
 
 
 class FaqView(TemplateView):

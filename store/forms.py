@@ -1,5 +1,7 @@
+from itertools import product
 import json
 import os
+from typing import Any
 
 from django import forms
 from django.conf import settings
@@ -12,6 +14,7 @@ from store.models import (
     Coupon,
     Qualification,
     RPorder,
+    ReviewSellerModel,
     SkinsOrder,
 )
 from store.services import calculate_boost, calculate_qualification
@@ -491,7 +494,45 @@ class AccountObjectForm(forms.ModelForm):
         return instance
 
 
-# class AccountsImageForm(forms.ModelForm):
-#     class Meta:
-#         model = AccountsImage
-#         fields = ['image']
+class ReviewsSellerForm(forms.ModelForm):
+    stars = forms.ChoiceField(
+        choices=[
+            ('1', '1'),
+            ('2', '2'),
+            ('3', '3'),
+            ('4', '4'),
+            ('5', '5'),
+        ],
+        widget=forms.TextInput(attrs={'class': 'star-input'}),required=False
+    )
+    reviews = forms.CharField(
+        widget=forms.Textarea(
+            attrs={'class': 'feedback-text', 'placeholder': 'Напишите свой отзыв здесь...'}
+        )
+    )
+    buyer = forms.CharField(required=False)
+
+    seller = forms.CharField(required=False)
+
+    parent = forms.CharField(widget=forms.TextInput(attrs={'class':'parent'}), required=False)
+
+    product = forms.CharField(required=False)
+
+    class Meta:
+        model = ReviewSellerModel
+        fields = ('stars', 'reviews', 'seller', 'buyer', 'parent', 'product')
+
+    def clean(self):
+        cleaned_data = super().clean()
+        print('CLEANED DATA', self.request)
+        cleaned_data['seller'] = self.product.user
+        cleaned_data['product'] = self.product
+
+        print('CLEANED DATA USER', cleaned_data['buyer'], cleaned_data['seller'])
+        if cleaned_data['parent'] == '':
+            cleaned_data.pop('parent')
+            cleaned_data['buyer'] = self.request.user
+        else:
+            cleaned_data['parent'] = ReviewSellerModel.objects.get(id=cleaned_data['parent'])
+            cleaned_data.pop('buyer')
+        return cleaned_data

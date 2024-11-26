@@ -1,4 +1,5 @@
 from django.contrib import admin
+from mptt.admin import DraggableMPTTAdmin
 
 from store.models import (
     AccountObject,
@@ -9,6 +10,7 @@ from store.models import (
     Coupon,
     Message,
     Qualification,
+    ReviewSellerModel,
     RPorder,
     SkinsOrder,
 )
@@ -27,6 +29,7 @@ admin.site.register(AccountOrder)
 class BoostOrderAdmin(admin.ModelAdmin):
     list_display = ['__str__', 'user', 'created_at']
     readonly_fields = ('created_at',)
+
 
 @admin.register(SkinsOrder)
 class SkinOrderAdmid(admin.ModelAdmin):
@@ -48,3 +51,10 @@ class MessageAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Message, MessageAdmin)
+
+
+class ReviewSellerAdmin(DraggableMPTTAdmin):
+    list_display = ['tree_actions', 'indented_title', 'created_at']
+
+
+admin.site.register(ReviewSellerModel, ReviewSellerAdmin)

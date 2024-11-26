@@ -1,6 +1,7 @@
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.forms import ValidationError
+from mptt.models import MPTTModel, TreeForeignKey
 
 from user.models import User
 
@@ -113,7 +114,6 @@ class BoostOrder(models.Model):
 
     def __str__(self):
         return f'Буст {self.current_position} - {self.desired_position}. {self.server}'
-
 
 
 class Qualification(models.Model):
@@ -368,3 +368,43 @@ class Message(models.Model):
 
     def __str__(self):
         return f'{self.author.username} : {self.text}'
+
+
+class ReviewSellerModel(MPTTModel):
+    STARS_CHOISES = [
+        ('1', '1'),
+        ('2', '2'),
+        ('3', '3'),
+        ('4', '4'),
+        ('5', '5'),
+    ]
+    buyer = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
+        related_name='reviews_buyer',
+        verbose_name='Покупатель',
+    )
+    seller = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='reviews_seller', verbose_name='Продавец'
+    )
+    stars = models.CharField(max_length=2, choices=STARS_CHOISES, verbose_name='Оценка', blank=True)
+    reviews = models.TextField(verbose_name='Отзыв')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
+    parent = TreeForeignKey(
+        'self', on_delete=models.CASCADE, null=True, blank=True, related_name='children'
+    )
+    product = models.ForeignKey(
+        AccountObject, models.CASCADE, related_name='reviews', verbose_name='Товар'
+    )
+
+    class MPTTMeta:
+        order_insertion_by = ['-created_at']
+
+    class Meta:
+        verbose_name = 'Отзыв о продавце'
+        verbose_name_plural = 'Отзывы о продавцах'
+
+    def __str__(self):
+        return f'Отзыв для {self.seller.username}, {self.reviews}'
