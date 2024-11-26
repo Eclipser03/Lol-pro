@@ -23,7 +23,7 @@ class ReviewModel(MPTTModel):
     )
 
     class MPTTMeta:
-        order_insertion_by = ['created_at']
+        order_insertion_by = ['-created_at']
 
     class Meta:
         verbose_name = 'Отзыв о сайте'

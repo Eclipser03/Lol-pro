@@ -1,6 +1,7 @@
 from typing import Any
 
 from django.contrib import messages
+from django.core.paginator import Paginator
 from django.shortcuts import redirect, render
 from django.views.generic import TemplateView
 
@@ -20,7 +21,17 @@ class ReviewsView(TemplateView):
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
-        context['reviews'] = ReviewModel.objects.filter(parent__isnull=True)
+        # context['reviews'] = ReviewModel.objects.filter(parent__isnull=True)
+
+        reviews = ReviewModel.objects.filter(parent__isnull=True).order_by('-created_at')
+
+        page_number = self.request.GET.get('page', 1)
+        paginator = Paginator(reviews, 5)
+        current_page = paginator.page(page_number)
+
+        context['reviews'] = current_page
+        context['paginator'] = paginator
+        context['current_page'] = current_page
         context['form'] = ReviewsForm()
         return context
 

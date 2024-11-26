@@ -264,7 +264,7 @@ class StoreAccountsView(TemplateView):
             acounts = acounts.filter(price__lte=price_max)
 
         page_number = self.request.GET.get('page', 1)
-        paginator = Paginator(acounts, 10)
+        paginator = Paginator(acounts, 2)
         current_page = paginator.page(page_number)
 
         context['accounts'] = list(current_page)[::-1]

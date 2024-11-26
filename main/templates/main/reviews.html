@@ -13,8 +13,13 @@
         <!-- Основной отзыв -->
         <div class="review">
           <div class="review-header">
+            <div class="review-author-info">
+            <img src="{{ review.user.avatar.url }}" alt="Avatar" class="review-avatar">
             <span class="review-author">{{ review.user.username }}</span>
-            <span class="review-date">{{ review.created_at }}</span>
+            </div>
+            <div>
+              <span class="review-date">{{ review.created_at }}</span>
+            </div>
           </div>
           <div class="review-stars" data-stars="{{ review.stars }}"></div>
           <p class="review-text">{{ review.reviews }}</p>
@@ -39,10 +44,13 @@
         <div class="nested-reviews">
           <!-- Пример вложенного отзыва -->
           <div class="review">
-            {% for child in review.children.all %}
+            {% for child in review.children.all|dictsort:"created_at" %}
             <div class="review-header">
+              <div class="review-author-info">
+              <img src="{{ child.user.avatar.url }}" alt="Avatar" class="review-avatar">
               <span class="review-author">{{ child.user.username }}</span>
-              <span class="review-date">{{ child.created_at }}</span>
+              </div>
+              <div><span class="review-date">{{ child.created_at }}</span></div>
             </div>
             <p class="review-text">{{ child.reviews }}</p>
             {% endfor %}
@@ -51,6 +59,19 @@
         {% endif %}
       </div>
       {% endfor %}
+    </div>
+
+    <div class="pagination">
+      {% if current_page.has_previous %}
+        <a class="first" href="?page=1"><<</a>
+        <a class="prev" href="?page={{ current_page.previous_page_number }}">Предыдущая</a>
+        {% endif %}
+
+        <span class="pagination-info">Страница <span id="current-page">{{ current_page.number }}</span> из <span id="total-pages">{{ paginator.num_pages }}</span></span>
+
+        {% if current_page.has_next %}
+        <a class="next" href="?page={{ current_page.next_page_number }}">Следующая</a>
+      {% endif %}
     </div>
 
     <div class="write_reviews">

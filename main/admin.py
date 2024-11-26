@@ -5,4 +5,7 @@ from main.models import ReviewModel
 # Register your models here.
 
 
-admin.site.register(ReviewModel, DraggableMPTTAdmin)
+class ReviewAdmin(DraggableMPTTAdmin):
+    list_display = ['tree_actions', 'indented_title', 'created_at']
+
+admin.site.register(ReviewModel, ReviewAdmin)
