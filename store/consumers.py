@@ -1,5 +1,6 @@
 import json
 
+from asgiref.sync import sync_to_async
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 
@@ -19,6 +20,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             if self.chat_room.seller_id != self.scope['user'].id
             else self.chat_room.buyer_id
         )
+        self.account = await AccountObject.objects.aget(acount_chat_rooms=self.chat_room)
         # Присоединяемся к группе
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
 
@@ -31,6 +33,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
     # Получаем сообщение от WebSocket
     async def receive(self, text_data):
         text_data_json = json.loads(text_data)
+        print('text_data_json', text_data_json)
 
         # Отправляем сообщение в группу
         if text_data_json['type'] == 'chat_message':
@@ -56,7 +59,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     'chat_room': self.chat_room.id,
                 },
             )
-        if text_data_json['type'] == 'buy_account':
+        elif text_data_json['type'] == 'buy_account':
             message = f"Пользователь {self.scope['user'].username} купил аккаунт."
             sms = await self.create_message(self.chat_room, self.scope['user'], message, 'buy_account')
             await self.channel_layer.group_send(
@@ -74,8 +77,29 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     'chat_room': self.chat_room.id,
                 },
             )
+        elif text_data_json['type'] == 'buy_account_cancel':
+            seller_username = await sync_to_async(lambda: self.chat_room.seller.username)()
+            message = f'Продавец {seller_username} отменил заказ.'
+            sms = await self.create_message(
+                self.chat_room, self.scope['user'], message, 'buy_account_cancel'
+            )
+            print('11', self.room_group_name)
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {'type': 'cancell', 'userid': str(self.scope['user'].id), 'message': message},
+            )
 
-        if text_data_json['type'] == 'buy_account_acept':
+            await self.channel_layer.group_send(
+                f'user_{self.recipient}',
+                {
+                    'type': 'send_notification',
+                    'message': f'{seller_username} отменил заказ',
+                    'created': str(sms.created.strftime('%H:%M')),
+                    'username': self.scope['user'].username,
+                    'chat_room': self.chat_room.id,
+                },
+            )
+        elif text_data_json['type'] == 'buy_account_acept':
             message = f"Покупка подтверждена пользователем {self.scope['user'].username}."
             sms = await self.create_message(
                 self.chat_room, self.scope['user'], message, 'buy_account_acept'
@@ -137,6 +161,27 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 text_data=json.dumps({'type': 'error', 'message': 'Ошибка', 'userid': userid})
             )
             return
+
+    async def cancell(self, event):
+        userid = event['userid']
+        if not self.account.is_active:
+            buyer = await User.objects.aget(buyer_chat_rooms=self.chat_room)
+            buyer.balance += self.account.price
+            await buyer.asave()
+            self.account.is_active = True
+            await self.account.asave()
+            await self.send(
+                text_data=json.dumps(
+                    {
+                        'type': 'buy_account_cancel',
+                        'userid': userid,
+                    }
+                )
+            )
+        else:
+            await self.send(
+                text_data=json.dumps({'type': 'error', 'message': 'Ошибка', 'userid': userid})
+            )
 
     # Получаем сообщение от группы
     async def chat_message(self, event):

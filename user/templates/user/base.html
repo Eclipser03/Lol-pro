@@ -71,8 +71,9 @@
 
 
 <script>
-let wsUrl = 'ws://' + window.location.host + '/ws/notification/';
-let notificationSocket = new WebSocket(wsUrl);
+if (typeof notificationSocket === "undefined") {
+  let wsUrl = 'ws://' + window.location.host + '/ws/notification/';
+  let notificationSocket = new WebSocket(wsUrl);
 
 const currentPath = window.location.pathname;
 console.log('SSS',currentPath)
@@ -100,6 +101,8 @@ notificationSocket.onmessage = function(event) {
       }, 5000);
   }
 };
+}
+
 
 
 // Автоматическое скрытие каждого сообщения через 5 секунд

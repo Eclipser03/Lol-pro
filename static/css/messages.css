@@ -341,7 +341,7 @@ font-weight: bold;
 color: #5bc0de;
 }
 
-.notification_buyer .confirm_purchase {
+.notification_buyer .confirm_purchase,.notification_seller .confirm_purchase {
 margin-top: 10px;
 padding: 8px 12px;
 background-color: #5cb85c;
@@ -351,6 +351,6 @@ cursor: pointer;
 border-radius: 3px;
 }
 
-.notification_buyer .confirm_purchase:hover {
+.notification_buyer .confirm_purchase:hover, .notification_seller .confirm_purchase:hover{
 background-color: #4cae4c;
 }

@@ -18,7 +18,7 @@ from store.forms import (
     ReviewsSellerForm,
     SkinsOrderForm,
 )
-from store.models import AccountObject, AccountsImage, ChatRoom, Coupon
+from store.models import AccountObject, AccountsImage, ChatRoom, Coupon, ReviewSellerModel
 from user.tasks import send_email_task
 
 
@@ -310,6 +310,15 @@ class StoreAccountPageView(TemplateView):
         account = get_object_or_404(AccountObject, id=self.kwargs.get('id'))
         context['account'] = account
         context['form'] = ReviewsSellerForm()
+        reviews = ReviewSellerModel.objects.filter(parent__isnull=True, seller=account.user)
+
+        page_number = self.request.GET.get('page', 1)
+        paginator = Paginator(reviews, 10)
+        current_page = paginator.page(page_number)
+
+        context['reviews'] = current_page
+        context['paginator'] = paginator
+        context['current_page'] = current_page
 
         if self.request.user == account.user:
             return context

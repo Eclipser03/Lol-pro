@@ -96,6 +96,9 @@
                 <div class="notification_seller">
                   <p>Покупатель <strong>{{ selected_chat.buyer.username }}</strong> приобрел ваш аккаунт.</p>
                   <p>Пожалуйста, предоставьте ему логин и пароль для входа.</p>
+                  {% if not selected_chat.account.is_confirmed %}
+                    <button class="cancel_purchase" onclick="cancelPurchase()">Отменить покупку</button>
+                  {% endif %}
                 </div>
               </div>
             {% endif %}
@@ -182,6 +185,7 @@ chatSocket.onmessage = function (e) {
         <div class="notification_seller">
           <p>Покупатель <strong>${buyer}</strong> приобрел ваш аккаунт.</p>
           <p>Пожалуйста, предоставьте ему логин и пароль для входа.</p>
+          <button class="cancel_purchase" onclick="cancelPurchase()"Отменить заказ</button>
         </div>
       `;
       } else if (currentUser === buyer) {
@@ -272,9 +276,20 @@ notificationSocket.onmessage = function(event) {
     updateLastMessageInChatList(chatID, message, created, username);
   }
 }
+// Подвердить покупку
 function confirmPurchase() {
   chatSocket.send(JSON.stringify({
       'type': 'buy_account_acept',
+  }));
+};
+
+// Отменить покупку
+function cancelPurchase() {
+  const cancelButton = document.querySelector('.cancel_purchase');
+  console.log(document.querySelectorAll('.cancel_purchase').length);
+  cancelButton.style.display = 'none';
+  chatSocket.send(JSON.stringify({
+      'type': 'buy_account_cancel',
   }));
 };
 // Обработчик отправки сообщения
