@@ -96,7 +96,7 @@
                 <div class="notification_seller">
                   <p>Покупатель <strong>{{ selected_chat.buyer.username }}</strong> приобрел ваш аккаунт.</p>
                   <p>Пожалуйста, предоставьте ему логин и пароль для входа.</p>
-                  {% if not selected_chat.account.is_confirmed %}
+                  {% if not selected_chat.account.is_active %}
                     <button class="cancel_purchase" onclick="cancelPurchase()">Отменить покупку</button>
                   {% endif %}
                 </div>
@@ -114,6 +114,21 @@
               <div class="buy_notification">
                 <div class="notification_seller">
                   <p>Покупатель <strong>{{ selected_chat.buyer.username }}</strong> подтвердил покупку, ваш баланс пополнен.</p>
+                </div>
+              </div>
+            {% endif %}
+          {% endif %}
+          {% if sms.massage_type == 'buy_account_cancel'%}
+            {% if sms.author == user %}
+              <div class="buy_notification">
+                <div class="notification_buyer">
+                  <p>Вы успешно отменили заказ.</p>
+                </div>
+              </div>
+            {% else %}
+              <div class="buy_notification">
+                <div class="notification_seller">
+                  <p>Продавец отменил заказ.</p>
                 </div>
               </div>
             {% endif %}
@@ -229,6 +244,35 @@ chatSocket.onmessage = function (e) {
   chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
+
+    if (type === 'buy_account_cancel') {
+    const seller = "{{ selected_chat.seller.username }}";
+    const buyer = "{{ selected_chat.buyer.username }}";
+    const currentUser = "{{ user.username }}";
+    const chatMessages = document.querySelector(".chat-messages");
+    const messageElement = document.createElement('div');
+    messageElement.classList.add("buy_notification");
+    console.log(333, currentUser, seller, buyer)
+
+    if (currentUser === seller) {
+      messageElement.innerHTML = `
+      <div class="notification_seller">
+        <p>Вы успешно отменили заказ.</p>
+      </div>
+    `;
+    } else if (currentUser === buyer) {
+      const button = document.querySelector('.confirm_purchase');
+      button.style.display = 'none'
+      messageElement.innerHTML = `
+      <div class="notification_buyer">
+        <p>Продавец отменил заказ!</p>
+      </div>
+    `;
+  }
+  chatMessages.appendChild(messageElement);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
 }
 
 
@@ -285,9 +329,9 @@ function confirmPurchase() {
 
 // Отменить покупку
 function cancelPurchase() {
-  const cancelButton = document.querySelector('.cancel_purchase');
+  const cancelButtons = document.querySelectorAll('.cancel_purchase');
   console.log(document.querySelectorAll('.cancel_purchase').length);
-  cancelButton.style.display = 'none';
+  cancelButtons.forEach(button => button.style.display = 'none');
   chatSocket.send(JSON.stringify({
       'type': 'buy_account_cancel',
   }));
