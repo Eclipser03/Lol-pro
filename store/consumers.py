@@ -147,6 +147,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             user.balance -= account.price
             await user.asave()
             account.is_active = False
+            account.buyer = user
             await account.asave()
             await self.send(
                 text_data=json.dumps(
@@ -164,23 +165,27 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def cancell(self, event):
         userid = event['userid']
-        if not self.account.is_active:
+        account = await AccountObject.objects.aget(id=self.account.id)
+        if not account.is_active:
             buyer = await User.objects.aget(buyer_chat_rooms=self.chat_room)
-            buyer.balance += self.account.price
+            buyer.balance += account.price
+            print(12345)
             await buyer.asave()
-            self.account.is_active = True
-            await self.account.asave()
+            account.is_active = True
+            account.buyer = None
+            await account.asave()
             await self.send(
                 text_data=json.dumps(
                     {
                         'type': 'buy_account_cancel',
+                        'message': 'Продавец отменил заказ',
                         'userid': userid,
                     }
                 )
             )
         else:
             await self.send(
-                text_data=json.dumps({'type': 'error', 'message': 'Ошибка', 'userid': userid})
+                text_data=json.dumps({'type': 'error', 'message': 'Ошибка321', 'userid': userid})
             )
 
     # Получаем сообщение от группы

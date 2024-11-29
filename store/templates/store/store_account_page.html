@@ -98,7 +98,7 @@
           <div class="notification_buyer">
             <p>Вы успешно приобрели аккаунт у продавца <strong>{{ chat_room.seller.username }}</strong>.</p>
             <p>Ожидайте логин и пароль для входа.</p>
-            {% if not account.is_confirmed %}
+            {% if account.buyer == user and not account.is_confirmed %}
               <button class="confirm_purchase" onclick="confirmPurchase()">Подтвердить покупку</button>
             {% endif %}
           </div>
@@ -123,6 +123,21 @@
           <div class="buy_notification">
             <div class="notification_seller">
               <p>Покупатель <strong>{{ chat_room.buyer.username }}</strong> подтвердил покупку, ваш баланс пополнен.</p>
+            </div>
+          </div>
+          {% endif %}
+      {% endif %}
+      {% if sms.massage_type == 'buy_account_cancel'%}
+          {% if sms.author == user %}
+          <div class="buy_notification">
+            <div class="notification_buyer">
+              <p>Вы успешно отменили заказ.</p>
+            </div>
+          </div>
+          {% else %}
+          <div class="buy_notification">
+            <div class="notification_seller">
+              <p>Продавец отменил заказ.</p>
             </div>
           </div>
           {% endif %}
@@ -376,6 +391,34 @@
       messageElement.innerHTML = `
         <div class="notification_buyer">
           <p>Вы успешно подтвердили покупку!</p>
+        </div>
+      `;
+  }
+  chatMessages.appendChild(messageElement);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+  if (type === 'buy_account_cancel') {
+    const seller = "{{ chat_room.seller.username }}";
+    const buyer = "{{ chat_room.buyer.username }}";
+    const currentUser = "{{ user.username }}";
+    const chatMessages = document.querySelector(".chat-log");
+    const messageElement = document.createElement('div');
+    messageElement.classList.add("buy_notification");
+    console.log(444, currentUser, buyer, seller)
+
+    if (currentUser === seller) {
+      messageElement.innerHTML = `
+      <div class="notification_buyernotification_seller">
+        <p>Вы успешно отменили заказ</p>
+      </div>
+    `;
+    } else if (currentUser === buyer) {
+      const button = document.querySelector('.confirm_purchase');
+      button.style.display = 'none'
+      messageElement.innerHTML = `
+        <div class="notification_seller">
+          <p>Продавец отменил заказ.</p>
         </div>
       `;
   }

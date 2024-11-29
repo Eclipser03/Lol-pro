@@ -283,6 +283,15 @@ class AccountObject(models.Model):
 
     price = models.IntegerField(verbose_name='Цена')
 
+    buyer = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='acounts_buyer_objects',
+        verbose_name='Покупатель',
+    )
+
     class Meta:
         verbose_name = 'Продажа аккаунта'
         verbose_name_plural = 'Продажа аккаунтов'
