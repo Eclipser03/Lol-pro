@@ -94,7 +94,10 @@ border: 1px solid #ddd;
 
 .payment {
 margin-top: 20px;
-font-size: 16px;
+}
+
+.settings {
+margin-top: 20px;
 }
 
 .price {
@@ -113,6 +116,20 @@ text-align: center;
 text-decoration: none;
 margin-top: 15px;
 font-size: 16px;
+}
+
+.btnset {
+display: inline-block;
+background-color: #007bff;
+color: white;
+padding: 10px 20px;
+border-radius: 4px;
+text-align: center;
+text-decoration: none;
+margin-top: 15px;
+font-size: 16px;
+display: inline-block;
+cursor: pointer;
 }
 
 .rating {
@@ -785,4 +802,76 @@ color: #ffc107;
 .review-author-info {
 display: flex; /* Упорядочиваем аватар и имя в одну линию */
 align-items: center; /* Выравниваем их по вертикали */
+}
+
+
+.form_set_account {
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.811);
+    position: fixed; /* Измените на fixed для улучшения поведения */
+    top: 0;
+    left: 0;
+    display: none; /* По умолчанию скрыта */
+    z-index: 1000; /* Убедитесь, что форма выше других элементов */
+}
+
+.form_setaccount {
+    width: 1000px;
+    height: min-content;
+    background-color: rgba(39, 39, 39, 0.889);
+    border: 2px solid white;
+    border-radius: 15px;
+    position: absolute; /* Измените на absolute для правильного позиционирования */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 38px 150px;
+    text-align: center;
+}
+
+.form_setaccount h2 {
+    margin-bottom: 30px;
+    font-size: 36px;
+}
+
+
+.form_setaccount input{
+    width: 100%;
+    height: 40px;
+    background-color: rgb(88, 84, 84, .18);
+    border: 1px solid white;
+    border-radius: 10px;
+    padding-left: 15px;
+    color: white;
+    font-size: 20px;
+    margin-bottom: 30px;
+    margin-top: 5px;
+}
+
+.form_setaccount select{
+    width: 100%;
+    height: 40px;
+    background-color: rgb(88, 84, 84, .18);
+    border: 1px solid white;
+    border-radius: 10px;
+    padding-left: 15px;
+    color: white;
+    font-size: 20px;
+    margin-bottom: 30px;
+}
+
+.form_setaccount label{
+    font-size: 22px;
+    margin-bottom: 10px;
+}
+
+.form_setaccount .login_submit {
+    width: 250px;
+    height: 40px;
+    background-color: #0057FF;
+    border: none;
+    border-radius: 10px;
+    color: white;
+    font-size: 18px;
 }

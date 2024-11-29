@@ -487,6 +487,7 @@ class AccountObjectForm(forms.ModelForm):
 
     def save(self, commit=True, user=None):
         instance = super().save(commit=False)
+        print('УСПЕХ 2')
         if user:
             instance.user = user  # Устанавливаем пользователя перед сохранением
         if commit:

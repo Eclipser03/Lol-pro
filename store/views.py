@@ -310,6 +310,7 @@ class StoreAccountPageView(TemplateView):
         account = get_object_or_404(AccountObject, id=self.kwargs.get('id'))
         context['account'] = account
         context['form'] = ReviewsSellerForm()
+        context['set_form'] = AccountObjectForm(instance=account)
         reviews = ReviewSellerModel.objects.filter(parent__isnull=True, seller=account.user)
 
         page_number = self.request.GET.get('page', 1)
@@ -331,20 +332,47 @@ class StoreAccountPageView(TemplateView):
         return context
 
     def post(self, request, *args, **kwargs):
-        print('KWARGS',kwargs)
-        form = ReviewsSellerForm(request.POST)
-        form.request = self.request
-        form.product = get_object_or_404(AccountObject, id=self.kwargs.get('id'))
-        print("POST", request.POST)
-        if form.is_valid():
-            form.save()
-        else:
-            errors = form.errors.values()
-            print(form.errors)
-            for error in errors:
-                for text in error:
-                    messages.error(request, text)
-            return render(request, self.template_name, {'form': form})
+        account = get_object_or_404(AccountObject, id=self.kwargs.get('id'))
+        print('KWARGS',request.POST)
+
+        if 'setting' in request.POST :
+            set_form = AccountObjectForm(request.POST, request.FILES, instance=account)
+            images = request.FILES.getlist('images')
+            print('IMAGESSS',request.FILES)
+            if len(images) > 10:
+                set_form.add_error(None, 'Можно загрузить не более 10 изображений.')
+
+            print('УСПЕХ')
+            if set_form.is_valid() and len(images) < 11:
+                print('NU CHTO1')
+                set_form.save()
+
+                for image in images:
+                    print('NU CHTO')
+                    AccountsImage.objects.create(account=account, image=image)
+            else:
+                errors = set_form.errors.values()
+                print(set_form.errors)
+                for error in errors:
+                    for text in error:
+                        messages.error(request, text)
+                return render(request, self.template_name, {'set_form': set_form})
+            return redirect(request.META.get('HTTP_REFERER', '/'))
+
+        if 'reviewsbt' in request.POST:
+            form = ReviewsSellerForm(request.POST)
+            form.request = self.request
+            form.product = get_object_or_404(AccountObject, id=self.kwargs.get('id'))
+            if form.is_valid():
+                form.save()
+            else:
+                errors = form.errors.values()
+                print(form.errors)
+                for error in errors:
+                    for text in error:
+                        messages.error(request, text)
+                return render(request, self.template_name, {'form': form})
+            return redirect(request.META.get('HTTP_REFERER', '/'))
         return redirect(request.META.get('HTTP_REFERER', '/'))
 
 

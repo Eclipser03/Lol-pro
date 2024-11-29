@@ -53,9 +53,15 @@
       {% endif %}
     </div>
 
-      {% if account.is_active %}
+      {% if account.is_active and account.user != request.user %}
       <div class="payment">
         <button type="submit" id="bybtn" class="btn">Купить</button>
+      </div>
+      {% endif %}
+
+      {% if account.user == request.user %}
+      <div class="settings">
+        <button type="submit" id="btnset" class="btnset">Редактировать</button>
       </div>
       {% endif %}
 
@@ -246,7 +252,7 @@
             </div>
           </div>
 
-          <button type="submit">Отправить отзыв</button>
+          <button name="reviewsbt" type="submit">Отправить отзыв</button>
         </form>
       </div>
     </div>
@@ -261,6 +267,45 @@
   <a class="next" onclick="changeImage(1)">&#10095;</a>
 </div>
 
+
+  <!-- Модальное окно для редактирования аккаунта -->
+  <div class="form_set_account">
+    <div class="form_setaccount">
+      <h2>Добавить аккаунт</h2>
+      <form action="{% url 'store:store_account_page' account.id %}" method='post'>
+        {% csrf_token %}
+        <div class="inputs">
+          <label>Сервер:</label>
+          {{ set_form.server }}
+          <label>Уровень аккаунта:</label>
+          {{ set_form.lvl }}
+          <label>Кол-во чемпионов:</label>
+          {{ set_form.champions }}
+          <label>Кол-во скинов:</label>
+          {{ set_form.skins }}
+          <label>Ранг:</label>
+          {{ set_form.rang }}
+          <label>Короткое описание:</label>
+          {{ set_form.short_description }}
+          <label>Полное описание:</label>
+          {{ set_form.description }}
+          <label>Цена:</label>
+          {{ set_form.price }}
+          <label>Изображение: (до 10 шт.)</label>
+          <div class="file-upload-wrapper">
+            <input type="file" id="file-input" name="images" multiple>
+            <label for="file-input" class="custom-file-label">Выберите файлы</label>
+            <div id="file-list"></div>
+        </div>
+          <!-- {{image_form.image}} -->
+        </div>
+        <div style="margin: 0 auto;width: 200px; width: min-content;">
+          <button class="savebtn" name="setting" type="submit">Сохранить изменения</button>
+          <!-- <input class="login_submit" type="submit" value="Добавить аккаунт"> -->
+        </div>
+      </form>
+    </div>
+  </div>
 
 {% endblock %}
 {% block scripts %}
@@ -548,14 +593,6 @@ notificationSocket.onmessage = function(event) {
   }
 
 
-
-
-
-
-
-
-
-
 function toggleReplyForm(button) {
   const replyForm = button.parentElement.nextElementSibling;
   replyForm.style.display = replyForm.style.display === "none" ? "block" : "none";
@@ -631,5 +668,34 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 
+
+const addaccountBtn = document.getElementById("btnset");
+const formAddAccount = document.querySelector(".form_set_account");
+const form1 = document.querySelector(".form_setaccount");
+// Открытие и закрытие формы по кнопке
+addaccountBtn.addEventListener("click", function(event) {
+  event.stopPropagation(); // Останавливаем событие, чтобы клик по кнопке не закрывал форму
+  formAddAccount.style.display = formAddAccount.style.display === "block" ? "none" : "block";
+});
+// Закрытие формы при клике вне ее
+document.addEventListener("click", function(event) {
+  if (formAddAccount.style.display === "block") {
+    // Проверяем, был ли клик вне формы
+    if (!form1.contains(event.target) && event.target !== addaccountBtn) {
+      formAddAccount.style.display = "none"; // Скрываем форму
+    }
+  }
+});
+
+document.getElementById('file-input').addEventListener('change', function() {
+  const fileList = document.getElementById('file-list');
+  fileList.innerHTML = "";  // Очищаем список перед добавлением новых файлов
+
+  Array.from(this.files).forEach(file => {
+      const listItem = document.createElement('div');
+      listItem.textContent = file.name;
+      fileList.appendChild(listItem);
+  });
+});
 </script>
 {% endblock %}
