@@ -13,6 +13,7 @@ from store.views import (
     StoreSkinsView,
     StoreView,
     check_coupon,
+    delete_image,
 )
 
 
@@ -29,6 +30,7 @@ urlpatterns = [
     path('store-accounts/', StoreAccountsView.as_view(), name='store_accounts'),
     path('store-account-page/<int:id>/', StoreAccountPageView.as_view(), name='store_account_page'),
     path('faq', FaqView.as_view(), name='faq'),
+    path('delete-image/<int:image_id>/', delete_image, name='delete-image'),
 ]
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

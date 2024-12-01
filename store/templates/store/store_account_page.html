@@ -48,7 +48,12 @@
     <div class="image-gallery">
       {% if account.images %}
         {% for image in account.images.all %}
+        <div class="image-item">
           <img src="{{ image.image.url }}" alt="Изображение аккаунта" class="thumbnail" onclick="openModal('{{ image.image.url }}')">
+          {% if account.user == request.user %}
+          <button class="delete-btn" data-image-id="{{ image.id }}" onclick="deleteImage(event)">Удалить</button>
+          {% endif %}
+        </div>
         {% endfor %}
       {% endif %}
     </div>
@@ -63,6 +68,16 @@
       <div class="settings">
         <button type="submit" id="btnset" class="btnset">Редактировать</button>
       </div>
+      {% endif %}
+
+      {% if account.user == request.user %}
+      <!-- <form action="{% url 'store:store_account_page' account.id %}" method="POST">
+        {% csrf_token %} -->
+        <div class="settings">
+          <button name="delete_account" id="deleteaccount" class="btndeleteaccount">Удалить аккаунт</button>
+        </div>
+      <!-- </form> -->
+
       {% endif %}
 
   </div>
@@ -272,7 +287,7 @@
   <div class="form_set_account">
     <div class="form_setaccount">
       <h2>Добавить аккаунт</h2>
-      <form action="{% url 'store:store_account_page' account.id %}" method='post'>
+      <form action="{% url 'store:store_account_page' account.id %}" method='post' enctype="multipart/form-data">
         {% csrf_token %}
         <div class="inputs">
           <label>Сервер:</label>
@@ -307,9 +322,145 @@
     </div>
   </div>
 
+<!-- Модальное окно для удаления аккаунта -->
+  <div class="form_delete_account">
+    <div class="form_deleteaccount">
+      <h2>Вы уверены что хотите удалить аккаунт?</h2>
+        <form action="{% url 'store:store_account_page' account.id %}" method="POST">
+        {% csrf_token %}
+          <div class="settingsdelete">
+            <button type="submit" name="delete_account" id="deleteaccount" class="btndeleteacept">Да</button>
+            <button name="close" id="close" class="btndelclose">Нет</button>
+          </div>
+        </form>
+        </div>
+      </form>
+    </div>
+  </div>
+
+<!-- Модальное окно для удаления изображения -->
+  <div id="customModal" class="form_delete_image">
+    <div class="form_deleteimage">
+      <h2>Вы уверены что хотите удалить изображение?</h2>
+        {% csrf_token %}
+          <div class="settingsdeleteimage">
+            <button id="confirmYes" class="btn-yes">Да</button>
+            <button id="confirmNo" class="btn-no">Нет</button>
+          </div>
+        </div>
+    </div>
+  </div>
 {% endblock %}
 {% block scripts %}
 <script>
+
+const deleteAccounBtn = document.getElementById("deleteaccount");
+const formDeleteAccount = document.querySelector(".form_delete_account");
+const form2 = document.querySelector(".form_deleteaccount");
+const close = document.querySelector(".btndelclose");
+// Открытие и закрытие формы по кнопке
+deleteAccounBtn.addEventListener("click", function(event) {
+  event.stopPropagation(); // Останавливаем событие, чтобы клик по кнопке не закрывал форму
+  formDeleteAccount.style.display = formDeleteAccount.style.display === "block" ? "none" : "block";
+});
+// Закрытие формы при клике вне ее
+document.addEventListener("click", function(event) {
+  if (formDeleteAccount.style.display === "block") {
+    // Проверяем, был ли клик вне формы
+    if (!form2.contains(event.target) && event.target !== deleteAccounBtn) {
+      formDeleteAccount.style.display = "none"; // Скрываем форму
+    }
+  }
+
+  close.addEventListener("click", function() {
+    formDeleteAccount.style.display = "none";
+  });
+});
+
+
+// Функция открытия модального окна удаления изображения
+function showCustomModal(onConfirm) {
+  const modal = document.getElementById("customModal");
+  const confirmYes = document.getElementById("confirmYes");
+  const confirmNo = document.getElementById("confirmNo");
+
+  // Показываем модальное окно
+  modal.style.display = "flex";
+
+  // Если пользователь нажимает "Да"
+  confirmYes.onclick = function () {
+    modal.style.display = "none"; // Скрываем модальное окно
+    onConfirm(true); // Вызываем колбэк с true
+  };
+
+  // Если пользователь нажимает "Нет"
+  confirmNo.onclick = function () {
+    modal.style.display = "none"; // Скрываем модальное окно
+    onConfirm(false); // Вызываем колбэк с false
+  };
+}
+
+
+function deleteImage(event) {
+  event.preventDefault();
+
+  const imageId = event.target.getAttribute("data-image-id"); // Получаем ID изображения
+  const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value; // CSRF токен из формы
+  console.log('TAK TAK', imageId)
+
+  showCustomModal(function(isConfirmed) {
+    if (isConfirmed) {
+      fetch(`/delete-image/${imageId}/`, {
+          method: "DELETE",
+          headers: {
+              "X-CSRFToken": csrfToken,
+          }
+      })
+      .then(response => {
+          if (response.ok) {
+              event.target.parentElement.remove(); // Удаляем элемент из DOM
+              const messageDiv = document.createElement('div');
+              messageDiv.className = 'alert alert-success'; // alert-info или другой класс для стилизации
+              messageDiv.textContent = 'Изображение удалено';
+
+              // Добавляем сообщение в контейнер
+              const messagesContainer = document.getElementById('messages-container');
+              messagesContainer.appendChild(messageDiv);
+
+              // Удаляем сообщение через 5 секунд
+              setTimeout(() => {
+                  messageDiv.style.opacity = '0';
+                  messageDiv.style.transform = 'translateX(30px)';
+                  setTimeout(() => messageDiv.remove(), 500);
+              }, 5000);
+          } else {
+              const messageDiv = document.createElement('div');
+              messageDiv.className = 'alert alert-warning'; // alert-info или другой класс для стилизации
+              messageDiv.textContent = 'Ошибка удаления изображения';
+
+              // Добавляем сообщение в контейнер
+              const messagesContainer = document.getElementById('messages-container');
+              messagesContainer.appendChild(messageDiv);
+
+              // Удаляем сообщение через 5 секунд
+              setTimeout(() => {
+                  messageDiv.style.opacity = '0';
+                  messageDiv.style.transform = 'translateX(30px)';
+                  setTimeout(() => messageDiv.remove(), 500);
+              }, 5000);
+          }
+      })
+      .catch(error => {
+          console.error("Ошибка:", error);
+          alert("Ошибка подключения к серверу.");
+      });
+  }
+});
+}
+
+
+
+
   let chatRoomId = "{{ chat_room.id }}";  // Подставить правильный ID
   let accountId = "{{ account.id }}"
   let userId = "{{ request.user }}";   // Подставить ID пользователя
@@ -697,5 +848,8 @@ document.getElementById('file-input').addEventListener('change', function() {
       fileList.appendChild(listItem);
   });
 });
+
+
+
 </script>
 {% endblock %}

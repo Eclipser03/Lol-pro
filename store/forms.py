@@ -451,7 +451,18 @@ class AccountObjectForm(forms.ModelForm):
     lvl = forms.IntegerField(widget=forms.NumberInput(attrs={}))
     champions = forms.IntegerField(widget=forms.NumberInput(attrs={}))
     skins = forms.IntegerField(widget=forms.NumberInput(attrs={}))
-    rang = forms.CharField(widget=forms.TextInput(attrs={}))
+    rang = forms.ChoiceField(choices=[
+        ('NO RANK', 'Нет ранга'),
+        ('IRON', 'Железо'),
+        ('BRONZE', 'Бронза'),
+        ('SILVER', 'Серебро'),
+        ('GOLD', 'Голд'),
+        ('PLATINUM', 'Платина'),
+        ('EMERALD', 'Эмеральд'),
+        ('DIAMOND', 'Даймонд'),
+        ('MASTER', 'Мастер'),
+        ('GRANDMASTER', 'Грандмастер'),
+    ])
     short_description = forms.CharField(widget=forms.TextInput(attrs={}))
     description = forms.CharField(
         widget=forms.Textarea(

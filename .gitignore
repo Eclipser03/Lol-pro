@@ -26,3 +26,5 @@ redis
 venv
 
 docker-compose-postgress.yml
+
+media

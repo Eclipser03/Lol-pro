@@ -132,6 +132,20 @@ display: inline-block;
 cursor: pointer;
 }
 
+.btndeleteaccount {
+display: inline-block;
+background-color: #7b2011;
+color: white;
+padding: 5px 10px;
+border-radius: 4px;
+text-align: center;
+text-decoration: none;
+margin-top: 15px;
+font-size: 14px;
+display: inline-block;
+cursor: pointer;
+}
+
 .rating {
 color: #ffc107;
 font-size: 16px;
@@ -874,4 +888,155 @@ align-items: center; /* Выравниваем их по вертикали */
     border-radius: 10px;
     color: white;
     font-size: 18px;
+}
+
+
+.image-item {
+    position: relative;
+    display: inline-block;
+    margin: 10px;
+  }
+
+  .delete-btn {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background-color: red;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 5px;
+    cursor: pointer;
+  }
+
+  .delete-btn:hover {
+    background-color: darkred;
+  }
+
+
+
+  .form_delete_account {
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.811);
+    position: fixed; /* Измените на fixed для улучшения поведения */
+    top: 0;
+    left: 0;
+    display: none; /* По умолчанию скрыта */
+    z-index: 1000; /* Убедитесь, что форма выше других элементов */
+}
+
+.form_deleteaccount {
+    width: 1000px;
+    height: min-content;
+    background-color: rgba(39, 39, 39, 0.889);
+    border: 2px solid white;
+    border-radius: 15px;
+    position: absolute; /* Измените на absolute для правильного позиционирования */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 38px 150px;
+    text-align: center;
+}
+
+.form_deleteaccount h2 {
+    margin-bottom: 30px;
+    font-size: 36px;
+}
+
+
+.settingsdelete {
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+}
+
+
+.btndeleteacept {
+    width: 120px;
+    height: 50px;
+    display: inline-block;
+    background-color: #7b2011;
+    color: white;
+    border-radius: 10px;
+    text-align: center;
+    text-decoration: none;
+    margin-top: 15px;
+    font-size: 14px;
+    display: inline-block;
+    cursor: pointer;
+}
+
+
+.btndelclose {
+    width: 120px;
+    height: 50px;
+    display: inline-block;
+    background-color: #007bff;
+    color: white;
+    border-radius: 10px;
+    text-align: center;
+    text-decoration: none;
+    margin-top: 15px;
+    font-size: 14px;
+    display: inline-block;
+    cursor: pointer;
+}
+
+
+
+.form_delete_image {
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.811);
+    position: fixed; /* Измените на fixed для улучшения поведения */
+    top: 0;
+    left: 0;
+    display: none; /* По умолчанию скрыта */
+    z-index: 1000; /* Убедитесь, что форма выше других элементов */
+}
+
+.form_deleteimage {
+    width: 1000px;
+    height: min-content;
+    background-color: rgba(39, 39, 39, 0.889);
+    border: 2px solid white;
+    border-radius: 15px;
+    position: absolute; /* Измените на absolute для правильного позиционирования */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 38px 150px;
+    text-align: center;
+}
+
+.form_deleteimage h2 {
+    margin-bottom: 30px;
+    font-size: 36px;
+}
+
+
+.settingsdeleteimage {
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+}
+
+
+.settingsdeleteimage .btn-yes, .btn-no {
+    width: 120px;
+    height: 50px;
+    display: inline-block;
+    background-color: #007bff;
+    color: white;
+    border-radius: 10px;
+    text-align: center;
+    text-decoration: none;
+    margin-top: 15px;
+    font-size: 14px;
+    display: inline-block;
+    cursor: pointer;
 }

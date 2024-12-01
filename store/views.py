@@ -14,8 +14,8 @@ from store.forms import (
     # AccountsImageForm,
     BoostOrderForms,
     QualificationForm,
-    RPorderForm,
     ReviewsSellerForm,
+    RPorderForm,
     SkinsOrderForm,
 )
 from store.models import AccountObject, AccountsImage, ChatRoom, Coupon, ReviewSellerModel
@@ -211,7 +211,7 @@ class StoreAccountsView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        acounts = AccountObject.objects.filter(is_active=True)
+        acounts = AccountObject.objects.filter(is_active=True).order_by('-created_at')
         server = self.request.GET.get('server')
         rank = self.request.GET.get('rank', None)
         champions_min = self.request.GET.get('champions_min', None)
@@ -268,7 +268,7 @@ class StoreAccountsView(TemplateView):
         paginator = Paginator(acounts, 10)
         current_page = paginator.page(page_number)
 
-        context['accounts'] = list(current_page)[::-1]
+        context['accounts'] = list(current_page)
         context['paginator'] = paginator
         context['current_page'] = current_page
 
@@ -333,12 +333,17 @@ class StoreAccountPageView(TemplateView):
 
     def post(self, request, *args, **kwargs):
         account = get_object_or_404(AccountObject, id=self.kwargs.get('id'))
-        print('KWARGS',request.POST)
+        print('KWARGS', request.POST)
 
-        if 'setting' in request.POST :
+        if 'delete_account' in request.POST:
+            account.delete()
+            messages.success(request, 'Аккаунт успешно удалён')
+            return redirect('store:store_accounts')
+
+        if 'setting' in request.POST:
             set_form = AccountObjectForm(request.POST, request.FILES, instance=account)
             images = request.FILES.getlist('images')
-            print('IMAGESSS',request.FILES)
+            print('IMAGESSS', request.FILES)
             if len(images) > 10:
                 set_form.add_error(None, 'Можно загрузить не более 10 изображений.')
 
@@ -374,6 +379,20 @@ class StoreAccountPageView(TemplateView):
                 return render(request, self.template_name, {'form': form})
             return redirect(request.META.get('HTTP_REFERER', '/'))
         return redirect(request.META.get('HTTP_REFERER', '/'))
+
+    def delete(self, request, *args, **kwargs):
+        print('DALATA', request.DELETE)
+
+
+# Удаление изображений
+def delete_image(request, image_id):
+    if request.method == 'DELETE':
+        image = AccountsImage.objects.get(id=image_id)
+        image.delete()
+        print('DELETE!!!!')
+        return JsonResponse({'message': 'Изображение удалено'}, status=200)
+
+    return JsonResponse({'error': 'Изображение не найдено'}, status=200)
 
 
 class FaqView(TemplateView):
