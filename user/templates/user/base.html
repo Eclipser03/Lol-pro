@@ -30,9 +30,11 @@
       <a href="{% url 'store:faq' %}" class="">FAQ</a>
     </div>
     <div class="dropdown">
+      {% if user.is_authenticated %}
       <div class="balance">
         <p>Баланс: {{ user.balance }} руб.</p>
       </div>
+      {% endif %}
       {% if user.is_authenticated %}
           <button class="dropbtn">
             <img src="{{ user.avatar.url }}" alt="User Avatar" class="user-avatar">

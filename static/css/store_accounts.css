@@ -7,10 +7,23 @@
     /* box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); */
   }
 
+.myaccountform .myaccountbtn {
+margin-top: 20px;
+padding: 10px 20px;
+background-color: #598739;
+color: #ffffff;
+border: none;
+border-radius: 5px;
+cursor: pointer;
+font-weight: bold;
+transition: background-color 0.3s;
+}
+
+.myaccountform .myaccountbtn:hover {
+background-color: #6aa43a;
+}
   /* Стили для фильтров */
   .filters {
-    display: flex;
-    flex-wrap: wrap;
     gap: 20px;
     padding: 20px;
     background-color: #ffffff;

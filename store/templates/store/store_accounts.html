@@ -54,6 +54,12 @@
     <!-- Кнопка для добавления аккаунта -->
     <!-- <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addAccountModal">Добавить аккаунт</button> -->
     <button class="btn" id="addaccount">Добавить аккаунт</button>
+    {% if user.id in user_list %}
+    <form class="myaccountform" action="{% url 'store:store_accounts' %}" method="GET">
+      <button type="submit" value="True" class="myaccountbtn" name="myaccount" id="myaccount">Мои аккаунты</button>
+    </form>
+    {% endif %}
+
   </div>
 
   <!-- Заголовки столбцов -->

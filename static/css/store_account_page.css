@@ -156,7 +156,20 @@ font-size: 12px;
 color: #888;
 }
 
-.textarea {
+
+textarea {
+    width: 100%;
+    padding: 10px;
+    resize: vertical;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+    background-color: rgb(88, 84, 84, .18);
+    margin-bottom: 20px;
+    color: white;
+}
+
+/* .textarea {
 width: 100%;
 padding: 8px;
 margin-top: 10px;
@@ -165,7 +178,9 @@ border-radius: 4px;
 border: 1px solid #ccc;
 resize: vertical;
 height: 60px;
-}
+} */
+
+
 
 /* Основные стили для изображения */
 .thumbnail {
@@ -272,7 +287,7 @@ background-color: rgba(0, 0, 0, 0.8);
 .chat-log {
     flex-grow: 1;
     width: 100%;
-    max-height: 60vh;
+    height: 60vh;
     border-radius: 12px;
     border: 1px solid #ddd;
     background-color: #fff;
@@ -832,16 +847,24 @@ align-items: center; /* Выравниваем их по вертикали */
 
 .form_setaccount {
     width: 1000px;
-    height: min-content;
+    height: 90%;
     background-color: rgba(39, 39, 39, 0.889);
     border: 2px solid white;
     border-radius: 15px;
-    position: absolute; /* Измените на absolute для правильного позиционирования */
+    position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     padding: 38px 150px;
     text-align: center;
+    overflow-y: auto;
+    overflow-x: hidden;
+    box-sizing: border-box;
+}
+
+.form_setaccount * {
+    max-width: 100%; /* Элементы не выходят за пределы формы */
+    box-sizing: border-box; /* Учитываем отступы и границы для внутренних элементов */
 }
 
 .form_setaccount h2 {

@@ -218,7 +218,10 @@ class StoreAccountsView(TemplateView):
         champions_max = self.request.GET.get('champions_max', None)
         price_min = self.request.GET.get('price_min', None)
         price_max = self.request.GET.get('price_max', None)
-        print('rank=', server)
+        myaccount = self.request.GET.get('myaccount', None)
+        user = self.request.user
+        user_list = acounts.values_list('user', flat=True)
+        print('rank=', myaccount)
 
         if champions_min is not None:
             try:
@@ -264,6 +267,10 @@ class StoreAccountsView(TemplateView):
         if price_min is None and champions_max:
             acounts = acounts.filter(price__lte=price_max)
 
+        if myaccount:
+            acounts = acounts.filter(user=user)
+            print('123123', acounts)
+
         page_number = self.request.GET.get('page', 1)
         paginator = Paginator(acounts, 10)
         current_page = paginator.page(page_number)
@@ -271,6 +278,8 @@ class StoreAccountsView(TemplateView):
         context['accounts'] = list(current_page)
         context['paginator'] = paginator
         context['current_page'] = current_page
+        context['user'] = user
+        context['user_list'] = user_list
 
         context['account_form'] = AccountObjectForm()
         print('CONTEXT', context)
