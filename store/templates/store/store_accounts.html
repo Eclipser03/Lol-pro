@@ -10,39 +10,21 @@
     <form method="GET" action="{% url 'store:store_accounts' %}">
       <!-- Фильтр по серверу -->
       <label for="server">Сервер:</label>
-      <select id="server" name="server">
-        <option value="all">Все</option>
-        <option value="EU WEST">EU West</option>
-        <option value="RUSSIA">Russia</option>
-        <!-- Добавьте другие серверы, если нужно -->
-      </select>
+      {{ filter_form.server }}
 
       <!-- Фильтр по рангу -->
       <label for="rank">Ранг:</label>
-      <select id="rank" name="rank">
-        <option value="">Любой</option>
-        <option value="NO RANK">Нет ранга</option>
-        <option value="IRON">Железо</option>
-        <option value="BRONZE">Бронза</option>
-        <option value="SILVER">Серебро</option>
-        <option value="GOLD">Золото</option>
-        <option value="PLATINUM">Платина</option>
-        <option value="EMERALD">Изумруд</option>
-        <option value="DIAMOND">Алмаз</option>
-        <option value="MASTER">Мастер</option>
-        <option value="GRANDMASTER">Грандмастер</option>
-        <!-- Добавьте другие серверы, если нужно -->
-      </select>
+      {{ filter_form.rank }}
 
       <!-- Фильтр по количеству чемпионов -->
       <label for="champions">Чемпионы:</label>
-      <input type="number" id="champions_min" name="champions_min" placeholder="От" min="0">
-      <input type="number" id="champions_max" name="champions_max" placeholder="До" min="0">
+      {{ filter_form.champions_min }}
+      {{ filter_form.champions_max }}
 
       <!-- Фильтр по цене -->
       <label for="price">Цена:</label>
-      <input type="number" id="price_min" name="price_min" placeholder="От" min="0">
-      <input type="number" id="price_max" name="price_max" placeholder="До" min="0">
+      {{ filter_form.price_min }}
+      {{ filter_form.price_max }}
 
       <!-- Кнопка для применения фильтров -->
       <button type="submit">Применить фильтры</button>
@@ -52,7 +34,6 @@
     </form>
 
     <!-- Кнопка для добавления аккаунта -->
-    <!-- <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addAccountModal">Добавить аккаунт</button> -->
     <button class="btn" id="addaccount">Добавить аккаунт</button>
     {% if user.id in user_list %}
     <form class="myaccountform" action="{% url 'store:store_accounts' %}" method="GET">
@@ -143,7 +124,7 @@
 
 
 <script>
-//Смена почты
+//Добавление аккаунта
 const addaccountBtn = document.getElementById("addaccount");
 const formAddAccount = document.querySelector(".form_add_account");
 const form1 = document.querySelector(".form_addaccount");

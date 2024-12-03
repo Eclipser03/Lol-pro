@@ -34,7 +34,10 @@ html {
     background-size: cover;
     background-repeat: no-repeat;
     background-position: center;
+    background-attachment: fixed;
     padding: 0 290px;
+    overscroll-behavior: none;
+    overflow-x: hidden;
 }
 
 

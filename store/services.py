@@ -95,8 +95,8 @@ def calculate_boost(data):
 
     if data.get('coupon_code'):
         price = price - (price * coupon.sale) / 100
-    print(int(price), time)
-    return int(price)
+    print(round(price), time)
+    return round(price)
 
 
 def calculate_qualification(data):

@@ -11,6 +11,7 @@ from django.views.generic import TemplateView
 
 from store.forms import (
     AccountObjectForm,
+    AccountsFilterForm,
     # AccountsImageForm,
     BoostOrderForms,
     QualificationForm,
@@ -57,7 +58,7 @@ class StoreEloBoostChoiceView(TemplateView):
             messages.success(request, 'Покупка совершена успешно')
         else:
             # Отобразим ошибки формы, чтобы увидеть причину неудачи
-            print(form.errors)
+            print('EERRROOORR', form.errors)
             errors = form.errors.values()
             for error in errors:
                 for text in error:
@@ -212,39 +213,42 @@ class StoreAccountsView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         acounts = AccountObject.objects.filter(is_active=True).order_by('-created_at')
-        server = self.request.GET.get('server')
-        rank = self.request.GET.get('rank', None)
-        champions_min = self.request.GET.get('champions_min', None)
-        champions_max = self.request.GET.get('champions_max', None)
-        price_min = self.request.GET.get('price_min', None)
-        price_max = self.request.GET.get('price_max', None)
         myaccount = self.request.GET.get('myaccount', None)
         user = self.request.user
         user_list = acounts.values_list('user', flat=True)
-        print('rank=', myaccount)
+        filter_form = AccountsFilterForm(self.request.GET)
 
-        if champions_min is not None:
-            try:
-                champions_min = int(champions_min)
-            except ValueError:
-                champions_min = None
+        if filter_form.is_valid():
+            server = filter_form.cleaned_data.get('server')
+            rank = filter_form.cleaned_data.get('rank')
+            champions_min = filter_form.cleaned_data.get('champions_min')
+            champions_max = filter_form.cleaned_data.get('champions_max')
+            price_min = filter_form.cleaned_data.get('price_min')
+            price_max = filter_form.cleaned_data.get('price_max')
+            print('rank=', champions_min, champions_max)
 
-        if champions_max is not None:
-            try:
-                champions_max = int(champions_max)
-            except ValueError:
-                champions_max = None
-        if price_min is not None:
-            try:
-                price_min = int(price_min)
-            except ValueError:
-                price_min = None
+        # if champions_min is not None:
+        #     try:
+        #         champions_min = int(champions_min)
+        #     except ValueError:
+        #         champions_min = None
 
-        if price_max is not None:
-            try:
-                price_max = int(price_max)
-            except ValueError:
-                price_max = None
+        # if champions_max is not None:
+        #     try:
+        #         champions_max = int(champions_max)
+        #     except ValueError:
+        #         champions_max = None
+        # if price_min is not None:
+        #     try:
+        #         price_min = int(price_min)
+        #     except ValueError:
+        #         price_min = None
+
+        # if price_max is not None:
+        #     try:
+        #         price_max = int(price_max)
+        #     except ValueError:
+        #         price_max = None
 
         # Фильтрация
         if server and server != 'all':
@@ -253,7 +257,7 @@ class StoreAccountsView(TemplateView):
         if rank:
             acounts = acounts.filter(rang=rank)
 
-        if champions_min and champions_max:
+        if champions_min is not None and champions_max is not None:
             acounts = acounts.filter(champions__range=(champions_min, champions_max))
         if champions_min and champions_max is None:
             acounts = acounts.filter(champions__gte=champions_min)
@@ -262,9 +266,9 @@ class StoreAccountsView(TemplateView):
 
         if price_min and price_max:
             acounts = acounts.filter(price__gte=price_min, price__lte=price_max)
-        if price_min and champions_max is None:
+        if price_min and price_max is None:
             acounts = acounts.filter(price__gte=price_min)
-        if price_min is None and champions_max:
+        if price_min is None and price_max:
             acounts = acounts.filter(price__lte=price_max)
 
         if myaccount:
@@ -280,8 +284,8 @@ class StoreAccountsView(TemplateView):
         context['current_page'] = current_page
         context['user'] = user
         context['user_list'] = user_list
-
         context['account_form'] = AccountObjectForm()
+        context['filter_form'] = filter_form
         print('CONTEXT', context)
         return context
 
@@ -321,6 +325,8 @@ class StoreAccountPageView(TemplateView):
         context['form'] = ReviewsSellerForm()
         context['set_form'] = AccountObjectForm(instance=account)
         reviews = ReviewSellerModel.objects.filter(parent__isnull=True, seller=account.user)
+        user_list = reviews.values_list('buyer', flat=True)
+        user = self.request.user
 
         page_number = self.request.GET.get('page', 1)
         paginator = Paginator(reviews, 10)
@@ -329,6 +335,8 @@ class StoreAccountPageView(TemplateView):
         context['reviews'] = current_page
         context['paginator'] = paginator
         context['current_page'] = current_page
+        context['user_list'] = user_list
+        context['user'] = user
 
         if self.request.user == account.user:
             return context

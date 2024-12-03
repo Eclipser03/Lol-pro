@@ -122,7 +122,7 @@ class ProfileView(LoginRequiredMixin, PasswordChangeView):
         context['profile_form'] = ProfileUpdateForm(instance=self.request.user)
         context['update_email'] = UpdateUserEmail()
         context['update_balance'] = UpdateBalanceUser()
-        context['boostorders'] = BoostOrder.objects.filter(user=self.request.user)
+        context['boostorders'] = BoostOrder.objects.filter(user=self.request.user).order_by('-created_at')
         all_products = (
             list(Qualification.objects.filter(user=self.request.user))
             + list(SkinsOrder.objects.filter(user=self.request.user))
@@ -158,6 +158,13 @@ class ProfileView(LoginRequiredMixin, PasswordChangeView):
                 profile_form.save()
                 messages.success(request, 'Данные успешно обновлены!')
                 return redirect('user:profile')
+            else:
+                errors = profile_form.errors.values()
+                for error in errors:
+                    for text in error:
+                        messages.error(request, text)
+                return redirect('user:profile')
+
 
         if 'update_email' in request.POST:
             update_email = UpdateUserEmail(request.POST)

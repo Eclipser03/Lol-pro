@@ -6,7 +6,13 @@
 
 .container h1 {
     font-size: 46px;
+}
+
+.container h2 {
+    font-size: 24px;
+    color: #ffc107;
     margin-bottom: 50px;
+    font-weight: bold;
 }
 
 /* Стили для отзывов */

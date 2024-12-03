@@ -1,7 +1,5 @@
-from itertools import product
 import json
 import os
-from typing import Any
 
 from django import forms
 from django.conf import settings
@@ -13,8 +11,8 @@ from store.models import (
     BoostOrder,
     Coupon,
     Qualification,
-    RPorder,
     ReviewSellerModel,
+    RPorder,
     SkinsOrder,
 )
 from store.services import calculate_boost, calculate_qualification
@@ -160,24 +158,27 @@ class BoostOrderForms(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
         print('clean data', cleaned_data)
-
+        cleaned_data['user'] = self.request.user
+        print('USER---', cleaned_data['user'])
         coupon = cleaned_data.pop('coupon_code')
-        if coupon:
-            cleaned_data['coupon_code'] = Coupon.objects.get(name=coupon)
-
-        if int(cleaned_data['current_position']) > int(cleaned_data['desired_position']):
-            raise forms.ValidationError('Текущая позиция не может быть больше желаемой')
 
         if cleaned_data['current_position'] == cleaned_data['desired_position'] and int(
             cleaned_data['current_division']
         ) <= int(cleaned_data['desired_division']):
+            print('2')
             raise forms.ValidationError('Текущий дивизион не может быть больше желаемого')
 
-        if cleaned_data['total_time'].total_seconds() == 0:
-            raise forms.ValidationError('Время не может быть равно 0, где-то ошибка')
+        if int(cleaned_data['current_position']) > int(cleaned_data['desired_position']):
+            print('1')
+            raise forms.ValidationError('Текущая позиция не может быть больше желаемой')
 
         if cleaned_data['total_price'] != calculate_boost(cleaned_data):
+            print('4', cleaned_data['total_price'], calculate_boost(cleaned_data))
             raise forms.ValidationError('Цена не совпадает, где-то ошибка')
+
+        if cleaned_data['total_time'].total_seconds() == 0:
+            print('3')
+            raise forms.ValidationError('Время не может быть равно 0, где-то ошибка')
 
         cleaned_data['current_position'] = position[cleaned_data['current_position']]
         cleaned_data['current_division'] = division[cleaned_data['current_division']]
@@ -187,9 +188,8 @@ class BoostOrderForms(forms.ModelForm):
         cleaned_data['lp_per_win'] = lp_win[cleaned_data['lp_per_win']]
         cleaned_data['server'] = server_choice[cleaned_data['server']]
         cleaned_data['queue_type'] = queue[cleaned_data['queue_type']]
-        cleaned_data['user'] = self.request.user
-        print('USER---', cleaned_data['user'])
-
+        if coupon:
+            cleaned_data['coupon_code'] = Coupon.objects.get(name=coupon)
         return cleaned_data
 
     def save(self, commit=True):
@@ -451,18 +451,20 @@ class AccountObjectForm(forms.ModelForm):
     lvl = forms.IntegerField(widget=forms.NumberInput(attrs={}))
     champions = forms.IntegerField(widget=forms.NumberInput(attrs={}))
     skins = forms.IntegerField(widget=forms.NumberInput(attrs={}))
-    rang = forms.ChoiceField(choices=[
-        ('NO RANK', 'Нет ранга'),
-        ('IRON', 'Железо'),
-        ('BRONZE', 'Бронза'),
-        ('SILVER', 'Серебро'),
-        ('GOLD', 'Голд'),
-        ('PLATINUM', 'Платина'),
-        ('EMERALD', 'Эмеральд'),
-        ('DIAMOND', 'Даймонд'),
-        ('MASTER', 'Мастер'),
-        ('GRANDMASTER', 'Грандмастер'),
-    ])
+    rang = forms.ChoiceField(
+        choices=[
+            ('NO RANK', 'Нет ранга'),
+            ('IRON', 'Железо'),
+            ('BRONZE', 'Бронза'),
+            ('SILVER', 'Серебро'),
+            ('GOLD', 'Голд'),
+            ('PLATINUM', 'Платина'),
+            ('EMERALD', 'Эмеральд'),
+            ('DIAMOND', 'Даймонд'),
+            ('MASTER', 'Мастер'),
+            ('GRANDMASTER', 'Грандмастер'),
+        ]
+    )
     short_description = forms.CharField(widget=forms.TextInput(attrs={}))
     description = forms.CharField(
         widget=forms.Textarea(
@@ -515,7 +517,8 @@ class ReviewsSellerForm(forms.ModelForm):
             ('4', '4'),
             ('5', '5'),
         ],
-        widget=forms.TextInput(attrs={'class': 'star-input'}),required=False
+        widget=forms.TextInput(attrs={'class': 'star-input'}),
+        required=False,
     )
     reviews = forms.CharField(
         widget=forms.Textarea(
@@ -526,7 +529,7 @@ class ReviewsSellerForm(forms.ModelForm):
 
     seller = forms.CharField(required=False)
 
-    parent = forms.CharField(widget=forms.TextInput(attrs={'class':'parent'}), required=False)
+    parent = forms.CharField(widget=forms.TextInput(attrs={'class': 'parent'}), required=False)
 
     product = forms.CharField(required=False)
 
@@ -548,3 +551,49 @@ class ReviewsSellerForm(forms.ModelForm):
             cleaned_data['parent'] = ReviewSellerModel.objects.get(id=cleaned_data['parent'])
             cleaned_data.pop('buyer')
         return cleaned_data
+
+
+class AccountsFilterForm(forms.Form):
+    server = forms.ChoiceField(
+        choices=[('', 'Любой'), ('EU WEST', 'EU WEST'), ('RUSSIA', 'RUSSIA')], required=False,
+        widget=forms.Select(attrs={'id': 'server'}),
+    )
+    rank = forms.ChoiceField(
+        choices=[
+            ('', 'Любой'),
+            ('NO RANK', 'Нет ранга'),
+            ('IRON', 'Железо'),
+            ('BRONZE', 'Бронза'),
+            ('SILVER', 'Серебро'),
+            ('GOLD', 'Голд'),
+            ('PLATINUM', 'Платина'),
+            ('EMERALD', 'Эмеральд'),
+            ('DIAMOND', 'Даймонд'),
+            ('MASTER', 'Мастер'),
+            ('GRANDMASTER', 'Грандмастер'),
+        ], required=False,
+        widget=forms.Select(attrs={'id': 'rank'}),
+    )
+    champions_min = forms.IntegerField(required=False,
+        widget=forms.NumberInput(
+            attrs={'id': 'champions_min', 'name': 'champions_min', 'placeholder': 'От'}
+        )
+    )
+    champions_max = forms.IntegerField(required=False,
+        widget=forms.NumberInput(
+            attrs={'id': 'champions_max', 'name': 'champions_max', 'placeholder': 'До'}
+        )
+    )
+    price_min = forms.IntegerField(required=False,
+        widget=forms.NumberInput(
+            attrs={'id': 'price_min', 'name': 'price_min', 'placeholder': 'От'}
+        )
+    )
+    price_max = forms.IntegerField(required=False,
+        widget=forms.NumberInput(
+            attrs={'id': 'price_max', 'name': 'price_max', 'placeholder': 'До'}
+        )
+    )
+
+    class Meta:
+        fields = ['server', 'rank', 'champions_min', 'champions_max', 'price_min', 'price_max']

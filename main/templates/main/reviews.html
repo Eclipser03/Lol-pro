@@ -6,6 +6,7 @@
 {%block content%}
 <div class="container">
   <h1 class="">Отзывы о сайте</h1>
+  <h2>Средний рейтинг: {{ average_stars }} ★</h2>
   <div class="container_reviews">
     <div class="read_reviews">
       {% for review in reviews %}
@@ -74,6 +75,7 @@
       {% endif %}
     </div>
 
+    {% if not user.id in user_list%}
     <div class="write_reviews">
       <div class="feedback-container">
         <h2>Оставить отзыв</h2>
@@ -98,6 +100,7 @@
         </form>
       </div>
     </div>
+    {% endif %}
   </div>
 </div>
 

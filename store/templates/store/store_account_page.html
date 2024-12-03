@@ -244,7 +244,7 @@
 </div>
 
 
-    {% if account.user != request.user %}
+    {% if account.user != request.user and user.id not in user_list %}
     <div class="write_reviews">
       <div class="feedback-container">
         <h2>Оставить отзыв</h2>

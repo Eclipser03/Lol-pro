@@ -15,6 +15,11 @@
     padding-bottom: 65px;
 }
 
+.profile p {
+    font-size: 20px;
+    font-weight: bold;
+}
+
 .profile {
     width: 500px;
     padding-right: 15px;
@@ -99,6 +104,7 @@
     margin-bottom: 20px;
     margin-right: 15px;
     cursor: pointer;
+    background-color: rgba(0, 0, 0, 0.632);
 }
 
 .booking-item div:not(:last-child) {
@@ -391,6 +397,7 @@ input{
     border-radius: 10px;
     padding: 15px 10px;
     margin-bottom: 20px;
+    background-color: rgba(0, 0, 0, 0.632);
 }
 
 .details {

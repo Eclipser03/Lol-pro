@@ -33,4 +33,3 @@ urlpatterns = [
     path('delete-image/<int:image_id>/', delete_image, name='delete-image'),
 ]
 
-urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

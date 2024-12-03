@@ -24,6 +24,15 @@ class ReviewsView(TemplateView):
         # context['reviews'] = ReviewModel.objects.filter(parent__isnull=True)
 
         reviews = ReviewModel.objects.filter(parent__isnull=True).order_by('-created_at')
+        user_list = reviews.values_list('user', flat=True)
+        user = self.request.user
+        try:
+            stars_list = list(map(int, reviews.values_list('stars', flat=True)))
+            average_stars = sum(stars_list) / len(stars_list)
+        except ValueError:
+            average_stars = 0
+
+        print('USER LIST', stars_list)
 
         page_number = self.request.GET.get('page', 1)
         paginator = Paginator(reviews, 5)
@@ -33,6 +42,9 @@ class ReviewsView(TemplateView):
         context['paginator'] = paginator
         context['current_page'] = current_page
         context['form'] = ReviewsForm()
+        context['user_list'] = user_list
+        context['user'] = user
+        context['average_stars'] = average_stars
         return context
 
     def post(self, request, *args, **kwargs):

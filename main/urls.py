@@ -12,4 +12,4 @@ urlpatterns = [
     path('reviews/', ReviewsView.as_view(), name='reviews'),
 ]
 
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
