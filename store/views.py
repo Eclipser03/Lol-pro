@@ -191,6 +191,7 @@ class StoreRPView(TemplateView):
             return redirect('user:login')
 
         form = RPorderForm(request.POST)
+        form.request = self.request
         print('реквестПОСТ---', request.POST)
         print('реквест---', self.request)
         if form.is_valid():

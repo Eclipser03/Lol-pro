@@ -1,5 +1,6 @@
 import json
 import os
+from urllib import request
 
 from django import forms
 from django.conf import settings
@@ -405,6 +406,7 @@ class RPorderForm(forms.ModelForm):
             attrs={
                 'id': 'pay-rubles',
                 'placeholder': 'Стоимость в рублях',
+                'oninput': 'convertFromRubles()'
             }
         ),
     )
@@ -428,8 +430,12 @@ class RPorderForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        cleaned_data['price_rub'] = int(cleaned_data['rp'] * 0.23)
-        return cleaned_data
+        cleaned_data['price_rub'] = round(cleaned_data['rp'] * 0.23)
+        user = self.request.user
+        print('adadad', cleaned_data['price_rub'])
+        if cleaned_data['price_rub'] <= user.balance:
+            return cleaned_data
+        raise forms.ValidationError('Пополните баланс')
 
     def save(self, commit=True, user=None):
         instance = super().save(commit=False)

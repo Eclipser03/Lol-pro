@@ -60,25 +60,34 @@
       // Получаем введенное значение RP
       const rpAmount = parseFloat(rpInput.value);
 
-      // Если значение RP корректное, рассчитываем рубли
+       //Если значение RP корректное, рассчитываем рубли
       if (!isNaN(rpAmount) && rpAmount >= 0) {
           rublesInput.value = (rpAmount * conversionRate).toFixed(0);
       } else {
           rublesInput.value = '';
-      }
+     }
   }
+
+  function convertFromRubles() {
+    const rpInput = document.getElementById("get-rp");
+    const rublesInput = document.getElementById("pay-rubles");
+
+    // Получаем введенное значение рублей
+    const rublesAmount = parseFloat(rublesInput.value);
+
+    // Если значение рублей корректное, рассчитываем RP
+    if (!isNaN(rublesAmount) && rublesAmount >= 0) {
+        rpInput.value = (rublesAmount / conversionRate).toFixed(0);
+    } else {
+        rpInput.value = '';
+    }
+}
 
   // Функция для обработки кнопки "Купить"
   function buyRP() {
       const rpAmount = document.getElementById("get-rp").value;
       const rublesAmount = document.getElementById("pay-rubles").value;
       const nickname = document.getElementById("character-nickname").value;
-
-      //if (rpAmount && rublesAmount && nickname) {
-          //alert(`Вы купили ${rpAmount} RP за ${rublesAmount} рублей! Ваш ник: ${nickname}`);
-      //} else {
-          //alert("Пожалуйста, заполните все поля.");
-      //}
   }
 </script>
 {% endblock %}
