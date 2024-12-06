@@ -1,4 +1,6 @@
 import json
+from datetime import timedelta
+from time import localtime
 
 from asgiref.sync import sync_to_async
 from channels.db import database_sync_to_async
@@ -39,13 +41,14 @@ class ChatConsumer(AsyncWebsocketConsumer):
         if text_data_json['type'] == 'chat_message':
             message = text_data_json['message']
             sms = await self.create_message(self.chat_room, self.scope['user'], message, 'chat_message')
+            created = sms.created + timedelta(hours=3)
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {
                     'type': 'chat_message',
                     'message': message,
                     'username': self.scope['user'].username,
-                    'created': str(sms.created.strftime('%H:%M')),
+                    'created': str(created.strftime('%H:%M')),
                 },
             )
 
@@ -54,7 +57,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 {
                     'type': 'send_notification',
                     'message': f'Новое сообщение от {self.scope['user'].username}',
-                    'created': str(sms.created.strftime('%H:%M')),
+                    'created': str(created.strftime('%H:%M')),
                     'username': self.scope['user'].username,
                     'chat_room': self.chat_room.id,
                 },
@@ -72,7 +75,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 {
                     'type': 'send_notification',
                     'message': f'{self.scope['user'].username} оплатил ваш аккаунт',
-                    'created': str(sms.created.strftime('%H:%M')),
+                    'created': str(localtime(sms.created).strftime('%H:%M')),
                     'username': self.scope['user'].username,
                     'chat_room': self.chat_room.id,
                 },
@@ -88,13 +91,14 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 self.room_group_name,
                 {'type': 'cancell', 'userid': str(self.scope['user'].id), 'message': message},
             )
+            print(f'Raw time: {sms.created}, Local time: {localtime(sms.created)}')
 
             await self.channel_layer.group_send(
                 f'user_{self.recipient}',
                 {
                     'type': 'send_notification',
                     'message': f'{seller_username} отменил заказ',
-                    'created': str(sms.created.strftime('%H:%M')),
+                    'created': str(localtime(sms.created).strftime('%H:%M')),
                     'username': self.scope['user'].username,
                     'chat_room': self.chat_room.id,
                 },

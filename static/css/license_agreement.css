@@ -1,0 +1,28 @@
+h1{
+    text-align: center;
+    margin-top: 50px;
+    margin-bottom: 50px;
+    font-size: 48px;
+}
+
+.conteiner {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 10px;
+}
+
+article {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    font-size: 16px;
+    color: #333;
+    margin: 20px 0;
+}
+
+pre {
+    max-width: 100%; /* Ограничиваем ширину в пределах родителя */
+    overflow-x: auto; /* Добавляем горизонтальную прокрутку */
+    padding: 10px;
+    white-space: pre-wrap; /* Перенос строк, если нужно */
+    word-wrap: break-word; /* Перенос слов */
+}

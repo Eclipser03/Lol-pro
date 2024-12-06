@@ -484,15 +484,17 @@
               toggle1DivisionSelect();
               updateDesiredOptions();
               calculatePrice();
+
               updateImage(currentPos.value, currentImage);
 
               // Изменяем желаемую позицию, если она меньше текущей
             if (parseInt(currentPos.value) > parseInt(desiredPos.value)) {
               desiredPos.value = parseInt(currentPos.value) + 1; // Увеличиваем желаемую позицию на 1
+              toggleDivisionSelect()
           }
 
           updateImage(desiredPos.value, desiredImage);
-          
+
             calculatePrice();
           });
 

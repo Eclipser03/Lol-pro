@@ -11,7 +11,7 @@ from user.views import (
     logout_user,
 )
 
-from .views import MessagesView, confirm_email_change
+from .views import LicenseAgreementView, MessagesView, confirm_email_change
 
 
 app_name = 'user'
@@ -29,4 +29,5 @@ urlpatterns = [
         name='confirm_email_change',
     ),
     path('messages/', MessagesView.as_view(), name='messages'),
+    path('license-agreement/', LicenseAgreementView.as_view(), name='license_agreement'),
 ]

@@ -1,9 +1,8 @@
 from copy import copy
 from urllib import request
-from venv import create
 
 from django.contrib import messages
-from django.contrib.auth import get_user_model, logout
+from django.contrib.auth import get_user_model, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.tokens import default_token_generator as token_generator
@@ -13,9 +12,11 @@ from django.contrib.auth.views import (
     PasswordResetConfirmView,
     PasswordResetView,
 )
+from django.contrib.messages.views import SuccessMessageMixin
 from django.contrib.sites.shortcuts import get_current_site
 from django.db.models import Count, Q
-from django.forms import model_to_dict
+from django.forms import BaseForm, BaseModelForm, model_to_dict
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.template.loader import render_to_string
 from django.urls import reverse_lazy
@@ -61,12 +62,27 @@ class MyLoginView(RedirectAuthUser, LoginView):
 
 
 # Регистрация пользователя
-class UserRegistrationView(RedirectAuthUser, CreateView):
+class UserRegistrationView(SuccessMessageMixin, RedirectAuthUser, CreateView):
     model = User
     form_class = UserRegistrationForm
     template_name = 'user/registration.html'
     success_url = reverse_lazy('user:login')
     auth_redirect_link = '/'
+
+    def form_valid(self, form: BaseForm) -> HttpResponse:
+        user = form.save()
+        login(self.request, user)
+        messages.success(self.request, f'Добро пожаловать {user.username}')
+        return redirect('/')
+
+    def form_invalid(self, form: BaseModelForm) -> HttpResponse:
+        errors = form.errors.values()
+        for error in errors:
+                    for text in error:
+                        messages.error(self.request, text)
+        return super().form_invalid(form)
+
+
 
 
 # Забыли пароль
@@ -122,7 +138,9 @@ class ProfileView(LoginRequiredMixin, PasswordChangeView):
         context['profile_form'] = ProfileUpdateForm(instance=self.request.user)
         context['update_email'] = UpdateUserEmail()
         context['update_balance'] = UpdateBalanceUser()
-        context['boostorders'] = BoostOrder.objects.filter(user=self.request.user).order_by('-created_at')
+        context['boostorders'] = BoostOrder.objects.filter(user=self.request.user).order_by(
+            '-created_at'
+        )
         all_products = (
             list(Qualification.objects.filter(user=self.request.user))
             + list(SkinsOrder.objects.filter(user=self.request.user))
@@ -165,7 +183,6 @@ class ProfileView(LoginRequiredMixin, PasswordChangeView):
                         messages.error(request, text)
                 return redirect('user:profile')
 
-
         if 'update_email' in request.POST:
             update_email = UpdateUserEmail(request.POST)
             if update_email.is_valid():
@@ -185,7 +202,7 @@ class ProfileView(LoginRequiredMixin, PasswordChangeView):
             form = self.get_form()
             form.instance = request.user
             if form.is_valid():
-                messages.success(request, 'Письмо отправлено на Вашу почту!')
+                messages.success(request, 'Пароль успешно изменен')
                 return self.form_valid(form)
 
             errors = form.errors.values()
@@ -255,3 +272,6 @@ class MessagesView(TemplateView):
 
             context['selected_chat'] = selected_chat
         return context
+
+class LicenseAgreementView(TemplateView):
+    template_name = 'user/license_agreement.html'

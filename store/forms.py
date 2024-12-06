@@ -189,8 +189,13 @@ class BoostOrderForms(forms.ModelForm):
         cleaned_data['lp_per_win'] = lp_win[cleaned_data['lp_per_win']]
         cleaned_data['server'] = server_choice[cleaned_data['server']]
         cleaned_data['queue_type'] = queue[cleaned_data['queue_type']]
+
         if coupon:
             cleaned_data['coupon_code'] = Coupon.objects.get(name=coupon)
+
+        if cleaned_data['user'].balance < cleaned_data['total_price']:
+            raise forms.ValidationError('Пополните баланс')
+
         return cleaned_data
 
     def save(self, commit=True):
@@ -312,8 +317,9 @@ class QualificationForm(forms.ModelForm):
         cleaned_data['previous_position'] = pre_position[cleaned_data['previous_position']]
         cleaned_data['server'] = server_choice[cleaned_data['server']]
         cleaned_data['queue_type'] = queue[cleaned_data['queue_type']]
-        # cleaned_data['user'] = self.request.user
-        # print('USERRR---', cleaned_data['user'])
+
+        if cleaned_data['user'].balance < cleaned_data['total_price']:
+            raise forms.ValidationError('Пополните баланс')
 
         return cleaned_data
 
@@ -363,19 +369,23 @@ class SkinsOrderForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
         print(cleaned_data)
+        cleaned_data['user'] = self.request.user
 
         if cleaned_data['char_name']:
             json_path = os.path.join(settings.BASE_DIR, 'static', 'chars', 'assets', 'name2price.json')
             with open(json_path, encoding='utf-8') as file:
                 json_data = json.load(file)
             cleaned_data['price_char'] = json_data[cleaned_data['char_name']]
+            if cleaned_data['user'].balance < cleaned_data['price_char']:
+                raise forms.ValidationError('Пополните баланс')
 
         if cleaned_data['skin_name']:
             json_path = os.path.join(settings.BASE_DIR, 'static', 'chars', 'assets', 'skins2price.json')
             with open(json_path, encoding='utf-8') as file:
                 json_data = json.load(file)
             cleaned_data['price_skin'] = json_data[cleaned_data['skin_name']]
-        cleaned_data['user'] = self.request.user
+            if cleaned_data['user'].balance < cleaned_data['price_skin']:
+                raise forms.ValidationError('Пополните баланс')
 
         return cleaned_data
 

@@ -6,7 +6,7 @@
 {%block content%}
 <div class="container">
   <h1 class="">Отзывы о сайте</h1>
-  <h2>Средний рейтинг: {{ average_stars }} ★</h2>
+  <h2>Средний рейтинг: {{ average_stars|floatformat:1 }} ★</h2>
   <div class="container_reviews">
     <div class="read_reviews">
       {% for review in reviews %}

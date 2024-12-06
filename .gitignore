@@ -28,3 +28,6 @@ venv
 docker-compose-postgress.yml
 
 media
+
+cache
+dump.rdb

@@ -168,12 +168,13 @@ class StoreSkinsView(TemplateView):
             messages.success(request, 'Покупка совершена, письмо отправлено на почту')
         else:
             # Отобразим ошибки формы, чтобы увидеть причину неудачи
-            print(form.errors)
+            print('1', form.errors)
             errors = form.errors.values()
             for error in errors:
                 for text in error:
                     messages.error(request, text)
             return render(request, self.template_name, {'skinorder_form': form})
+        print('Прошло')
         return redirect('store:store_skins')
 
 

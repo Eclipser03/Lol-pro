@@ -1,6 +1,7 @@
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.forms import ValidationError
+from django.utils import timezone
 from mptt.models import MPTTModel, TreeForeignKey
 
 from user.models import User
@@ -336,7 +337,7 @@ class AccountOrder(models.Model):
         verbose_name_plural = 'Заказы аккаунтов'
 
     def __str__(self):
-        return f'Аккаунт. Чемпионы: {self.account.champions}. Уровень {self.account.lvl}'
+        return f'Аккаунт для  {self.user.username}'
 
     def clean(self):
         if self.account and self.user == self.account.user:
@@ -367,7 +368,7 @@ class Message(models.Model):
     chat_room = models.ForeignKey(ChatRoom, related_name='messages', on_delete=models.CASCADE)
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     text = models.CharField(max_length=300)
-    created = models.DateTimeField(auto_now_add=True)
+    created = models.DateTimeField(default=timezone.now)
     massage_type = models.CharField(
         choices=MASSAGETYPE_CHOISES, verbose_name='Тип сообщения', blank=True, null=True
     )

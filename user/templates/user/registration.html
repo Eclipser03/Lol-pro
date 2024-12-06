@@ -18,7 +18,8 @@
     <div class="remember">
       <div class="remember_me">
         {{ form.checkbox }}
-        <p>Я соглашаюсь</p>
+        <p>Я соглашаюсь с </p>
+        <a href="{% url 'user:license_agreement' %}" target="_blank" rel="noopener noreferrer">Лицензионным соглашением</a>
       </div>
     </div>
     {{ form.captcha }}

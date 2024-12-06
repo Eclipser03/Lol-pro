@@ -9,7 +9,7 @@
   <!-- Left Section: Order Information -->
   <div class="order-info">
     <div class="order-details">
-      <h1>🛒 Оформление заказа</h1>
+      <h1>🛒 Оформление заказа. Цена аккаунта: {{ account.price }} руб.</h1>
       <p><span class="icon">✔️</span>Автоматическая доставка</p>
     </div>
 
@@ -652,7 +652,31 @@ document.querySelector('#chat-message-submit').onclick = function() {
     messageInput.value = '';
 };
 
+const currentBalance = parseFloat('{{ user.balance }}')
+const accountPrice = parseFloat('{{ account.price }}');
+
 document.getElementById('bybtn').onclick = function() {
+  if (currentBalance < accountPrice) {
+    // Создаем элемент сообщения
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'alert alert-warning'; // Класс для стилизации
+    messageDiv.textContent = 'Пожалуйста, пополните баланс'; // Сообщение об ошибке
+
+    // Добавляем сообщение в контейнер
+    const messagesContainer = document.getElementById('messages-container');
+    messagesContainer.appendChild(messageDiv);
+
+    // Удаляем сообщение через 5 секунд
+    setTimeout(() => {
+        messageDiv.style.opacity = '0';
+        messageDiv.style.transform = 'translateX(30px)';
+        setTimeout(() => messageDiv.remove(), 500); // Удаляем элемент после анимации
+    }, 5000);
+
+    return; // Прерываем выполнение функции
+}
+
+
   chatSocket.send(JSON.stringify({
       'type': 'buy_account',
   }));

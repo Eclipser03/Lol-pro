@@ -47,7 +47,7 @@ class AccountsAdmin(admin.ModelAdmin):
 
 
 class MessageAdmin(admin.ModelAdmin):
-    list_display = ('author', 'text', 'massage_type')
+    list_display = ('author', 'text', 'massage_type', 'created')
 
 
 admin.site.register(Message, MessageAdmin)
