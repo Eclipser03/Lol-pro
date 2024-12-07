@@ -354,12 +354,12 @@ class StoreAccountPageView(TemplateView):
         account = get_object_or_404(AccountObject, id=self.kwargs.get('id'))
         print('KWARGS', request.POST)
 
-        if 'delete_account' in request.POST:
+        if 'delete_account' in request.POST and account.is_active:
             account.delete()
             messages.success(request, 'Аккаунт успешно удалён')
             return redirect('store:store_accounts')
 
-        if 'setting' in request.POST:
+        if 'setting' in request.POST and account.is_active:
             set_form = AccountObjectForm(request.POST, request.FILES, instance=account)
             images = request.FILES.getlist('images')
             print('IMAGESSS', request.FILES)
@@ -398,9 +398,6 @@ class StoreAccountPageView(TemplateView):
                 return render(request, self.template_name, {'form': form})
             return redirect(request.META.get('HTTP_REFERER', '/'))
         return redirect(request.META.get('HTTP_REFERER', '/'))
-
-    def delete(self, request, *args, **kwargs):
-        print('DALATA', request.DELETE)
 
 
 # Удаление изображений

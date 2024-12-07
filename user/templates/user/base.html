@@ -88,12 +88,21 @@ notificationSocket.onmessage = function(event) {
   if (data.type === 'notification') {
       // Создаем новый элемент для сообщения
       const messageDiv = document.createElement('div');
-      messageDiv.className = 'alert alert-success'; // alert-info или другой класс для стилизации
-      messageDiv.textContent = data.message;
+      const messageLink = document.createElement('a');
+      messageLink.className = 'alert alert-success'; // alert-info или другой класс для стилизации
+      //messageDiv.textContent = data.message;
+
+      // Добавляем ссылку в сообщение
+
+      messageLink.href = data.link; // Предполагаем, что сервер отправляет URL в поле "link"
+      console.log('aaa', messageLink.href)
+      messageLink.textContent = data.message;
+      messageLink.style.color = 'inherit'; // Устанавливаем стиль, чтобы ссылка выглядела как текст уведомления
+      messageLink.style.textDecoration = 'none';
 
       // Добавляем сообщение в контейнер
       const messagesContainer = document.getElementById('messages-container');
-      messagesContainer.appendChild(messageDiv);
+      messagesContainer.appendChild(messageLink);
 
       // Удаляем сообщение через 5 секунд
       setTimeout(() => {

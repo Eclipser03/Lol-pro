@@ -49,6 +49,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     'message': message,
                     'username': self.scope['user'].username,
                     'created': str(created.strftime('%H:%M')),
+                    'link': f'/messages/?chat_id={self.chat_room.id}',
                 },
             )
 
@@ -60,6 +61,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     'created': str(created.strftime('%H:%M')),
                     'username': self.scope['user'].username,
                     'chat_room': self.chat_room.id,
+                    'link': f'/messages/?chat_id={self.chat_room.id}',
                 },
             )
         elif text_data_json['type'] == 'buy_account':
@@ -75,9 +77,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 {
                     'type': 'send_notification',
                     'message': f'{self.scope['user'].username} оплатил ваш аккаунт',
-                    'created': str(localtime(sms.created).strftime('%H:%M')),
+                    'created': str(sms.created.strftime('%H:%M')),
                     'username': self.scope['user'].username,
                     'chat_room': self.chat_room.id,
+                    'link': f'/messages/?chat_id={self.chat_room.id}',
                 },
             )
         elif text_data_json['type'] == 'buy_account_cancel':
@@ -91,16 +94,16 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 self.room_group_name,
                 {'type': 'cancell', 'userid': str(self.scope['user'].id), 'message': message},
             )
-            print(f'Raw time: {sms.created}, Local time: {localtime(sms.created)}')
 
             await self.channel_layer.group_send(
                 f'user_{self.recipient}',
                 {
                     'type': 'send_notification',
                     'message': f'{seller_username} отменил заказ',
-                    'created': str(localtime(sms.created).strftime('%H:%M')),
+                    'created': str(sms.created.strftime('%H:%M')),
                     'username': self.scope['user'].username,
                     'chat_room': self.chat_room.id,
+                    'link': f'/messages/?chat_id={self.chat_room.id}',
                 },
             )
         elif text_data_json['type'] == 'buy_account_acept':
@@ -121,6 +124,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     'created': str(sms.created.strftime('%H:%M')),
                     'username': self.scope['user'].username,
                     'chat_room': self.chat_room.id,
+                    'link': f'/messages/?chat_id={self.chat_room.id}',
                 },
             )
 
@@ -233,6 +237,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         created = event['created']
         username = event['username']
         chat_room = event['chat_room']
+        link = event['link']
         print('1321', message1, created, event)
         await self.send(
             text_data=json.dumps(
@@ -242,6 +247,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
                     'created': created,
                     'username': username,
                     'chat_room': chat_room,
+                    'link': link,
                 }
             )
         )

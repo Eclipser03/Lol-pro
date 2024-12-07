@@ -64,13 +64,13 @@
       </div>
       {% endif %}
 
-      {% if account.user == request.user %}
+      {% if account.user == request.user and account.is_active %}
       <div class="settings">
         <button type="submit" id="btnset" class="btnset">Редактировать</button>
       </div>
       {% endif %}
 
-      {% if account.user == request.user %}
+      {% if account.user == request.user and account.is_active %}
       <!-- <form action="{% url 'store:store_account_page' account.id %}" method="POST">
         {% csrf_token %} -->
         <div class="settings">
