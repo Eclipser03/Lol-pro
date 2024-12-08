@@ -86,7 +86,7 @@
                 <div class="notification_buyer">
                   <p>Вы успешно приобрели аккаунт у продавца <strong>{{ selected_chat.seller.username }}</strong>.</p>
                   <p>Ожидайте логин и пароль для входа.</p>
-                  {% if selected_chat.account.buyer == user %}
+                  {% if selected_chat.account.buyer == user and not selected_chat.account.is_confirmed %}
                     <button class="confirm_purchase" onclick="confirmPurchase()">Подтвердить покупку</button>
                   {% endif %}
                 </div>
@@ -96,7 +96,7 @@
                 <div class="notification_seller">
                   <p>Покупатель <strong>{{ selected_chat.buyer.username }}</strong> приобрел ваш аккаунт.</p>
                   <p>Пожалуйста, предоставьте ему логин и пароль для входа.</p>
-                  {% if not selected_chat.account.is_active %}
+                  {% if not selected_chat.account.is_active and not selected_chat.account.is_confirmed %}
                     <button class="cancel_purchase" onclick="cancelPurchase()">Отменить покупку</button>
                   {% endif %}
                 </div>

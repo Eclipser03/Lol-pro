@@ -271,6 +271,7 @@ class MessagesView(TemplateView):
             )
 
             context['selected_chat'] = selected_chat
+            print('123123', selected_chat.account)
         return context
 
 class LicenseAgreementView(TemplateView):
