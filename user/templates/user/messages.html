@@ -156,7 +156,7 @@ const accountId = urlParams.get("account_id")
 
 // Инициализация WebSocket соединения
 const protocol = window.location.protocol === "https:" ? "wss://" : "ws://";
-const chatSocket = new WebSocket(protocol + window.location.host + '/ws/chat/' + currentChatId + '/' + accountId + '/');
+const chatSocket = new WebSocket(protocol + window.location.host + '/ws/chat/' + currentChatId + '/');
 const notificationSocket = new WebSocket('ws://' + window.location.host + '/ws/notification/');
 
 chatSocket.onmessage = function (e) {
@@ -165,6 +165,7 @@ chatSocket.onmessage = function (e) {
     const username = data.username || "Неизвестный пользователь";
     const created = data.created;
     const type = data.type
+    console.log('TYPE',type, username)
 
     const currentUser = "{{ user.username }}";
 
@@ -226,6 +227,8 @@ chatSocket.onmessage = function (e) {
     console.log(222, currentUser, seller, buyer)
 
     if (currentUser === seller) {
+      const button = document.querySelector('.cancel_purchase');
+      button.style.display = 'none'
       messageElement.innerHTML = `
       <div class="notification_seller">
         <p>Покупатель <strong>${buyer}</strong> подтвердил покупку, ваш баланс пополнен.</p>
@@ -272,7 +275,6 @@ chatSocket.onmessage = function (e) {
   chatMessages.appendChild(messageElement);
   chatMessages.scrollTop = chatMessages.scrollHeight;
 }
-
 }
 
 
@@ -294,6 +296,7 @@ scrollToBottom();
 // Обновляем последний чат в левой колонке
 function updateLastMessageInChatList(chatId, message, created, username) {
     const chatItem = document.querySelector(`.chat-item[data-chat-id='${chatId}']`);
+    const chatList = document.querySelector('.chat-list-item');
     if (chatItem) {
         const usernameElement = chatItem.querySelector(".username");
         const lastMessageElement = chatItem.querySelector(".last-message");
@@ -304,9 +307,19 @@ function updateLastMessageInChatList(chatId, message, created, username) {
         timestampElement.textContent = created ? created : "Только что";
 
         // Перемещаем элемент чата наверх списка
-        const chatList = document.querySelector('.chat-list-item');
         chatList.prepend(chatItem); // Вставляем элемент в начало контейнера
-    }
+    } else { console.log('123', chatId, message, created, username)
+      chatList.insertAdjacentHTML(
+      'afterbegin',
+      `<a href="?chat_id=${chatId}" class="chat-item" data-chat-id="${chatId}">
+        <div class="avatar">FP</div>
+        <div class="chat-info">
+            <span class="username">${username}</span>
+            <span class="last-message">${message}</span>
+        </div>
+        <span class="timestamp">${created}</span>
+    </a>
+   `) }
 }
 
 notificationSocket.onmessage = function(event) {
@@ -318,6 +331,7 @@ notificationSocket.onmessage = function(event) {
   console.log('DATA', data)
   if (data.type === 'notification') {
     updateLastMessageInChatList(chatID, message, created, username);
+
   }
 }
 // Подвердить покупку

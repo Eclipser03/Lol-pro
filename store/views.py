@@ -1,5 +1,6 @@
 import json
 import uuid
+from statistics import mean
 
 from django.contrib import messages
 from django.core.paginator import Paginator
@@ -329,6 +330,7 @@ class StoreAccountPageView(TemplateView):
         reviews = ReviewSellerModel.objects.filter(parent__isnull=True, seller=account.user)
         user_list = reviews.values_list('buyer', flat=True)
         user = self.request.user
+        average_stars = mean(map(int, reviews.values_list('stars', flat=True)))
 
         page_number = self.request.GET.get('page', 1)
         paginator = Paginator(reviews, 10)
@@ -339,6 +341,7 @@ class StoreAccountPageView(TemplateView):
         context['current_page'] = current_page
         context['user_list'] = user_list
         context['user'] = user
+        context['average_stars'] = average_stars
 
         if self.request.user == account.user:
             return context

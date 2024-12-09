@@ -5,6 +5,7 @@ from time import localtime
 from asgiref.sync import sync_to_async
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
+from django.db import IntegrityError
 
 from user.models import User
 
@@ -14,8 +15,7 @@ from .models import AccountObject, AccountOrder, ChatRoom, Message
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.room_id = self.scope['url_route']['kwargs']['room_id']
-        self.account_id = self.scope['url_route']['kwargs']['account_id']
-        self.room_group_name = f'chat_{self.room_id}_{self.account_id}'
+        self.room_group_name = f'chat_{self.room_id}'
         self.chat_room = await ChatRoom.objects.aget(id=self.room_id)
         self.recipient = (
             self.chat_room.seller_id
@@ -139,12 +139,13 @@ class ChatConsumer(AsyncWebsocketConsumer):
             await seller.asave()
             await account.asave()
             data = {'account': account}
-            await self.create_record(data)
         else:
             await self.send(
                 text_data=json.dumps({'type': 'error', 'message': 'Ошибка', 'userid': userid})
             )
+            return
         await self.send(text_data=json.dumps({'type': 'buy_account_acept', 'message': message}))
+        await self.create_record(data)
         return
 
     async def buy_account(self, event):
@@ -217,7 +218,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def create_record(self, data):
         buyer = self.chat_room.buyer
-        return AccountOrder.objects.create(user=buyer, account=data['account'])
+        return AccountOrder.objects.get_or_create(user=buyer, account=data['account'])[0]
+
+
 
 
 class NotificationConsumer(AsyncWebsocketConsumer):

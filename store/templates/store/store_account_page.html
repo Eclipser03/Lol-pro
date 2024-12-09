@@ -173,6 +173,7 @@
 </div>
 <div class="container1">
   <h1 class="">Отзывы о продавце</h1>
+  <h2>Средний рейтинг: {{ average_stars|floatformat:1 }} ★</h2>
   <div class="container_reviews">
     <div class="read_reviews">
       {% for review in reviews %}
@@ -465,7 +466,7 @@ function deleteImage(event) {
   let accountId = "{{ account.id }}"
   let userId = "{{ request.user }}";   // Подставить ID пользователя
   if (chatRoomId) {
-  const wsUrl6 = 'ws://' + window.location.host + '/ws/chat/' + chatRoomId + '/' + accountId + '/';
+  const wsUrl6 = 'ws://' + window.location.host + '/ws/chat/' + chatRoomId + '/';
   const byBtn = document.getElementById('bybtn');
 
 

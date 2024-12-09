@@ -557,7 +557,6 @@ color: red; /* Красный цвет для статуса "Оффлайн" */
 
 .container1 h1 {
     font-size: 46px;
-    margin-bottom: 50px;
 }
 
 /* Стили для отзывов */
@@ -1062,4 +1061,11 @@ align-items: center; /* Выравниваем их по вертикали */
     font-size: 14px;
     display: inline-block;
     cursor: pointer;
+}
+
+.container1 h2 {
+    font-size: 24px;
+    color: #ffc107;
+    margin-bottom: 50px;
+    font-weight: bold;
 }
