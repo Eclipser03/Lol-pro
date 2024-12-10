@@ -201,7 +201,7 @@ chatSocket.onmessage = function (e) {
         <div class="notification_seller">
           <p>Покупатель <strong>${buyer}</strong> приобрел ваш аккаунт.</p>
           <p>Пожалуйста, предоставьте ему логин и пароль для входа.</p>
-          <button class="cancel_purchase" onclick="cancelPurchase()"Отменить заказ</button>
+          <button class="cancel_purchase" onclick="cancelPurchase()">Отменить покупку</button>
         </div>
       `;
       } else if (currentUser === buyer) {
@@ -264,8 +264,12 @@ chatSocket.onmessage = function (e) {
       </div>
     `;
     } else if (currentUser === buyer) {
-      const button = document.querySelector('.confirm_purchase');
-      button.style.display = 'none'
+      const buttons = document.querySelectorAll('.confirm_purchase');
+      buttons.forEach((btn) => {
+        btn.style.display = 'none'
+      })
+
+
       messageElement.innerHTML = `
       <div class="notification_buyer">
         <p>Продавец отменил заказ!</p>

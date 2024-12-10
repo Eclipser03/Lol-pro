@@ -50,7 +50,7 @@
         {% for image in account.images.all %}
         <div class="image-item">
           <img src="{{ image.image.url }}" alt="Изображение аккаунта" class="thumbnail" onclick="openModal('{{ image.image.url }}')">
-          {% if account.user == request.user %}
+          {% if account.user == request.user and account.is_active %}
           <button class="delete-btn" data-image-id="{{ image.id }}" onclick="deleteImage(event)">Удалить</button>
           {% endif %}
         </div>
@@ -611,8 +611,10 @@ function deleteImage(event) {
       </div>
     `;
     } else if (currentUser === buyer) {
-      const button = document.querySelector('.confirm_purchase');
-      button.style.display = 'none'
+      const buttons = document.querySelectorAll('.confirm_purchase');
+      buttons.forEach((btn) => {
+        btn.style.display = 'none'
+      })
       messageElement.innerHTML = `
         <div class="notification_seller">
           <p>Продавец отменил заказ.</p>

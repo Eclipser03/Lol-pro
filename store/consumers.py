@@ -150,13 +150,14 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def buy_account(self, event):
         userid = event['userid']
-        user = self.scope['user']
+        buyer = await User.objects.aget(buyer_chat_rooms=self.chat_room)
         account = await AccountObject.objects.aget(acount_chat_rooms=self.chat_room)
-        if user.balance >= account.price and account.is_active:
-            user.balance -= account.price
-            await user.asave()
+        if buyer.balance >= account.price and account.is_active:
+            buyer.balance -= account.price
+            print('OLA', userid)
+            await buyer.asave()
             account.is_active = False
-            account.buyer = user
+            account.buyer = buyer
             await account.asave()
             await self.send(
                 text_data=json.dumps(
@@ -173,12 +174,13 @@ class ChatConsumer(AsyncWebsocketConsumer):
             return
 
     async def cancell(self, event):
+        print(f"buy_account called for user {self.scope['user']} in room {self.room_group_name}")
         userid = event['userid']
         account = await AccountObject.objects.aget(id=self.account.id)
         if not account.is_active:
             buyer = await User.objects.aget(buyer_chat_rooms=self.chat_room)
             buyer.balance += account.price
-            print(12345)
+            print(12345, buyer, userid, event)
             await buyer.asave()
             account.is_active = True
             account.buyer = None
@@ -196,6 +198,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             await self.send(
                 text_data=json.dumps({'type': 'error', 'message': 'Ошибка321', 'userid': userid})
             )
+
 
     # Получаем сообщение от группы
     async def chat_message(self, event):
