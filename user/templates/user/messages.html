@@ -12,7 +12,7 @@
       <div class="chat-list-item">
         {% for chat in chats %}
           <a href="?chat_id={{ chat.id }}&account_id={{ chat.account.id }}" class="chat-item {% if chat.id == chat_id %}active{% endif %}" data-chat-id="{{ chat.id }}">
-              <div class="avatar">FP</div>
+                <img class="avatar" src="{{ chat.messages.last.author.avatar.url }}" alt="">
               <div class="chat-info">
                   <span class="username">{{ chat.messages.last.author }}</span>
                   <span class="last-message">{{ chat.messages.last.text }}</span>

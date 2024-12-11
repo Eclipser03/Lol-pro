@@ -173,7 +173,9 @@
 </div>
 <div class="container1">
   <h1 class="">Отзывы о продавце</h1>
+  {% if average_stars != 0 %}
   <h2>Средний рейтинг: {{ average_stars|floatformat:1 }} ★</h2>
+  {% endif %}
   <div class="container_reviews">
     <div class="read_reviews">
       {% for review in reviews %}
@@ -245,7 +247,7 @@
 </div>
 
 
-    {% if account.user != request.user and user.id not in user_list %}
+    {% if account.user != request.user and user.id not in user_list and can_reviews %}
     <div class="write_reviews">
       <div class="feedback-container">
         <h2>Оставить отзыв</h2>
@@ -720,6 +722,23 @@ notificationSocket.onmessage = function(event) {
   if (chatroom != chatRoomId && data.type === 'notification') {
     const messageDiv = document.createElement('div');
     messageDiv.className = 'alert alert-success'; // alert-info или другой класс для стилизации
+    messageDiv.textContent = data.message;
+
+    // Добавляем сообщение в контейнер
+    const messagesContainer = document.getElementById('messages-container');
+    messagesContainer.appendChild(messageDiv);
+
+    // Удаляем сообщение через 5 секунд
+    setTimeout(() => {
+        messageDiv.style.opacity = '0';
+        messageDiv.style.transform = 'translateX(30px)';
+        setTimeout(() => messageDiv.remove(), 500);
+    }, 5000);
+  }
+
+  if (data.type === 'error') {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'alert alert-warning'; // alert-info или другой класс для стилизации
     messageDiv.textContent = data.message;
 
     // Добавляем сообщение в контейнер

@@ -182,6 +182,7 @@ header a{
     text-align: left;
     background-color: #f44336; /* Временно для теста */
     transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+    display: block;
 }
 
 .alert-success {

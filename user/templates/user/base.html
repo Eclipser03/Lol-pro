@@ -87,7 +87,6 @@ notificationSocket.onmessage = function(event) {
 
   if (data.type === 'notification') {
       // Создаем новый элемент для сообщения
-      const messageDiv = document.createElement('div');
       const messageLink = document.createElement('a');
       messageLink.className = 'alert alert-success'; // alert-info или другой класс для стилизации
       //messageDiv.textContent = data.message;
@@ -106,9 +105,9 @@ notificationSocket.onmessage = function(event) {
 
       // Удаляем сообщение через 5 секунд
       setTimeout(() => {
-          messageDiv.style.opacity = '0';
-          messageDiv.style.transform = 'translateX(30px)';
-          setTimeout(() => messageDiv.remove(), 500);
+          messageLink.style.opacity = '0';
+          messageLink.style.transform = 'translateX(30px)';
+          setTimeout(() => messageLink.remove(), 500);
       }, 5000);
   }
 };

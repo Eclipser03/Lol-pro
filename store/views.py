@@ -1,4 +1,5 @@
 import json
+from urllib import request
 import uuid
 from statistics import mean
 
@@ -20,7 +21,7 @@ from store.forms import (
     RPorderForm,
     SkinsOrderForm,
 )
-from store.models import AccountObject, AccountsImage, ChatRoom, Coupon, ReviewSellerModel
+from store.models import AccountObject, AccountOrder, AccountsImage, ChatRoom, Coupon, ReviewSellerModel
 from user.tasks import send_email_task
 
 
@@ -330,7 +331,8 @@ class StoreAccountPageView(TemplateView):
         reviews = ReviewSellerModel.objects.filter(parent__isnull=True, seller=account.user)
         user_list = reviews.values_list('buyer', flat=True)
         user = self.request.user
-        average_stars = mean(map(int, reviews.values_list('stars', flat=True)))
+        average_stars = mean(map(int, reviews.values_list('stars', flat=True) or [0]))
+        context['can_reviews'] = AccountOrder.objects.filter(user=user, account__user=account.user).exists()
 
         page_number = self.request.GET.get('page', 1)
         paginator = Paginator(reviews, 10)
@@ -358,7 +360,8 @@ class StoreAccountPageView(TemplateView):
         print('KWARGS', request.POST)
 
         if 'delete_account' in request.POST and account.is_active:
-            account.delete()
+            account.is_archive = True
+            account.save()
             messages.success(request, 'Аккаунт успешно удалён')
             return redirect('store:store_accounts')
 

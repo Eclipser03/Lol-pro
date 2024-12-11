@@ -281,6 +281,7 @@ class AccountObject(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
     is_active = models.BooleanField(default=False, verbose_name='Проверен')
     is_confirmed = models.BooleanField(default=False, verbose_name='Покупка подтверждена')
+    is_archive = models.BooleanField(default=False, verbose_name='В архиве')
 
     price = models.IntegerField(verbose_name='Цена')
 
@@ -349,8 +350,7 @@ class ChatRoom(models.Model):
     buyer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='buyer_chat_rooms')
     seller = models.ForeignKey(User, on_delete=models.CASCADE, related_name='seller_chat_rooms')
     account = models.ForeignKey(
-        AccountObject, on_delete=models.CASCADE, related_name='acount_chat_rooms', default=2
-    )
+        AccountObject, on_delete=models.SET_NULL, null=True, blank=True, related_name='acount_chat_rooms')
 
     class Meta:
         unique_together = ('buyer', 'seller', 'account')
