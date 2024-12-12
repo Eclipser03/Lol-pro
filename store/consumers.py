@@ -1,11 +1,9 @@
 import json
 from datetime import timedelta
-from time import localtime
 
 from asgiref.sync import sync_to_async
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
-from django.db import IntegrityError
 
 from user.models import User
 
@@ -58,6 +56,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 {
                     'type': 'send_notification',
                     'message': f'Новое сообщение от {self.scope['user'].username}',
+                    'message_content': message,
+                    'avatar' : self.scope['user'].avatar.url,
                     'created': str(created.strftime('%H:%M')),
                     'username': self.scope['user'].username,
                     'chat_room': self.chat_room.id,
@@ -69,7 +69,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
             buyer = await User.objects.aget(buyer_chat_rooms=self.chat_room)
             account = await AccountObject.objects.aget(acount_chat_rooms=self.chat_room)
             if buyer.balance >= account.price and account.is_active:
-                sms = await self.create_message(self.chat_room, self.scope['user'], message, 'buy_account')
+                sms = await self.create_message(
+                    self.chat_room, self.scope['user'], message, 'buy_account'
+                )
                 buyer.balance -= account.price
                 print('OLA')
                 await buyer.asave()
@@ -86,8 +88,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     {
                         'type': 'send_notification',
                         'message': f'{self.scope['user'].username} оплатил ваш аккаунт',
+                        'message_content': f'{self.scope['user'].username} оплатил ваш аккаунт',
                         'created': str(sms.created.strftime('%H:%M')),
                         'username': self.scope['user'].username,
+                        'avatar' : self.scope['user'].avatar.url,
                         'chat_room': self.chat_room.id,
                         'link': f'/messages/?chat_id={self.chat_room.id}',
                     },
@@ -126,8 +130,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 {
                     'type': 'send_notification',
                     'message': f'{seller_username} отменил заказ',
+                    'message_content': f'{seller_username} отменил заказ',
                     'created': str(sms.created.strftime('%H:%M')),
                     'username': self.scope['user'].username,
+                    'avatar' : self.scope['user'].avatar.url,
                     'chat_room': self.chat_room.id,
                     'link': f'/messages/?chat_id={self.chat_room.id}',
                 },
@@ -149,6 +155,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     'message': 'Покупка подтвержден, деньги зачислены на ваш счет',
                     'created': str(sms.created.strftime('%H:%M')),
                     'username': self.scope['user'].username,
+                    'avatar' : self.scope['user'].avatar.url,
                     'chat_room': self.chat_room.id,
                     'link': f'/messages/?chat_id={self.chat_room.id}',
                 },
@@ -186,7 +193,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
             )
         )
 
-
     async def cancell(self, event):
         userid = event['userid']
         await self.send(
@@ -198,8 +204,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 }
             )
         )
-
-
 
     # Получаем сообщение от группы
     async def chat_message(self, event):
@@ -225,8 +229,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
         return AccountOrder.objects.get_or_create(user=buyer, account=data['account'])[0]
 
 
-
-
 class NotificationConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         if self.scope['user'].is_anonymous:
@@ -240,21 +242,24 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         await self.channel_layer.group_discard(self.user_group_name, self.channel_name)
 
     async def send_notification(self, event):
-        message1 = event['message']
+        message = event['message']
+        message_content = event.get('message_content', '')
+        avatar = event.get('avatar', '')
         created = event['created']
         username = event['username']
         chat_room = event['chat_room']
         link = event['link']
-        print('1321', message1, created, event)
         await self.send(
             text_data=json.dumps(
                 {
                     'type': 'notification',
-                    'message': message1,
+                    'message': message,
+                    'message_content': message_content,
                     'created': created,
                     'username': username,
                     'chat_room': chat_room,
                     'link': link,
+                    'avatar': avatar,
                 }
             )
         )

@@ -12,7 +12,7 @@
       <div class="chat-list-item">
         {% for chat in chats %}
           <a href="?chat_id={{ chat.id }}&account_id={{ chat.account.id }}" class="chat-item {% if chat.id == chat_id %}active{% endif %}" data-chat-id="{{ chat.id }}">
-                <img class="avatar" src="{{ chat.messages.last.author.avatar.url }}" alt="">
+              <img class="avatar" src="{{ chat.messages.last.author.avatar.url }}" alt="">
               <div class="chat-info">
                   <span class="username">{{ chat.messages.last.author }}</span>
                   <span class="last-message">{{ chat.messages.last.text }}</span>
@@ -164,8 +164,9 @@ chatSocket.onmessage = function (e) {
     const message = data.message;
     const username = data.username || "Неизвестный пользователь";
     const created = data.created;
-    const type = data.type
-    console.log('TYPE',type, username)
+    const type = data.type;
+    const chatID = "{{ selected_chat.pk }}"
+    console.log('TYPE', data)
 
     const currentUser = "{{ user.username }}";
 
@@ -185,6 +186,7 @@ chatSocket.onmessage = function (e) {
 
         chatMessages.appendChild(messageElement);
         chatMessages.scrollTop = chatMessages.scrollHeight; // Прокрутка вниз
+        updateLastMessageInChatList(chatID, message, created, username);
     }
 
     if (type === 'buy_account') {
@@ -298,25 +300,33 @@ function scrollToBottom() {
 scrollToBottom();
 
 // Обновляем последний чат в левой колонке
-function updateLastMessageInChatList(chatId, message, created, username) {
+function updateLastMessageInChatList(chatId, message, created, username, avatar='') {
     const chatItem = document.querySelector(`.chat-item[data-chat-id='${chatId}']`);
     const chatList = document.querySelector('.chat-list-item');
+    const seller = "{{ selected_chat.seller.username }}";
+    const buyer = "{{ selected_chat.buyer.username }}";
+    const imgAvatar = username == seller ? '{{ selected_chat.seller.avatar.url }}' : '{{ selected_chat.buyer.avatar.url }}';
+    console.log('imgAvatar', imgAvatar)
     if (chatItem) {
+
         const usernameElement = chatItem.querySelector(".username");
         const lastMessageElement = chatItem.querySelector(".last-message");
         const timestampElement = chatItem.querySelector(".timestamp");
-
+        const avatarElement = chatItem.querySelector(".avatar");
+        console.log(avatarElement)
         usernameElement.textContent = username;
         lastMessageElement.textContent = message;
         timestampElement.textContent = created ? created : "Только что";
+        avatarElement.src = avatar != '' ? avatar : imgAvatar;
+        console.log(avatarElement)
 
         // Перемещаем элемент чата наверх списка
         chatList.prepend(chatItem); // Вставляем элемент в начало контейнера
-    } else { console.log('123', chatId, message, created, username)
+    } else { console.log('123', avatar)
       chatList.insertAdjacentHTML(
       'afterbegin',
       `<a href="?chat_id=${chatId}" class="chat-item" data-chat-id="${chatId}">
-        <div class="avatar">FP</div>
+        <img class="avatar" src="${avatar}" alt="">
         <div class="chat-info">
             <span class="username">${username}</span>
             <span class="last-message">${message}</span>
@@ -330,11 +340,13 @@ notificationSocket.onmessage = function(event) {
   const data = JSON.parse(event.data);
   const username = data.username
   const message = data.message;
+  const message_content = data.message_content;
   const created = data.created;
   const chatID = data.chat_room
+  const avatar = data.avatar
   console.log('DATA', data)
   if (data.type === 'notification') {
-    updateLastMessageInChatList(chatID, message, created, username);
+    updateLastMessageInChatList(chatID, message_content, created, username, avatar);
 
   }
 }

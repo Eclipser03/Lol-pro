@@ -1,6 +1,7 @@
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.forms import ValidationError
+from django.urls import reverse
 from django.utils import timezone
 from mptt.models import MPTTModel, TreeForeignKey
 
@@ -301,6 +302,9 @@ class AccountObject(models.Model):
     def __str__(self):
         return f'Продажа аккаунта от {self.user.username}| Цена: {self.price} руб.| Id: {self.id} | Статус: {self.is_active}'
 
+    def get_absolute_url(self):
+        return reverse('store:store_account_page', kwargs={'id': self.pk})
+
 
 class AccountsImage(models.Model):
     account = models.ForeignKey(AccountObject, on_delete=models.CASCADE, related_name='images')
@@ -350,7 +354,8 @@ class ChatRoom(models.Model):
     buyer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='buyer_chat_rooms')
     seller = models.ForeignKey(User, on_delete=models.CASCADE, related_name='seller_chat_rooms')
     account = models.ForeignKey(
-        AccountObject, on_delete=models.SET_NULL, null=True, blank=True, related_name='acount_chat_rooms')
+        AccountObject, on_delete=models.SET_NULL, null=True, blank=True, related_name='acount_chat_rooms'
+    )
 
     class Meta:
         unique_together = ('buyer', 'seller', 'account')
