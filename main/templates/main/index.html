@@ -4,29 +4,14 @@
   <link rel="stylesheet" href="{% static 'css/index.css'%}">
 {% endblock %}
 {%block content%}
-<h1 class="">Добро пожаловать на Lol-pay</h1>
-<div class="categories">
-  <a href="{% url 'store:store_skins' %}"  class="category_1">
-    <div class="category-background"><p>Скины</p></div>
-  </a>
-  <a href="{% url 'store:store_rp'%}" class="category_2">
-    <div class="category-background"><p>RP</p></div>
-  </a>
-  <a href="{% url 'store:store_skins' %}" class="category_3">
-    <div class="category-background"><p>Персонажи</p></div>
-  </a>
-  <a href="{% url 'store:store_accounts'%}" class="category_4">
-    <div class="category-background"><p>Аккаунты</p></div>
-  </a>
-  <a href="{% url 'store:store_elo_boost' %}" class="category_5">
-    <div class="category-background"><p>Буст</p></div>
-  </a>
-  <a href="#" class="category_6">
-    <div class="category-background"><p>Сундуки</p></div>
-  </a>
-</div>
 
-
+<div class="container">
+  <h1 class="">Добро пожаловать на Lol-pay</h1>
+  <h1 class="">Профессиональный Elo Boost сервис в League of Legends. Самые низкие цены, быстрый старт, гарантии.</h1>
+  </div>
+  <a href="{% url 'store:store' %}">
+  <div class="btn">В магазин</div>
+  </a>
 
 
 {% endblock %}

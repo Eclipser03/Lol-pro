@@ -1,0 +1,68 @@
+h1 {
+    Text-align: center;
+    margin-top: 74px;
+    margin-bottom: 74px;
+    font-size: 44px;
+}
+
+.categories {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    /* justify-items: center; /* Горизонтальное выравнивание по центру */
+    align-items: center;
+    max-width: max-content;
+    gap: 42px;
+    margin: 0 auto;
+}
+
+.categories a {
+    text-decoration: none;  /* Убираем подчеркивание ссылок */
+}
+
+.categories div {
+    width: 360px;
+    height: 350px;
+    border-radius: 30px;
+    background-color: aqua;
+}
+
+.category-background {
+
+    background-size: cover;  /* Чтобы изображение заполняло весь блок */
+    background-position: center; /* Центрируем изображение */
+    width: 100%;  /* Ширина блока */
+    height: 200px;  /* Высота блока */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    text-align: center;
+    transition: 0.3s ease;
+}
+
+.category-background:hover {
+    filter: brightness(1.3); /* Засветление */
+}
+
+.category_1 .category-background{
+    background-image: url('../images/Home/Skini.jpg');
+}
+.category_2 .category-background{
+    background-image: url('../images/Home/rp.jpg');
+}
+.category_3 .category-background{
+    background-image: url('../images/Home/chars.jpg');
+}
+.category_4 .category-background{
+    background-image: url('../images/Home/acounts.jpg');
+}
+.category_5 .category-background{
+    background-image: url('../images/Home/boost.jpg');
+}
+.category_6 .category-background{
+    background-image: url('../images/Home/box.jpg');
+}
+
+.category-background p {
+    font-size: 44px;
+}

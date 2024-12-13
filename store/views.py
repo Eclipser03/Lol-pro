@@ -1,5 +1,4 @@
 import json
-from urllib import request
 import uuid
 from statistics import mean
 
@@ -11,6 +10,7 @@ from django.template.loader import render_to_string
 from django.utils import timezone
 from django.views.generic import TemplateView
 
+from main.views import TitleMixin
 from store.forms import (
     AccountObjectForm,
     AccountsFilterForm,
@@ -28,17 +28,20 @@ from user.tasks import send_email_task
 # Create your views here.
 
 
-class StoreView(TemplateView):
+class StoreView(TitleMixin, TemplateView):
     template_name = 'store/store.html'
+    title = 'Магазин'
 
 
-class StoreEloBoostView(TemplateView):
+class StoreEloBoostView(TitleMixin, TemplateView):
     template_name = 'store/store_elo_boost.html'
+    title = 'Эло-буст'
 
 
-class StoreEloBoostChoiceView(TemplateView):
+class StoreEloBoostChoiceView(TitleMixin, TemplateView):
     template_name = 'store/store_elo_boost_choice.html'
     login_url = '/login/'
+    title = 'Эло-буст'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -69,8 +72,9 @@ class StoreEloBoostChoiceView(TemplateView):
         return redirect('store:store_elo_boost_choice')
 
 
-class PlacementMatchesView(TemplateView):
+class PlacementMatchesView(TitleMixin, TemplateView):
     template_name = 'store/placement_matches.html'
+    title = 'Квалификация'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -131,8 +135,9 @@ def check_coupon(request):
         return JsonResponse(response_data)
 
 
-class StoreSkinsView(TemplateView):
+class StoreSkinsView(TitleMixin, TemplateView):
     template_name = 'store/store_skins.html'
+    title = 'Скины'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -180,8 +185,9 @@ class StoreSkinsView(TemplateView):
         return redirect('store:store_skins')
 
 
-class StoreRPView(TemplateView):
+class StoreRPView(TitleMixin, TemplateView):
     template_name = 'store/store_rp.html'
+    title = 'RP'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -211,8 +217,9 @@ class StoreRPView(TemplateView):
         return redirect('store:store_rp')
 
 
-class StoreAccountsView(TemplateView):
+class StoreAccountsView(TitleMixin, TemplateView):
     template_name = 'store/store_accounts.html'
+    title = 'Аккаунты'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -319,8 +326,9 @@ class StoreAccountsView(TemplateView):
         )
 
 
-class StoreAccountPageView(TemplateView):
+class StoreAccountPageView(TitleMixin, TemplateView):
     template_name = 'store/store_account_page.html'
+    title = 'Обзор аккаунта'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -332,7 +340,9 @@ class StoreAccountPageView(TemplateView):
         user_list = reviews.values_list('buyer', flat=True)
         user = self.request.user
         average_stars = mean(map(int, reviews.values_list('stars', flat=True) or [0]))
-        context['can_reviews'] = AccountOrder.objects.filter(user=user, account__user=account.user).exists()
+        context['can_reviews'] = AccountOrder.objects.filter(
+            user=user, account__user=account.user
+        ).exists()
 
         page_number = self.request.GET.get('page', 1)
         paginator = Paginator(reviews, 10)
@@ -417,5 +427,6 @@ def delete_image(request, image_id):
     return JsonResponse({'error': 'Изображение не найдено'}, status=200)
 
 
-class FaqView(TemplateView):
+class FaqView(TitleMixin, TemplateView):
     template_name = 'store/faq.html'
+    title = 'FAQ'

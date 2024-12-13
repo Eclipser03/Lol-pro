@@ -1,5 +1,4 @@
 from copy import copy
-from urllib import request
 
 from django.contrib import messages
 from django.contrib.auth import get_user_model, login, logout
@@ -24,6 +23,7 @@ from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.views.generic import CreateView, TemplateView
 
+from main.views import TitleMixin
 from store.models import AccountOrder, BoostOrder, ChatRoom, Qualification, RPorder, SkinsOrder
 from user.forms import (
     CustomPasswordResetForm,
@@ -43,10 +43,11 @@ User = get_user_model()
 
 
 # Вход в аккаунт
-class MyLoginView(RedirectAuthUser, LoginView):
+class MyLoginView(TitleMixin, RedirectAuthUser, LoginView):
     model = User
     form_class = UserLoginForm
     template_name = 'user/login.html'
+    title = 'Вход в личный кабинет'
 
     def form_valid(self, form):
         checkbox = form.cleaned_data.get('checkbox')
@@ -62,12 +63,13 @@ class MyLoginView(RedirectAuthUser, LoginView):
 
 
 # Регистрация пользователя
-class UserRegistrationView(SuccessMessageMixin, RedirectAuthUser, CreateView):
+class UserRegistrationView(TitleMixin, SuccessMessageMixin, RedirectAuthUser, CreateView):
     model = User
     form_class = UserRegistrationForm
     template_name = 'user/registration.html'
     success_url = reverse_lazy('user:login')
     auth_redirect_link = '/'
+    title = 'Регистрация'
 
     def form_valid(self, form: BaseForm) -> HttpResponse:
         user = form.save()
@@ -78,19 +80,18 @@ class UserRegistrationView(SuccessMessageMixin, RedirectAuthUser, CreateView):
     def form_invalid(self, form: BaseModelForm) -> HttpResponse:
         errors = form.errors.values()
         for error in errors:
-                    for text in error:
-                        messages.error(self.request, text)
+            for text in error:
+                messages.error(self.request, text)
         return super().form_invalid(form)
 
 
-
-
 # Забыли пароль
-class PasswordResetFormView(PasswordResetView):
+class PasswordResetFormView(TitleMixin, PasswordResetView):
     form_class = CustomPasswordResetForm
     template_name = 'user/password_reset_form.html'
     success_url = '/'
     email_template_name = 'user/password_reset_email.html'
+    title = 'Восстановление пароля'
 
     def post(self, request, *args, **kwargs):
         response = super().post(request, *args, **kwargs)
@@ -99,10 +100,11 @@ class PasswordResetFormView(PasswordResetView):
 
 
 # Восстановление пароля(забыл папроль)
-class PasswordResetConfirmView(PasswordResetConfirmView):
+class PasswordResetConfirmView(TitleMixin, PasswordResetConfirmView):
     form_class = CustomSetPasswordForm
     template_name = 'user/password_reset_confirm.html'
     success_url = reverse_lazy('user:login')
+    title = 'Восстановление пароля'
 
     def post(self, request, *args, **kwargs):
         response = super().post(request, *args, **kwargs)
@@ -128,10 +130,11 @@ def FORM_FILL(post, obj):
 
 
 # Смена аватарки, никнейма, дискорда, пароля, почты, пополнение баланса
-class ProfileView(LoginRequiredMixin, PasswordChangeView):
+class ProfileView(TitleMixin, LoginRequiredMixin, PasswordChangeView):
     form_class = ProfileChangePasswordForm
     template_name = 'user/profile.html'
     success_url = reverse_lazy('user:profile')
+    title = 'Профиль'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -250,8 +253,9 @@ def confirm_email_change(request, uidb64, token, new_email_encoded):
         return redirect('user:profile')
 
 
-class MessagesView(TemplateView):
+class MessagesView(TitleMixin, TemplateView):
     template_name = 'user/messages.html'
+    title = 'Сообщения'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -274,5 +278,7 @@ class MessagesView(TemplateView):
             print('123123', selected_chat.account)
         return context
 
-class LicenseAgreementView(TemplateView):
+
+class LicenseAgreementView(TitleMixin, TemplateView):
     template_name = 'user/license_agreement.html'
+    title = 'Соглашение'

@@ -11,13 +11,24 @@ from main.models import ReviewModel
 
 # Create your views here.
 
+class TitleMixin:
+    title = 'default_title'
+    def get_context_data(self, **kwargs) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        context["title"] = self.title
+        return context
 
-class HomeView(TemplateView):
+
+
+
+class HomeView(TitleMixin, TemplateView):
     template_name = 'main/index.html'
+    title = 'Главная'
 
 
-class ReviewsView(TemplateView):
+class ReviewsView(TitleMixin, TemplateView):
     template_name = 'main/reviews.html'
+    title = 'Отзывы'
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
