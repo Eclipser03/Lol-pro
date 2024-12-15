@@ -61,6 +61,13 @@ class MyLoginView(TitleMixin, RedirectAuthUser, LoginView):
 
         return super().form_valid(form)
 
+    def form_invalid(self, form: BaseModelForm) -> HttpResponse:
+        errors = form.errors.values()
+        for error in errors:
+            for text in error:
+                messages.error(self.request, text)
+        return super().form_invalid(form)
+
 
 # Регистрация пользователя
 class UserRegistrationView(TitleMixin, SuccessMessageMixin, RedirectAuthUser, CreateView):
@@ -166,7 +173,6 @@ class ProfileView(TitleMixin, LoginRequiredMixin, PasswordChangeView):
                 for error in errors:
                     for text in error:
                         messages.error(request, text)
-                return redirect('user:profile')
             return redirect('user:profile')
 
         if 'update_profile' in request.POST:
@@ -178,13 +184,12 @@ class ProfileView(TitleMixin, LoginRequiredMixin, PasswordChangeView):
             if profile_form.is_valid():
                 profile_form.save()
                 messages.success(request, 'Данные успешно обновлены!')
-                return redirect('user:profile')
             else:
                 errors = profile_form.errors.values()
                 for error in errors:
                     for text in error:
                         messages.error(request, text)
-                return redirect('user:profile')
+            return redirect('user:profile')
 
         if 'update_email' in request.POST:
             update_email = UpdateUserEmail(request.POST)
@@ -193,13 +198,12 @@ class ProfileView(TitleMixin, LoginRequiredMixin, PasswordChangeView):
                 # Отправляем письмо с подтверждением
                 self.send_confirmation_email(request, new_email)
                 messages.success(request, 'Письмо отправлено на Вашу почту!')
-                return redirect('user:profile')
             else:
                 errors = update_email.errors.values()
                 for error in errors:
                     for text in error:
                         messages.error(request, text)
-                return redirect('user:profile')
+            return redirect('user:profile')
 
         if 'update_password' in request.POST:
             form = self.get_form()

@@ -219,3 +219,6 @@ CACHES = {
         'LOCATION': (BASE_DIR / 'cache'),
     }
 }
+
+
+SESSION_COOKIE_AGE = 60 * 60 * 24 * 7 * 2
