@@ -199,7 +199,7 @@ class SkinsOrder(models.Model):
     price_char = models.IntegerField(blank=True, null=True, verbose_name='Цена персонажа')
     price_skin = models.IntegerField(blank=True, null=True, verbose_name='Цена образа')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
-    server = server = models.CharField(
+    server = models.CharField(
         max_length=20, choices=SERVER_CHOISES, default='EU WEST', verbose_name='Сервер'
     )
     account_name = models.CharField(

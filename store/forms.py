@@ -1,3 +1,4 @@
+from email import message
 import json
 import os
 from urllib import request
@@ -16,7 +17,7 @@ from store.models import (
     RPorder,
     SkinsOrder,
 )
-from store.services import calculate_boost, calculate_qualification
+from store.services import calculate_boost, calculate_qualification, check_coupon
 
 
 position = {
@@ -306,7 +307,11 @@ class QualificationForm(forms.ModelForm):
 
         coupon = cleaned_data.pop('coupon_code')
         if coupon:
-            cleaned_data['coupon_code'] = Coupon.objects.get(name=coupon)
+            status, message, _ = check_coupon(coupon, cleaned_data['user'])
+            if status:
+                cleaned_data['coupon_code'] = Coupon.objects.get(name=coupon)
+            else:
+                raise forms.ValidationError(message)
 
         if cleaned_data['total_time'].total_seconds() == 0:
             raise forms.ValidationError('Время не может быть равно 0, где-то ошибка')

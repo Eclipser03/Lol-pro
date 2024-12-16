@@ -37,11 +37,9 @@ class ReviewsView(TitleMixin, TemplateView):
         reviews = ReviewModel.objects.filter(parent__isnull=True).order_by('-created_at')
         user_list = reviews.values_list('user', flat=True)
         user = self.request.user
-        try:
-            stars_list = list(map(int, reviews.values_list('stars', flat=True)))
-            average_stars = sum(stars_list) / len(stars_list)
-        except ValueError:
-            average_stars = 0
+        stars_list = list(map(int, reviews.values_list('stars', flat=True)))
+        average_stars = sum(stars_list) / len(stars_list) if len(stars_list) >= 1 else 0
+
 
         print('USER LIST', stars_list)
 

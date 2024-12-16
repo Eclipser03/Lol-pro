@@ -1,5 +1,6 @@
 from http import HTTPStatus
 from unittest.mock import patch
+from urllib import response
 
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
@@ -474,3 +475,10 @@ class ProfileTestCase(TestCase):
         )
         response = self.client.get(path)
         self.assertIn('Буст', response.content.decode())
+
+class LicenseagreementTestCase(TestCase):
+    def test_license_page(self):
+        path = reverse('user:license_agreement')
+        response = self.client.get(path)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        self.assertIn('Лицензионное соглашение', response.content.decode())

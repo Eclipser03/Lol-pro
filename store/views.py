@@ -22,6 +22,7 @@ from store.forms import (
     SkinsOrderForm,
 )
 from store.models import AccountObject, AccountOrder, AccountsImage, ChatRoom, Coupon, ReviewSellerModel
+from store.services import check_coupon
 from user.tasks import send_email_task
 
 
@@ -103,36 +104,14 @@ class PlacementMatchesView(TitleMixin, TemplateView):
         return redirect('store:placement_matches')
 
 
-def check_coupon(request):
+def check_coupon_views(request):
     if request.method == 'POST':
         data = json.loads(request.body)
         coupon_code = data.get('coupon')
 
-        coupon = Coupon.objects.filter(name=coupon_code)
+        status, message, sale = check_coupon(coupon_code, request.user)
 
-        if not coupon.exists():
-            return JsonResponse({'success': False, 'message': 'Купон не найден'})
-
-        coupon = coupon.last()
-
-        user_coupons = request.user.qualification_orders.all().values('coupon_code')
-        if any(coupon.id == next(iter(i.values())) for i in user_coupons):
-            return JsonResponse({'success': False, 'message': 'Купон уже был использован'})
-
-        user_coupons1 = request.user.boost_orders.all().values('coupon_code')
-        if any(coupon.id == next(iter(i.values())) for i in user_coupons1):
-            return JsonResponse({'success': False, 'message': 'Купон уже был использован'})
-
-        if coupon.is_active and coupon.count > 0 and coupon.end_date > timezone.now():
-            response_data = {
-                'success': True,
-                'discount': coupon.sale,
-                'message': 'Купон успешно применен',
-            }
-
-        else:
-            response_data = {'success': False, 'message': 'Купон недействителен или закончился'}
-        return JsonResponse(response_data)
+        return JsonResponse({'success':status, 'message':message, 'discount':sale})
 
 
 class StoreSkinsView(TitleMixin, TemplateView):

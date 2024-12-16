@@ -1,5 +1,3 @@
-from django.conf import settings
-from django.conf.urls.static import static
 from django.urls import path
 
 from store.views import (
@@ -12,7 +10,7 @@ from store.views import (
     StoreRPView,
     StoreSkinsView,
     StoreView,
-    check_coupon,
+    check_coupon_views,
     delete_image,
 )
 
@@ -24,7 +22,7 @@ urlpatterns = [
     path('store-elo-boost/', StoreEloBoostView.as_view(), name='store_elo_boost'),
     path('store-elo-boost-choice/', StoreEloBoostChoiceView.as_view(), name='store_elo_boost_choice'),
     path('placement-matches/', PlacementMatchesView.as_view(), name='placement_matches'),
-    path('check-coupon/', check_coupon),
+    path('check-coupon/', check_coupon_views),
     path('store-skins/', StoreSkinsView.as_view(), name='store_skins'),
     path('store-rp/', StoreRPView.as_view(), name='store_rp'),
     path('store-accounts/', StoreAccountsView.as_view(), name='store_accounts'),
@@ -32,4 +30,3 @@ urlpatterns = [
     path('faq', FaqView.as_view(), name='faq'),
     path('delete-image/<int:image_id>/', delete_image, name='delete-image'),
 ]
-
