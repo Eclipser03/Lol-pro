@@ -232,8 +232,7 @@ class UserTestCase(TestCase):
         )
         self.assertTrue(response.wsgi_request.user.is_authenticated)
 
-        session_age = self.client.session.get_expiry_age()
-        self.assertEqual(session_age, 0)
+        self.assertTrue(self.client.session.get_expire_at_browser_close())
 
 
 class ProfileTestCase(TestCase):

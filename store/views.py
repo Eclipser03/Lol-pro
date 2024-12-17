@@ -1,4 +1,5 @@
 import json
+import logging
 import uuid
 from statistics import mean
 
@@ -7,7 +8,6 @@ from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
-from django.utils import timezone
 from django.views.generic import TemplateView
 
 from main.views import TitleMixin
@@ -21,11 +21,12 @@ from store.forms import (
     RPorderForm,
     SkinsOrderForm,
 )
-from store.models import AccountObject, AccountOrder, AccountsImage, ChatRoom, Coupon, ReviewSellerModel
+from store.models import AccountObject, AccountOrder, AccountsImage, ChatRoom, ReviewSellerModel
 from store.services import check_coupon
 from user.tasks import send_email_task
 
 
+logger = logging.getLogger('main')
 # Create your views here.
 
 
@@ -51,6 +52,7 @@ class StoreEloBoostChoiceView(TitleMixin, TemplateView):
 
     def post(self, request, *args, **kwargs):
         if not request.user.is_authenticated:
+            logger.warning('Попытка оформления заказа без входа в аккаунт.')
             messages.warning(request, 'Пожалуйста, войдите в аккаунт, чтобы оформить заказ')
             return redirect('user:login')
         # print('post', request.POST)
@@ -58,13 +60,12 @@ class StoreEloBoostChoiceView(TitleMixin, TemplateView):
         form.request = self.request
         if form.is_valid():
             form.save()
-            # user = self.request.user
-            # user.balance -= 100
-            # user.save()
+            logger.info(f'Пользователь {request.user.username} успешно оформил заказ на Эло-буст.')
             messages.success(request, 'Покупка совершена успешно')
         else:
-            # Отобразим ошибки формы, чтобы увидеть причину неудачи
-            print('EERRROOORR', form.errors)
+            logger.error(
+                f'Ошибка оформления заказа для пользователя {request.user.username}. Ошибки формы: {form.errors}.'
+            )
             errors = form.errors.values()
             for error in errors:
                 for text in error:
@@ -84,6 +85,7 @@ class PlacementMatchesView(TitleMixin, TemplateView):
 
     def post(self, request, *args, **kwargs):
         if not request.user.is_authenticated:
+            logger.warning('Попытка оформления заказа без входа в аккаунт.')
             messages.warning(request, 'Пожалуйста, войдите в аккаунт, чтобы оформить заказ')
             return redirect('user:login')
         print('post', request.POST)
@@ -91,10 +93,12 @@ class PlacementMatchesView(TitleMixin, TemplateView):
         # form.request = self.request
         if form.is_valid():
             form.save()
+            logger.info(f'Пользователь {request.user.username} успешно оформил заказ на квалификацию.')
             messages.success(request, 'Покупка совершена успешно')
         else:
-            # Отобразим ошибки формы, чтобы увидеть причину неудачи
-            print(form.errors)
+            logger.error(
+                f'Ошибка оформления заказа для пользователя {request.user.username}. Ошибки формы: {form.errors}'
+            )
             errors = form.errors.values()
             for error in errors:
                 for text in error:
@@ -111,7 +115,7 @@ def check_coupon_views(request):
 
         status, message, sale = check_coupon(coupon_code, request.user)
 
-        return JsonResponse({'success':status, 'message':message, 'discount':sale})
+        return JsonResponse({'success': status, 'message': message, 'discount': sale})
 
 
 class StoreSkinsView(TitleMixin, TemplateView):
@@ -125,6 +129,7 @@ class StoreSkinsView(TitleMixin, TemplateView):
 
     def post(self, request, *args, **kwargs):
         if not request.user.is_authenticated:
+            logger.warning('Попытка оформления заказа без входа в аккаунт.')
             messages.warning(request, 'Пожалуйста, войдите в аккаунт, чтобы оформить заказ')
             return redirect('user:login')
 
@@ -151,8 +156,14 @@ class StoreSkinsView(TitleMixin, TemplateView):
         if form.is_valid():
             form.save()
             send_email_task.delay(mail_subject, html_message, [self.request.user.email])
+            logger.info(
+                f'Пользователь {request.user.username} успешно оформил заказ на {purchase_type} {item_name}.'
+            )
             messages.success(request, 'Покупка совершена, письмо отправлено на почту')
         else:
+            logger.error(
+                f'Ошибка оформления заказа для пользователя {request.user.username}. Ошибки формы: {form.errors}.'
+            )
             # Отобразим ошибки формы, чтобы увидеть причину неудачи
             print('1', form.errors)
             errors = form.errors.values()
@@ -175,6 +186,7 @@ class StoreRPView(TitleMixin, TemplateView):
 
     def post(self, request, *args, **kwargs):
         if not request.user.is_authenticated:
+            logger.warning('Попытка оформления заказа без входа в аккаунт.')
             messages.warning(request, 'Пожалуйста, войдите в аккаунт, чтобы оформить заказ')
             return redirect('user:login')
 
@@ -184,10 +196,13 @@ class StoreRPView(TitleMixin, TemplateView):
         print('реквест---', self.request)
         if form.is_valid():
             form.save(user=request.user)
+            logger.info(f'Пользователь {request.user.username} успешно оформил заказ RP.')
             messages.success(request, 'Покупка совершена успешно')
         else:
             # Отобразим ошибки формы, чтобы увидеть причину неудачи
-            print(form.errors)
+            logger.error(
+                f'Ошибка оформления заказа RP для пользователя {request.user.username}. Ошибки формы: {form.errors}.'
+            )
             errors = form.errors.values()
             for error in errors:
                 for text in error:
@@ -215,30 +230,11 @@ class StoreAccountsView(TitleMixin, TemplateView):
             champions_max = filter_form.cleaned_data.get('champions_max')
             price_min = filter_form.cleaned_data.get('price_min')
             price_max = filter_form.cleaned_data.get('price_max')
-            print('rank=', champions_min, champions_max)
 
-        # if champions_min is not None:
-        #     try:
-        #         champions_min = int(champions_min)
-        #     except ValueError:
-        #         champions_min = None
-
-        # if champions_max is not None:
-        #     try:
-        #         champions_max = int(champions_max)
-        #     except ValueError:
-        #         champions_max = None
-        # if price_min is not None:
-        #     try:
-        #         price_min = int(price_min)
-        #     except ValueError:
-        #         price_min = None
-
-        # if price_max is not None:
-        #     try:
-        #         price_max = int(price_max)
-        #     except ValueError:
-        #         price_max = None
+            logger.info(
+                f'Фильтрация аккаунтов: server={server}, rank={rank}, champions_min={champions_min}, '
+                f'champions_max={champions_max}, price_min={price_min}, price_max={price_max}'
+            )
 
         # Фильтрация
         if server and server != 'all':
@@ -263,7 +259,7 @@ class StoreAccountsView(TitleMixin, TemplateView):
 
         if myaccount:
             acounts = acounts.filter(user=user)
-            print('123123', acounts)
+            logger.info(f"Фильтрация по моим аккаунтам для пользователя {user.username}")
 
         page_number = self.request.GET.get('page', 1)
         paginator = Paginator(acounts, 10)
@@ -276,7 +272,7 @@ class StoreAccountsView(TitleMixin, TemplateView):
         context['user_list'] = user_list
         context['account_form'] = AccountObjectForm()
         context['filter_form'] = filter_form
-        print('CONTEXT', context)
+        logger.debug(f"Контекст для отображения: {context}")
         return context
 
     def post(self, request, *args, **kwargs):
@@ -286,15 +282,21 @@ class StoreAccountsView(TitleMixin, TemplateView):
 
         if len(images) > 10:
             account_form.add_error(None, 'Можно загрузить не более 10 изображений.')
+            logger.warning(f"Попытка загрузить больше 10 изображений. Количество: {len(images)}")
 
         if account_form.is_valid() and len(images) < 11:
             account = account_form.save(user=request.user)
-            messages.success(request, 'Успешно! После проверки, покупатели смогут купить ваш аккаунт')
+            logger.info(f"Пользователь {request.user.username} добавил новый аккаунт: {account.id}")
 
             for image in images:
                 AccountsImage.objects.create(account=account, image=image)
+                logger.info(f"Изображение для аккаунта {account.id} успешно загружено.")
+
+            messages.success(request, 'Успешно! После проверки, покупатели смогут купить ваш аккаунт')
 
             return redirect('store:store_accounts')
+
+        logger.error(f"Ошибка при добавлении аккаунта для пользователя {request.user.username}. Ошибки формы: {account_form.errors}")
 
         errors = account_form.errors.values()
         for error in errors:
@@ -319,9 +321,12 @@ class StoreAccountPageView(TitleMixin, TemplateView):
         user_list = reviews.values_list('buyer', flat=True)
         user = self.request.user
         average_stars = mean(map(int, reviews.values_list('stars', flat=True) or [0]))
-        context['can_reviews'] = AccountOrder.objects.filter(
-            user=user, account__user=account.user
-        ).exists()
+        if user.is_authenticated:
+            context['can_reviews'] = AccountOrder.objects.filter(
+                user=user, account__user=account.user
+            ).exists()
+        else:
+            context['can_reviews'] = False
 
         page_number = self.request.GET.get('page', 1)
         paginator = Paginator(reviews, 10)
@@ -346,29 +351,31 @@ class StoreAccountPageView(TitleMixin, TemplateView):
 
     def post(self, request, *args, **kwargs):
         account = get_object_or_404(AccountObject, id=self.kwargs.get('id'))
-        print('KWARGS', request.POST)
+        logger.debug(f"POST запрос для аккаунта с ID {account.id}, данные: {request.POST}")
 
         if 'delete_account' in request.POST and account.is_active:
             account.is_archive = True
             account.save()
             messages.success(request, 'Аккаунт успешно удалён')
+            logger.info(f"Аккаунт с ID {account.id} был удалён пользователем {request.user.username}")
             return redirect('store:store_accounts')
 
         if 'setting' in request.POST and account.is_active:
             set_form = AccountObjectForm(request.POST, request.FILES, instance=account)
+            print('FILES:', request.FILES)
             images = request.FILES.getlist('images')
-            print('IMAGESSS', request.FILES)
+            logger.debug(f"Загруженные изображения для аккаунта {account.id}: {images}")
             if len(images) > 10:
                 set_form.add_error(None, 'Можно загрузить не более 10 изображений.')
+                logger.warning(f"Попытка загрузить больше 10 изображений для аккаунта {account.id}")
 
-            print('УСПЕХ')
             if set_form.is_valid() and len(images) < 11:
-                print('NU CHTO1')
                 set_form.save()
 
                 for image in images:
                     print('NU CHTO')
                     AccountsImage.objects.create(account=account, image=image)
+                    logger.info(f"Изображение для аккаунта {account.id} успешно загружено.")
             else:
                 errors = set_form.errors.values()
                 print(set_form.errors)
@@ -376,6 +383,7 @@ class StoreAccountPageView(TitleMixin, TemplateView):
                     for text in error:
                         messages.error(request, text)
                 return render(request, self.template_name, {'set_form': set_form})
+            logger.error(f"Ошибка при обновлении аккаунта {account.id}, ошибки формы: {set_form.errors}")
             return redirect(request.META.get('HTTP_REFERER', '/'))
 
         if 'reviewsbt' in request.POST:
@@ -384,12 +392,14 @@ class StoreAccountPageView(TitleMixin, TemplateView):
             form.product = get_object_or_404(AccountObject, id=self.kwargs.get('id'))
             if form.is_valid():
                 form.save()
+                logger.info(f"Пользователь {request.user.username} оставил отзыв для аккаунта {account.id}")
             else:
                 errors = form.errors.values()
                 print(form.errors)
                 for error in errors:
                     for text in error:
                         messages.error(request, text)
+                logger.error(f"Ошибка при добавлении отзыва для аккаунта {account.id}, ошибки формы: {form.errors}")
                 return render(request, self.template_name, {'form': form})
             return redirect(request.META.get('HTTP_REFERER', '/'))
         return redirect(request.META.get('HTTP_REFERER', '/'))
@@ -400,9 +410,10 @@ def delete_image(request, image_id):
     if request.method == 'DELETE':
         image = AccountsImage.objects.get(id=image_id)
         image.delete()
-        print('DELETE!!!!')
+        logger.info(f"Изображение с ID {image_id} успешно удалено.")
         return JsonResponse({'message': 'Изображение удалено'}, status=200)
 
+    logger.error(f"Изображение с ID {image_id} не найдено для удаления.")
     return JsonResponse({'error': 'Изображение не найдено'}, status=200)
 
 

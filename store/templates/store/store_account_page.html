@@ -60,7 +60,11 @@
 
       {% if account.is_active and account.user != request.user %}
       <div class="payment">
+        {% if user.is_authenticated %}
         <button type="submit" id="bybtn" class="btn">Купить</button>
+        {% else %}
+        <a href="{% url 'user:login' %}"><button class="btn">Купить</button></a>
+        {% endif %}
       </div>
       {% endif %}
 
@@ -175,6 +179,8 @@
   <h1 class="">Отзывы о продавце</h1>
   {% if average_stars != 0 %}
   <h2>Средний рейтинг: {{ average_stars|floatformat:1 }} ★</h2>
+  {% else %}
+  <h2>Пока нет отзывов о продавце</h2>
   {% endif %}
   <div class="container_reviews">
     <div class="read_reviews">
@@ -233,6 +239,7 @@
       {% endfor %}
     </div>
 
+    {% if reviews %}
     <div class="pagination">
       {% if current_page.has_previous %}
         <a class="first" href="?page=1"><<</a>
@@ -245,6 +252,7 @@
         <a class="next1" href="?page={{ current_page.next_page_number }}">Следующая</a>
       {% endif %}
 </div>
+    {% endif %}
 
 
     {% if account.user != request.user and user.id not in user_list and can_reviews %}

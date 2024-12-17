@@ -2,18 +2,14 @@ import json
 import os
 from http import HTTPStatus
 
-from django.utils.timezone import make_aware
-from datetime import datetime
 from django.conf import settings
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
 
-from store.models import Coupon
+from store.models import AccountObject, Coupon
 from store.services import calculate_boost, calculate_qualification
 from user.models import User
-
-
-# Create your tests here.
 
 
 class StoreTestCase(TestCase):
@@ -154,7 +150,7 @@ class StoreTestCase(TestCase):
             json_data = json.load(file)
         price = json_data['Азир']
         self.user1.refresh_from_db()
-        self.assertEqual(self.user1.balance, 100000- price)
+        self.assertEqual(self.user1.balance, 100000 - price)
         self.assertEqual(response.status_code, HTTPStatus.OK)
         self.assertEqual(self.user1.skins_orders.all().count(), 1)
 
@@ -198,7 +194,9 @@ class StoreTestCase(TestCase):
         self.assertEqual(self.user1.balance, 100000)
         self.assertEqual(self.user1.boost_orders.all().count(), 0)
         response = self.client.post(
-            path, data, follow=True,
+            path,
+            data,
+            follow=True,
         )
         self.user1.refresh_from_db()
         self.assertEqual(self.user1.balance, 100000 - calculate_boost(data))
@@ -226,7 +224,9 @@ class StoreTestCase(TestCase):
         self.assertEqual(self.user1.balance, 100000)
         self.assertEqual(self.user1.boost_orders.all().count(), 0)
         response = self.client.post(
-            path, data, follow=True,
+            path,
+            data,
+            follow=True,
         )
         self.assertEqual(response.status_code, HTTPStatus.OK)
         self.assertIn('Текущая позиция не может быть больше желаемой', response.content.decode())
@@ -256,7 +256,9 @@ class StoreTestCase(TestCase):
         self.assertEqual(self.user1.balance, 100000)
         self.assertEqual(self.user1.qualification_orders.all().count(), 0)
         response = self.client.post(
-            path, data, follow=True,
+            path,
+            data,
+            follow=True,
         )
         self.user1.refresh_from_db()
         self.assertEqual(self.user1.balance, 100000 - calculate_qualification(data))
@@ -264,7 +266,9 @@ class StoreTestCase(TestCase):
         self.assertEqual(self.user1.qualification_orders.all().count(), 1)
 
     def test_placement_matches_purchase_coupon(self):
-        coupon = Coupon.objects.create(name='test', sale=20, is_active=True, end_date='2025-10-10', count=200)
+        coupon = Coupon.objects.create(
+            name='test', sale=20, is_active=True, end_date='2025-10-10', count=200
+        )
         coupon.save()
         print('fafa', Coupon.objects.all().count())
         data = {
@@ -277,14 +281,16 @@ class StoreTestCase(TestCase):
             'duo_booster': False,  # Дуо-услуга не выбрана
             'total_time': 10,  # Время исполнения (10 минут)
             'total_price': 640,  # Цена (300)
-            'coupon_code': 'test'
+            'coupon_code': 'test',
         }
         self.client.login(username=self.user1_username, password=self.user1_password)
         path = reverse('store:placement_matches')
         self.assertEqual(self.user1.balance, 100000)
         self.assertEqual(self.user1.qualification_orders.all().count(), 0)
         response = self.client.post(
-            path, data, follow=True,
+            path,
+            data,
+            follow=True,
         )
         data['coupon_code'] = coupon
         self.user1.refresh_from_db()
@@ -294,8 +300,181 @@ class StoreTestCase(TestCase):
         coupon.refresh_from_db()
         data['coupon_code'] = 'test'
         response = self.client.post(
-            path, data, follow=True,
+            path,
+            data,
+            follow=True,
         )
         print(response.content.decode())
         print(self.user1.qualification_orders.last().coupon_code)
         self.assertEqual(self.user1.qualification_orders.all().count(), 1)
+
+    def test_accounts_page(self):
+        path = reverse('store:store_accounts')
+        response = self.client.get(path)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        self.assertIn('Добавить аккаунт', response.content.decode())
+        self.assertIn('Применить фильтры', response.content.decode())
+
+    def test_accounts_add_account(self):
+        self.client.login(username=self.user1_username, password=self.user1_password)
+        self.assertEqual(self.user1.acounts_objects.all().count(), 0)
+        path = reverse('store:store_accounts')
+        response = self.client.post(
+            path,
+            {
+                'user': self.user1,
+                'server': 'EU WEST',
+                'lvl': 11,
+                'champions': 11,
+                'skins': 11,
+                'rang': 'IRON',
+                'short_description': 'test',
+                'description': 'test',
+                'price': 1000,
+            },
+            follow=True,
+        )
+        self.user1.refresh_from_db()
+        self.assertEqual(self.user1.acounts_objects.all().count(), 1)
+        self.assertFalse(self.user1.acounts_objects.last().is_active)
+        account = self.user1.acounts_objects.last()
+        account.is_active = True
+        account.save()
+        response = self.client.get(path)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        self.assertTrue(self.user1.acounts_objects.last().is_active)
+        self.assertIn('Добавить аккаунт', response.content.decode())
+        self.assertIn('Применить фильтры', response.content.decode())
+        self.assertIn('Мои аккаунты', response.content.decode())
+        self.assertIn('EU WEST', response.content.decode())
+        self.assertIn('1000', response.content.decode())
+
+    def test_accounts_filters(self):
+        self.client.login(username=self.user1_username, password=self.user1_password)
+        self.assertEqual(self.user1.acounts_objects.all().count(), 0)
+        path = reverse('store:store_accounts')
+        response = self.client.post(
+            path,
+            {
+                'user': self.user1,
+                'server': 'EU WEST',
+                'lvl': 11,
+                'champions': 11,
+                'skins': 11,
+                'rang': 'IRON',
+                'short_description': 'test',
+                'description': 'test',
+                'price': 100,
+            },
+            follow=True,
+        )
+        self.user1.refresh_from_db()
+        self.assertEqual(self.user1.acounts_objects.all().count(), 1)
+        self.assertFalse(self.user1.acounts_objects.last().is_active)
+        account = self.user1.acounts_objects.last()
+        account.is_active = True
+        account.save()
+        response = self.client.get(path)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        self.assertTrue(self.user1.acounts_objects.last().is_active)
+        self.assertIn('test', response.content.decode())
+        print(response.content.decode())
+        response = self.client.get(
+            path,
+            {
+                'price_min': 1001,
+                'price_max': '',
+                'champions_min': '',
+                'champions_max': '',
+                'server': '',
+                'rank': '',
+            },
+        )
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        self.assertNotIn('test', response.content.decode())
+
+
+    def test_account_page(self):
+        self.client.login(username=self.user1_username, password=self.user1_password)
+        path = reverse('store:store_accounts')
+        response = self.client.post(
+            path,
+            {
+                'user': self.user1,
+                'server': 'EU WEST',
+                'lvl': 11,
+                'champions': 11,
+                'skins': 11,
+                'rang': 'IRON',
+                'short_description': 'test',
+                'description': 'test',
+                'price': 1000,
+            },
+            follow=True,
+        )
+        self.user1.refresh_from_db()
+        self.assertEqual(self.user1.acounts_objects.all().count(), 1)
+        self.assertFalse(self.user1.acounts_objects.last().is_active)
+        account = self.user1.acounts_objects.last()
+        account.is_active = True
+        account.save()
+        path = reverse('store:store_account_page', kwargs={'id': account.id})
+        response = self.client.get(path)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        self.assertIn('Оформление заказа', response.content.decode())
+        self.assertIn('Отзывы о продавце', response.content.decode())
+        self.assertIn('Цена аккаунта:', response.content.decode())
+        self.assertIn('Редактировать', response.content.decode())
+        self.assertIn('Удалить аккаунт', response.content.decode())
+        self.assertIn('EU WEST', response.content.decode())
+
+        image_path1 = os.path.join(settings.MEDIA_ROOT, 'avatar.jpg')
+        image_path2 = os.path.join(settings.MEDIA_ROOT, 'diamond_bundle.jpg')
+        if os.path.exists(image_path1):
+            # Открываем изображение и создаем SimpleUploadedFile
+            with open(image_path1, 'rb') as image_file:
+                image_file1 = SimpleUploadedFile(
+                    name='avatar.jpg', content=image_file.read(), content_type='image/jpeg'
+                )
+        if os.path.exists(image_path2):
+            # Открываем изображение и создаем SimpleUploadedFile
+            with open(image_path2, 'rb') as image_file:
+                image_file2 = SimpleUploadedFile(
+                    name='diamond_bundle.jpg', content=image_file.read(), content_type='image/jpeg'
+                )
+
+        response = self.client.post(
+            path,
+            {
+                'server': 'RUSSIA',
+                'lvl': 11,
+                'champions': 11,
+                'skins': 11,
+                'rang': 'IRON',
+                'short_description': 'test',
+                'description': 'test',
+                'price': 1000,
+                'setting': '',
+                'images': [image_file1, image_file2],
+            },
+            follow=True,
+        )
+        account.refresh_from_db()
+        response = self.client.get(path)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        account.refresh_from_db()
+        self.assertFalse(account.is_archive)
+        self.assertIn('RUSSIA', response.content.decode())
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        self.assertEqual(account.images.count(), 2)
+        self.assertIn('avatar', account.images.first().image.name)
+        self.assertIn('diamond_bundle', account.images.last().image.name)
+        self.client.logout()
+        response = self.client.get(path)
+        self.assertNotIn('Редактировать', response.content.decode())
+        self.assertNotIn('Удалить аккаунт', response.content.decode())
+        self.client.login(username=self.user1_username, password=self.user1_password)
+        response = self.client.post(path, {'delete_account':''}, follow=True)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        account.refresh_from_db()
+        self.assertTrue(account.is_archive)

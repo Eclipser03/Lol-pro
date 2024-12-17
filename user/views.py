@@ -1,3 +1,4 @@
+import logging
 from copy import copy
 
 from django.contrib import messages
@@ -39,6 +40,7 @@ from user.tasks import send_email_task
 from user.utils import RedirectAuthUser
 
 
+logger = logging.getLogger('main')
 User = get_user_model()
 
 
@@ -81,10 +83,14 @@ class UserRegistrationView(TitleMixin, SuccessMessageMixin, RedirectAuthUser, Cr
     def form_valid(self, form: BaseForm) -> HttpResponse:
         user = form.save()
         login(self.request, user)
+        logger.info(f'Создан аккаунт {user.username}')
         messages.success(self.request, f'Добро пожаловать {user.username}')
         return redirect('/')
 
     def form_invalid(self, form: BaseModelForm) -> HttpResponse:
+
+        logger.warning(f"Ошибка при регистрации: {form.errors}")
+
         errors = form.errors.values()
         for error in errors:
             for text in error:
@@ -102,6 +108,7 @@ class PasswordResetFormView(TitleMixin, PasswordResetView):
 
     def post(self, request, *args, **kwargs):
         response = super().post(request, *args, **kwargs)
+        logger.info(f'Пользователь {request.user.username} запросил восстановление пароля')
         messages.success(request, 'Письмо с инструкцией отправлено на Вашу почту!')
         return response
 
@@ -115,6 +122,7 @@ class PasswordResetConfirmView(TitleMixin, PasswordResetConfirmView):
 
     def post(self, request, *args, **kwargs):
         response = super().post(request, *args, **kwargs)
+        logger.info(f'Пользователь {request.user.username} сменил пароль')
         messages.success(request, 'Пароль успешно изменен!')
         return response
 
@@ -162,9 +170,11 @@ class ProfileView(TitleMixin, LoginRequiredMixin, PasswordChangeView):
         return context
 
     def post(self, request, *args, **kwargs):
+        logger.info(f'Запрос на обновление профиля пользователя {request.user.username}')
         if 'update_balance' in request.POST:
             update_balance_form = UpdateBalanceUser(request.POST)
             if update_balance_form.is_valid():
+                logger.info(f'Баланс пользователя {request.user.username} был обновлён')
                 request.user.balance += update_balance_form.cleaned_data['balance']
                 request.user.save()
                 messages.success(request, 'Баланс успешно пополнен!')
@@ -172,22 +182,25 @@ class ProfileView(TitleMixin, LoginRequiredMixin, PasswordChangeView):
                 errors = update_balance_form.errors.values()
                 for error in errors:
                     for text in error:
+                        logger.error(f'Ошибка при обновлении баланса для пользователя {request.user.username}: {text}')
                         messages.error(request, text)
             return redirect('user:profile')
 
         if 'update_profile' in request.POST:
-            print(request.POST)
+            logger.info(f'Обновление профиля для пользователя {request.user.username}')
             profile_form = ProfileUpdateForm(
                 FORM_FILL(request.POST, request.user), request.FILES, instance=request.user
             )
 
             if profile_form.is_valid():
                 profile_form.save()
+                logger.info(f'Профиль пользователя {request.user.username} успешно обновлён.')
                 messages.success(request, 'Данные успешно обновлены!')
             else:
                 errors = profile_form.errors.values()
                 for error in errors:
                     for text in error:
+                        logger.error(f'Ошибка при обновлении профиля для пользователя {request.user.username}: {text}')
                         messages.error(request, text)
             return redirect('user:profile')
 
@@ -196,12 +209,14 @@ class ProfileView(TitleMixin, LoginRequiredMixin, PasswordChangeView):
             if update_email.is_valid():
                 new_email = update_email.cleaned_data.get('new_email')
                 # Отправляем письмо с подтверждением
+                logger.info(f'Пользователь {request.user.username} изменил email на {new_email}. Письмо отправлено для подтверждения.')
                 self.send_confirmation_email(request, new_email)
                 messages.success(request, 'Письмо отправлено на Вашу почту!')
             else:
                 errors = update_email.errors.values()
                 for error in errors:
                     for text in error:
+                        logger.error(f'Ошибка при обновлении email для пользователя {request.user.username}: {text}')
                         messages.error(request, text)
             return redirect('user:profile')
 
@@ -209,12 +224,14 @@ class ProfileView(TitleMixin, LoginRequiredMixin, PasswordChangeView):
             form = self.get_form()
             form.instance = request.user
             if form.is_valid():
+                logger.info(f'Пользователь {request.user.username} успешно изменил пароль.')
                 messages.success(request, 'Пароль успешно изменен')
                 return self.form_valid(form)
 
             errors = form.errors.values()
             for error in errors:
                 for text in error:
+                    logger.error(f'Ошибка при изменении пароля для пользователя {request.user.username}: {text}')
                     messages.error(request, text)
             return self.form_invalid(form)
 
