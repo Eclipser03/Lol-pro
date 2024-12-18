@@ -55,8 +55,8 @@ INSTALLED_APPS = [
     'main',
     'news',
     'store',
-
     'channels',
+    'channels_redis',
 ]
 
 MIDDLEWARE = [
@@ -67,7 +67,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'user.middleware.ActiveUserMiddleware'
+    'user.middleware.ActiveUserMiddleware',
 ]
 
 ROOT_URLCONF = 'lol_pay.urls'

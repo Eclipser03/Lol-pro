@@ -3,7 +3,7 @@ from urllib import request
 from django import forms
 
 from main.models import ReviewModel
-
+from django.core.validators import MaxLengthValidator
 
 class ReviewsForm(forms.ModelForm):
     stars = forms.ChoiceField(
@@ -19,7 +19,8 @@ class ReviewsForm(forms.ModelForm):
     reviews = forms.CharField(
         widget=forms.Textarea(
             attrs={'class': 'feedback-text', 'placeholder': 'Напишите свой отзыв здесь...'}
-        )
+        ),max_length=300,  # Ограничение на уровне интерфейса
+        validators=[MaxLengthValidator(300)],
     )
     user = forms.CharField(required=False)
 

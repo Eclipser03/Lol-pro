@@ -1,13 +1,18 @@
+import asyncio
 import json
 import os
 from http import HTTPStatus
 
+from channels.db import database_sync_to_async
+from channels.testing import ChannelsLiveServerTestCase, WebsocketCommunicator
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
 
-from store.models import AccountObject, Coupon
+from store.consumers import ChatConsumer
+from store.models import AccountObject, ChatRoom, Coupon
 from store.services import calculate_boost, calculate_qualification
 from user.models import User
 
@@ -393,7 +398,6 @@ class StoreTestCase(TestCase):
         self.assertEqual(response.status_code, HTTPStatus.OK)
         self.assertNotIn('test', response.content.decode())
 
-
     def test_account_page(self):
         self.client.login(username=self.user1_username, password=self.user1_password)
         path = reverse('store:store_accounts')
@@ -474,7 +478,169 @@ class StoreTestCase(TestCase):
         self.assertNotIn('Редактировать', response.content.decode())
         self.assertNotIn('Удалить аккаунт', response.content.decode())
         self.client.login(username=self.user1_username, password=self.user1_password)
-        response = self.client.post(path, {'delete_account':''}, follow=True)
+        response = self.client.post(path, {'delete_account': ''}, follow=True)
         self.assertEqual(response.status_code, HTTPStatus.OK)
         account.refresh_from_db()
         self.assertTrue(account.is_archive)
+
+
+class WebSocketTest(ChannelsLiveServerTestCase):
+    async def connect_and_authenticate(self, communicator):
+        # Соединяемся с WebSocket
+        connected, subprotocol = await communicator.connect()
+        if not connected:
+            print(f'LALALA: {communicator}')
+        return connected, subprotocol
+
+    async def test_message_exchange(self):
+        user1 = await self.create_user(username='user1', password='password1')
+        user2 = await self.create_user(username='user2', password='password2')
+        await self.add_balance(user1, 1000)
+        base_balance_user1 = user1.balance
+        base_balance_user2 = user2.balance
+        print('User balance', user1.balance)
+        account = await self.create_account(user2)
+        chatroom = await self.create_chatroom(user1, user2, account)
+
+        print(f'Chatroom ID: {chatroom.id}', user1.id, user2.id, chatroom.seller_id)
+        print(f'WebSocket URL: /ws/chat/{chatroom.id}/')
+
+        communicator_user1 = WebsocketCommunicator(ChatConsumer.as_asgi(), f'ws/chat/{chatroom.pk}/')
+        communicator_user2 = WebsocketCommunicator(ChatConsumer.as_asgi(), f'ws/chat/{chatroom.pk}/')
+        communicator_user1.scope['url_route'] = {'kwargs': {'room_id': chatroom.id}}
+        communicator_user1.scope['user'] = user1
+        communicator_user2.scope['url_route'] = {'kwargs': {'room_id': chatroom.id}}
+        communicator_user2.scope['user'] = user2
+
+        connected_user1, _ = await self.connect_and_authenticate(communicator_user1)
+        connected_user2, _ = await self.connect_and_authenticate(communicator_user2)
+        self.assertTrue(connected_user1)
+        self.assertTrue(connected_user2)
+
+        # Отправляем сообщение от пользователя 1
+        message_from_user1 = 'Привет, пользователь 2!'
+        await communicator_user1.send_json_to({'type': 'chat_message', 'message': message_from_user1})
+
+        # Проверяем, что пользователь 1 получил своё сообщение
+        response_user1 = await communicator_user1.receive_json_from()
+        self.assertEqual(response_user1['type'], 'chat_message')
+        self.assertEqual(response_user1['message'], message_from_user1)
+
+        # Проверяем, что пользователь 2 получил сообщение
+        response_user2 = await communicator_user2.receive_json_from()
+        self.assertEqual(response_user2['type'], 'chat_message')
+        self.assertEqual(response_user2['message'], message_from_user1)
+
+        # Отправляем сообщение от пользователя 2
+        message_from_user2 = 'Привет, пользователь 1!'
+        await communicator_user2.send_json_to({'type': 'chat_message', 'message': message_from_user2})
+
+        # Проверяем, что пользователь 2 получил своё сообщение
+        response_user2 = await communicator_user2.receive_json_from()
+        self.assertEqual(response_user2['type'], 'chat_message')
+        self.assertEqual(response_user2['message'], message_from_user2)
+
+        # Проверяем, что пользователь 1 получил сообщение от пользователя 2
+        response_user1 = await communicator_user1.receive_json_from()
+        self.assertEqual(response_user1['type'], 'chat_message')
+        self.assertEqual(response_user1['message'], message_from_user2)
+
+        self.assertTrue(account.is_active)
+
+        # Покупка
+        await communicator_user1.send_json_to({'type': 'buy_account'})
+        response_user2 = await communicator_user2.receive_json_from()
+        response_user1 = await communicator_user1.receive_json_from()
+        self.assertEqual(response_user2['type'], 'buy_account')
+
+        is_active = await self.get_account_status(account.id)
+        balance = await self.get_user_balance(user1.id)
+
+        print(f'Account is active: {is_active}, User balance: {balance}')
+
+        self.assertFalse(is_active)
+        self.assertEqual(balance, base_balance_user1 - account.price)
+
+        print('ler', account.user.username)
+        # Отмена покупки
+        await communicator_user2.send_json_to({'type': 'buy_account_cancel'})
+        response_user1 = await communicator_user1.receive_json_from()
+        response_user2 = await communicator_user2.receive_json_from()
+
+        self.assertEqual(response_user1['type'], 'buy_account_cancel')
+
+        is_active = await self.get_account_status(account.id)
+        balance = await self.get_user_balance(user1.id)
+
+        self.assertTrue(is_active)
+        self.assertEqual(balance, base_balance_user1)
+
+        # Подтверждение покупки
+        await communicator_user1.send_json_to({'type': 'buy_account'})
+        response_user2 = await communicator_user2.receive_json_from()
+        response_user1 = await communicator_user1.receive_json_from()
+        self.assertEqual(response_user2['type'], 'buy_account')
+
+        is_active = await self.get_account_status(account.id)
+        balance = await self.get_user_balance(user1.id)
+
+        self.assertFalse(is_active)
+        self.assertEqual(balance, base_balance_user1 - account.price)
+
+        await communicator_user1.send_json_to({'type': 'buy_account_acept'})
+        response_user2 = await communicator_user2.receive_json_from()
+        response_user1 = await communicator_user1.receive_json_from()
+
+        is_active = await self.get_account_status(account.id)
+        balance = await self.get_user_balance(user2.id)
+
+        await self.refresh_user_and_account(user2, account)
+        self.assertFalse(is_active)
+        self.assertEqual(balance, base_balance_user2 + account.price)
+        self.assertTrue(account.is_confirmed)
+
+        # Закрываем соединения
+        await communicator_user1.disconnect()
+        await communicator_user2.disconnect()
+
+    @database_sync_to_async
+    def refresh_user_and_account(self, user, account):
+        user.refresh_from_db()
+        account.refresh_from_db()
+
+    @database_sync_to_async
+    def add_balance(self, user, amount):
+        user.balance += amount
+        user.save()
+        return user
+
+    @database_sync_to_async
+    def create_user(self, username, password):
+        return get_user_model().objects.create_user(username=username, password=password)
+
+    @database_sync_to_async
+    def create_account(self, user):
+        return AccountObject.objects.create(
+            user=user,
+            server='EU WEST',
+            lvl=11,
+            champions=11,
+            skins=11,
+            rang='IRON',
+            short_description='test',
+            description='test',
+            price=100,
+            is_active=True,
+        )
+
+    @database_sync_to_async
+    def create_chatroom(self, buyer, seller, account):
+        return ChatRoom.objects.create(buyer=buyer, seller=seller, account=account)
+
+    @database_sync_to_async
+    def get_account_status(self, account_id):
+        return AccountObject.objects.get(id=account_id).is_active
+
+    @database_sync_to_async
+    def get_user_balance(self, user_id):
+        return get_user_model().objects.get(id=user_id).balance

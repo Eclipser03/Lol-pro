@@ -259,7 +259,7 @@ class StoreAccountsView(TitleMixin, TemplateView):
 
         if myaccount:
             acounts = acounts.filter(user=user)
-            logger.info(f"Фильтрация по моим аккаунтам для пользователя {user.username}")
+            logger.info(f'Фильтрация по моим аккаунтам для пользователя {user.username}')
 
         page_number = self.request.GET.get('page', 1)
         paginator = Paginator(acounts, 10)
@@ -272,7 +272,7 @@ class StoreAccountsView(TitleMixin, TemplateView):
         context['user_list'] = user_list
         context['account_form'] = AccountObjectForm()
         context['filter_form'] = filter_form
-        logger.debug(f"Контекст для отображения: {context}")
+        logger.debug(f'Контекст для отображения: {context}')
         return context
 
     def post(self, request, *args, **kwargs):
@@ -282,21 +282,23 @@ class StoreAccountsView(TitleMixin, TemplateView):
 
         if len(images) > 10:
             account_form.add_error(None, 'Можно загрузить не более 10 изображений.')
-            logger.warning(f"Попытка загрузить больше 10 изображений. Количество: {len(images)}")
+            logger.warning(f'Попытка загрузить больше 10 изображений. Количество: {len(images)}')
 
         if account_form.is_valid() and len(images) < 11:
             account = account_form.save(user=request.user)
-            logger.info(f"Пользователь {request.user.username} добавил новый аккаунт: {account.id}")
+            logger.info(f'Пользователь {request.user.username} добавил новый аккаунт: {account.id}')
 
             for image in images:
                 AccountsImage.objects.create(account=account, image=image)
-                logger.info(f"Изображение для аккаунта {account.id} успешно загружено.")
+                logger.info(f'Изображение для аккаунта {account.id} успешно загружено.')
 
             messages.success(request, 'Успешно! После проверки, покупатели смогут купить ваш аккаунт')
 
             return redirect('store:store_accounts')
 
-        logger.error(f"Ошибка при добавлении аккаунта для пользователя {request.user.username}. Ошибки формы: {account_form.errors}")
+        logger.error(
+            f'Ошибка при добавлении аккаунта для пользователя {request.user.username}. Ошибки формы: {account_form.errors}'
+        )
 
         errors = account_form.errors.values()
         for error in errors:
@@ -351,23 +353,23 @@ class StoreAccountPageView(TitleMixin, TemplateView):
 
     def post(self, request, *args, **kwargs):
         account = get_object_or_404(AccountObject, id=self.kwargs.get('id'))
-        logger.debug(f"POST запрос для аккаунта с ID {account.id}, данные: {request.POST}")
+        logger.debug(f'POST запрос для аккаунта с ID {account.id}, данные: {request.POST}')
 
         if 'delete_account' in request.POST and account.is_active:
             account.is_archive = True
             account.save()
             messages.success(request, 'Аккаунт успешно удалён')
-            logger.info(f"Аккаунт с ID {account.id} был удалён пользователем {request.user.username}")
+            logger.info(f'Аккаунт с ID {account.id} был удалён пользователем {request.user.username}')
             return redirect('store:store_accounts')
 
         if 'setting' in request.POST and account.is_active:
             set_form = AccountObjectForm(request.POST, request.FILES, instance=account)
             print('FILES:', request.FILES)
             images = request.FILES.getlist('images')
-            logger.debug(f"Загруженные изображения для аккаунта {account.id}: {images}")
+            logger.debug(f'Загруженные изображения для аккаунта {account.id}: {images}')
             if len(images) > 10:
                 set_form.add_error(None, 'Можно загрузить не более 10 изображений.')
-                logger.warning(f"Попытка загрузить больше 10 изображений для аккаунта {account.id}")
+                logger.warning(f'Попытка загрузить больше 10 изображений для аккаунта {account.id}')
 
             if set_form.is_valid() and len(images) < 11:
                 set_form.save()
@@ -375,7 +377,7 @@ class StoreAccountPageView(TitleMixin, TemplateView):
                 for image in images:
                     print('NU CHTO')
                     AccountsImage.objects.create(account=account, image=image)
-                    logger.info(f"Изображение для аккаунта {account.id} успешно загружено.")
+                    logger.info(f'Изображение для аккаунта {account.id} успешно загружено.')
             else:
                 errors = set_form.errors.values()
                 print(set_form.errors)
@@ -383,7 +385,7 @@ class StoreAccountPageView(TitleMixin, TemplateView):
                     for text in error:
                         messages.error(request, text)
                 return render(request, self.template_name, {'set_form': set_form})
-            logger.error(f"Ошибка при обновлении аккаунта {account.id}, ошибки формы: {set_form.errors}")
+            logger.error(f'Ошибка при обновлении аккаунта {account.id}, ошибки формы: {set_form.errors}')
             return redirect(request.META.get('HTTP_REFERER', '/'))
 
         if 'reviewsbt' in request.POST:
@@ -392,14 +394,18 @@ class StoreAccountPageView(TitleMixin, TemplateView):
             form.product = get_object_or_404(AccountObject, id=self.kwargs.get('id'))
             if form.is_valid():
                 form.save()
-                logger.info(f"Пользователь {request.user.username} оставил отзыв для аккаунта {account.id}")
+                logger.info(
+                    f'Пользователь {request.user.username} оставил отзыв для аккаунта {account.id}'
+                )
             else:
                 errors = form.errors.values()
                 print(form.errors)
                 for error in errors:
                     for text in error:
                         messages.error(request, text)
-                logger.error(f"Ошибка при добавлении отзыва для аккаунта {account.id}, ошибки формы: {form.errors}")
+                logger.error(
+                    f'Ошибка при добавлении отзыва для аккаунта {account.id}, ошибки формы: {form.errors}'
+                )
                 return render(request, self.template_name, {'form': form})
             return redirect(request.META.get('HTTP_REFERER', '/'))
         return redirect(request.META.get('HTTP_REFERER', '/'))
@@ -410,10 +416,10 @@ def delete_image(request, image_id):
     if request.method == 'DELETE':
         image = AccountsImage.objects.get(id=image_id)
         image.delete()
-        logger.info(f"Изображение с ID {image_id} успешно удалено.")
+        logger.info(f'Изображение с ID {image_id} успешно удалено.')
         return JsonResponse({'message': 'Изображение удалено'}, status=200)
 
-    logger.error(f"Изображение с ID {image_id} не найдено для удаления.")
+    logger.error(f'Изображение с ID {image_id} не найдено для удаления.')
     return JsonResponse({'error': 'Изображение не найдено'}, status=200)
 
 

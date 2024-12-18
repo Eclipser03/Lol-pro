@@ -12,7 +12,14 @@ from .models import AccountObject, AccountOrder, ChatRoom, Message
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        self.room_id = self.scope['url_route']['kwargs']['room_id']
+        print('Scope during connect:', self.scope)
+        try:
+            self.room_id = self.scope['url_route']['kwargs']['room_id']
+            print(f'Room ID: {self.room_id}')
+        except KeyError:
+            print("Error: 'url_route' or 'kwargs' is missing in scope!")
+            await self.close()
+            return
         self.room_group_name = f'chat_{self.room_id}'
         self.chat_room = await ChatRoom.objects.aget(id=self.room_id)
         self.recipient = (
@@ -57,7 +64,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     'type': 'send_notification',
                     'message': f'Новое сообщение от {self.scope['user'].username}',
                     'message_content': message,
-                    'avatar' : self.scope['user'].avatar.url,
+                    'avatar': self.scope['user'].avatar.url,
                     'created': str(created.strftime('%H:%M')),
                     'username': self.scope['user'].username,
                     'chat_room': self.chat_room.id,
@@ -73,11 +80,13 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     self.chat_room, self.scope['user'], message, 'buy_account'
                 )
                 buyer.balance -= account.price
-                print('OLA')
                 await buyer.asave()
+                print('OLA123')
                 account.is_active = False
                 account.buyer = buyer
                 await account.asave()
+                print('asdas', account.is_active)
+                print('123', buyer.balance)
                 await self.channel_layer.group_send(
                     self.room_group_name,
                     {'type': 'buy_account', 'userid': self.scope['user'].id, 'message': message},
@@ -91,7 +100,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                         'message_content': f'{self.scope['user'].username} оплатил ваш аккаунт',
                         'created': str(sms.created.strftime('%H:%M')),
                         'username': self.scope['user'].username,
-                        'avatar' : self.scope['user'].avatar.url,
+                        'avatar': self.scope['user'].avatar.url,
                         'chat_room': self.chat_room.id,
                         'link': f'/messages/?chat_id={self.chat_room.id}',
                     },
@@ -114,11 +123,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
             if not account.is_active:
                 buyer = await User.objects.aget(buyer_chat_rooms=self.chat_room)
                 buyer.balance += account.price
-                print(12345)
                 await buyer.asave()
                 account.is_active = True
                 account.buyer = None
                 await account.asave()
+                print(12345)
                 print('11', self.room_group_name)
                 await self.channel_layer.group_send(
                     self.room_group_name,
@@ -133,7 +142,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     'message_content': f'{seller_username} отменил заказ',
                     'created': str(sms.created.strftime('%H:%M')),
                     'username': self.scope['user'].username,
-                    'avatar' : self.scope['user'].avatar.url,
+                    'avatar': self.scope['user'].avatar.url,
                     'chat_room': self.chat_room.id,
                     'link': f'/messages/?chat_id={self.chat_room.id}',
                 },
@@ -155,7 +164,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     'message': 'Покупка подтвержден, деньги зачислены на ваш счет',
                     'created': str(sms.created.strftime('%H:%M')),
                     'username': self.scope['user'].username,
-                    'avatar' : self.scope['user'].avatar.url,
+                    'avatar': self.scope['user'].avatar.url,
                     'chat_room': self.chat_room.id,
                     'link': f'/messages/?chat_id={self.chat_room.id}',
                 },

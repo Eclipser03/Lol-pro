@@ -1,9 +1,11 @@
 import time
+import logging
 
 from selenium.webdriver.common.by import (
     By,  # Импортируем модуль для выбора элементов по различным селекторам
 )
 
+logger = logging.getLogger('main')
 
 def parse_news():
     from datetime import datetime  # Импортируем datetime для работы с датами
@@ -59,6 +61,7 @@ def parse_news():
                 date_published=date_object,
                 image=image_url,
             )
+            logger.info('Добавлена новость')
 
     print('Парсинг завершён успешно')
     driver.quit()

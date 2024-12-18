@@ -64,6 +64,8 @@ class MyLoginView(TitleMixin, RedirectAuthUser, LoginView):
         return super().form_valid(form)
 
     def form_invalid(self, form: BaseModelForm) -> HttpResponse:
+        logger.warning(f'Ошибка при входе: {form.errors}')
+
         errors = form.errors.values()
         for error in errors:
             for text in error:
@@ -88,8 +90,7 @@ class UserRegistrationView(TitleMixin, SuccessMessageMixin, RedirectAuthUser, Cr
         return redirect('/')
 
     def form_invalid(self, form: BaseModelForm) -> HttpResponse:
-
-        logger.warning(f"Ошибка при регистрации: {form.errors}")
+        logger.warning(f'Ошибка при регистрации: {form.errors}')
 
         errors = form.errors.values()
         for error in errors:
@@ -182,7 +183,9 @@ class ProfileView(TitleMixin, LoginRequiredMixin, PasswordChangeView):
                 errors = update_balance_form.errors.values()
                 for error in errors:
                     for text in error:
-                        logger.error(f'Ошибка при обновлении баланса для пользователя {request.user.username}: {text}')
+                        logger.error(
+                            f'Ошибка при обновлении баланса для пользователя {request.user.username}: {text}'
+                        )
                         messages.error(request, text)
             return redirect('user:profile')
 
@@ -200,7 +203,9 @@ class ProfileView(TitleMixin, LoginRequiredMixin, PasswordChangeView):
                 errors = profile_form.errors.values()
                 for error in errors:
                     for text in error:
-                        logger.error(f'Ошибка при обновлении профиля для пользователя {request.user.username}: {text}')
+                        logger.error(
+                            f'Ошибка при обновлении профиля для пользователя {request.user.username}: {text}'
+                        )
                         messages.error(request, text)
             return redirect('user:profile')
 
@@ -209,14 +214,18 @@ class ProfileView(TitleMixin, LoginRequiredMixin, PasswordChangeView):
             if update_email.is_valid():
                 new_email = update_email.cleaned_data.get('new_email')
                 # Отправляем письмо с подтверждением
-                logger.info(f'Пользователь {request.user.username} изменил email на {new_email}. Письмо отправлено для подтверждения.')
+                logger.info(
+                    f'Пользователь {request.user.username} изменил email на {new_email}. Письмо отправлено для подтверждения.'
+                )
                 self.send_confirmation_email(request, new_email)
                 messages.success(request, 'Письмо отправлено на Вашу почту!')
             else:
                 errors = update_email.errors.values()
                 for error in errors:
                     for text in error:
-                        logger.error(f'Ошибка при обновлении email для пользователя {request.user.username}: {text}')
+                        logger.error(
+                            f'Ошибка при обновлении email для пользователя {request.user.username}: {text}'
+                        )
                         messages.error(request, text)
             return redirect('user:profile')
 
@@ -231,7 +240,9 @@ class ProfileView(TitleMixin, LoginRequiredMixin, PasswordChangeView):
             errors = form.errors.values()
             for error in errors:
                 for text in error:
-                    logger.error(f'Ошибка при изменении пароля для пользователя {request.user.username}: {text}')
+                    logger.error(
+                        f'Ошибка при изменении пароля для пользователя {request.user.username}: {text}'
+                    )
                     messages.error(request, text)
             return self.form_invalid(form)
 
