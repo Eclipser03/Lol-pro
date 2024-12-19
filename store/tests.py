@@ -1,4 +1,3 @@
-import asyncio
 import json
 import os
 from http import HTTPStatus
@@ -11,8 +10,8 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
 
-from store.consumers import ChatConsumer
-from store.models import AccountObject, ChatRoom, Coupon
+from store.consumers import ChatConsumer, NotificationConsumer
+from store.models import AccountObject, AccountOrder, ChatRoom, Coupon, ReviewSellerModel
 from store.services import calculate_boost, calculate_qualification
 from user.models import User
 
@@ -26,6 +25,10 @@ class StoreTestCase(TestCase):
         cls.user1 = User.objects.create_user(cls.user1_username, cls.user1_email, cls.user1_password)
         cls.user1.balance = 100000
         cls.user1.save()
+
+        cls.user2_username = cls.user2_password = 'user2'
+        cls.user2_email = 'user2@yandex.ru'
+        cls.user2 = User.objects.create_user(cls.user2_username, cls.user2_email, cls.user2_password)
 
     def test_store_page(self):
         path = reverse('store:store')
@@ -274,6 +277,9 @@ class StoreTestCase(TestCase):
         coupon = Coupon.objects.create(
             name='test', sale=20, is_active=True, end_date='2025-10-10', count=200
         )
+        coupon1 = Coupon.objects.create(
+            name='test1', sale=10, is_active=True, end_date='2025-10-10', count=200
+        )
         coupon.save()
         print('fafa', Coupon.objects.all().count())
         data = {
@@ -312,6 +318,21 @@ class StoreTestCase(TestCase):
         print(response.content.decode())
         print(self.user1.qualification_orders.last().coupon_code)
         self.assertEqual(self.user1.qualification_orders.all().count(), 1)
+
+        path = reverse('store:check-coupon')
+        response = self.client.post(path, json.dumps({'coupon': 'test1'}), content_type='application/json')
+
+        self.assertTrue(response.json()['success'])
+        self.assertEqual(response.json()['message'], 'Купон успешно применен')
+        self.assertEqual(response.json()['discount'], 10)
+        response = self.client.post(path, json.dumps({'coupon': 'test2'}), content_type='application/json')
+        self.assertFalse(response.json()['success'])
+        self.assertEqual(response.json()['message'], 'Купон не найден')
+        self.assertEqual(response.json()['discount'], 0)
+        response = self.client.post(path, json.dumps({'coupon': 'test'}), content_type='application/json')
+        self.assertFalse(response.json()['success'])
+        self.assertEqual(response.json()['message'], 'Купон уже был использован')
+        self.assertEqual(response.json()['discount'], 0)
 
     def test_accounts_page(self):
         path = reverse('store:store_accounts')
@@ -483,6 +504,45 @@ class StoreTestCase(TestCase):
         account.refresh_from_db()
         self.assertTrue(account.is_archive)
 
+        path = reverse('store:store_accounts')
+        response = self.client.post(
+            path,
+            {
+                'user': self.user1,
+                'server': 'EU WEST',
+                'lvl': 12,
+                'champions': 12,
+                'skins': 12,
+                'rang': 'IRON',
+                'short_description': 'test1',
+                'description': 'test1',
+                'price': 10,
+            },
+            follow=True,
+        )
+
+        self.client.logout()
+        self.client.login(username=self.user2_username, password=self.user2_password)
+        account = AccountObject.objects.last()
+        AccountOrder.objects.create(user=self.user2, account=account)
+        print('23', AccountObject.objects.all().count(), AccountOrder.objects.all().count(), account)
+        path = reverse('store:store_account_page', kwargs={'id': account.id})
+        response = self.client.get(path)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        self.assertIn('Оставить отзыв',response.content.decode())
+        reviews_seller = ReviewSellerModel.objects.all()
+        self.assertEqual(reviews_seller.count(), 0)
+        response = self.client.post(path, {
+            'reviewsbt' : '',
+            'stars':'5',
+            'reviews':'test_review_seller',
+        }, follow=True)
+        response = self.client.get(path)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        self.assertEqual(reviews_seller.count(), 1)
+        self.assertIn('test_review_seller',response.content.decode())
+
+
 
 class WebSocketTest(ChannelsLiveServerTestCase):
     async def connect_and_authenticate(self, communicator):
@@ -644,3 +704,109 @@ class WebSocketTest(ChannelsLiveServerTestCase):
     @database_sync_to_async
     def get_user_balance(self, user_id):
         return get_user_model().objects.get(id=user_id).balance
+
+
+class NotificationWebSocketTest(ChannelsLiveServerTestCase):
+    async def connect_and_authenticate(self, communicator):
+        # Соединяемся с WebSocket
+        connected, subprotocol = await communicator.connect()
+        if not connected:
+            print(f'LALALA: {communicator}')
+        return connected, subprotocol
+
+    async def test_message_exchange(self):
+        user1 = await self.create_user(username='user1', password='password1')
+        user2 = await self.create_user(username='user2', password='password2')
+
+        account = await self.create_account(user2)
+        chatroom = await self.create_chatroom(user1, user2, account)
+
+        print(f'Chatroom ID: {chatroom.id}', user1.id, user2.id, chatroom.seller_id)
+        print(f'WebSocket URL: /ws/chat/{chatroom.id}/')
+
+        communicator_user1 = WebsocketCommunicator(ChatConsumer.as_asgi(), f'ws/chat/{chatroom.pk}/')
+        communicator_user2 = WebsocketCommunicator(ChatConsumer.as_asgi(), f'ws/chat/{chatroom.pk}/')
+        communicator_user1.scope['url_route'] = {'kwargs': {'room_id': chatroom.id}}
+        communicator_user1.scope['user'] = user1
+        communicator_user2.scope['url_route'] = {'kwargs': {'room_id': chatroom.id}}
+        communicator_user2.scope['user'] = user2
+
+        connected_user1, _ = await self.connect_and_authenticate(communicator_user1)
+        connected_user2, _ = await self.connect_and_authenticate(communicator_user2)
+        self.assertTrue(connected_user1)
+        self.assertTrue(connected_user2)
+
+        communicator_notification_user1 = WebsocketCommunicator(
+            NotificationConsumer.as_asgi(), 'ws/notification/'
+        )
+        communicator_notification_user2 = WebsocketCommunicator(
+            NotificationConsumer.as_asgi(), 'ws/notification/'
+        )
+        communicator_notification_user1.scope['user'] = user1
+        communicator_notification_user2.scope['user'] = user2
+
+        connected_notification_user1, _ = await self.connect_and_authenticate(
+            communicator_notification_user1
+        )
+        connected_notification_user2, _ = await self.connect_and_authenticate(
+            communicator_notification_user2
+        )
+        print('142', connected_notification_user1)
+        self.assertTrue(connected_notification_user1)
+        self.assertTrue(connected_notification_user2)
+
+        # Отправляем сообщение от пользователя 1
+        message_from_user1 = 'Привет, пользователь 2!'
+        await communicator_user1.send_json_to({'type': 'chat_message', 'message': message_from_user1})
+
+        # Проверяем, что пользователь 1 получил своё сообщение
+        response_user1 = await communicator_user1.receive_json_from()
+        self.assertEqual(response_user1['type'], 'chat_message')
+        self.assertEqual(response_user1['message'], message_from_user1)
+
+        # Проверяем, что пользователь 2 получил сообщение notification
+        response_user2 = await communicator_notification_user2.receive_json_from()
+        self.assertEqual(response_user2['type'], 'notification')
+        self.assertEqual(response_user2['message_content'], message_from_user1)
+
+        # Проверяем, что пользователь 2 получил своё сообщение
+        response_user2 = await communicator_user2.receive_json_from()
+        self.assertEqual(response_user2['type'], 'chat_message')
+        self.assertEqual(response_user2['message'], message_from_user1)
+
+        # Отправляем сообщение от пользователя 2
+        message_from_user2 = 'Привет, пользователь 1!'
+        await communicator_user2.send_json_to({'type': 'chat_message', 'message': message_from_user2})
+
+        # Проверяем, что пользователь 2 получил своё сообщение
+        response_user2 = await communicator_user2.receive_json_from()
+        self.assertEqual(response_user2['type'], 'chat_message')
+        self.assertEqual(response_user2['message'], message_from_user2)
+
+        # Проверяем, что пользователь 1 получил сообщение
+        response_user1 = await communicator_notification_user1.receive_json_from()
+        self.assertEqual(response_user1['type'], 'notification')
+        self.assertEqual(response_user1['message_content'], message_from_user2)
+
+    @database_sync_to_async
+    def create_user(self, username, password):
+        return get_user_model().objects.create_user(username=username, password=password)
+
+    @database_sync_to_async
+    def create_account(self, user):
+        return AccountObject.objects.create(
+            user=user,
+            server='EU WEST',
+            lvl=11,
+            champions=11,
+            skins=11,
+            rang='IRON',
+            short_description='test',
+            description='test',
+            price=100,
+            is_active=True,
+        )
+
+    @database_sync_to_async
+    def create_chatroom(self, buyer, seller, account):
+        return ChatRoom.objects.create(buyer=buyer, seller=seller, account=account)

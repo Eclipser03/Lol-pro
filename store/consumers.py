@@ -244,6 +244,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
             await self.close()
         else:
             self.user_group_name = f'user_{self.scope['user'].id}'
+            print('СРАБОТАЛО')
             await self.channel_layer.group_add(self.user_group_name, self.channel_name)
             await self.accept()
 

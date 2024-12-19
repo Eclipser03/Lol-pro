@@ -395,7 +395,7 @@ class StoreAccountPageView(TitleMixin, TemplateView):
             if form.is_valid():
                 form.save()
                 logger.info(
-                    f'Пользователь {request.user.username} оставил отзыв для аккаунта {account.id}'
+                    f'Пользователь {request.user.username} оставил отзыв для пользователя {account.user.username}'
                 )
             else:
                 errors = form.errors.values()
@@ -404,7 +404,7 @@ class StoreAccountPageView(TitleMixin, TemplateView):
                     for text in error:
                         messages.error(request, text)
                 logger.error(
-                    f'Ошибка при добавлении отзыва для аккаунта {account.id}, ошибки формы: {form.errors}'
+                    f'Ошибка при добавлении отзыва для пользователя {account.user.username}, ошибки формы: {form.errors}'
                 )
                 return render(request, self.template_name, {'form': form})
             return redirect(request.META.get('HTTP_REFERER', '/'))
