@@ -1,6 +1,5 @@
-from urllib import request
-from django.http import JsonResponse
 from django.utils import timezone
+
 from store.models import Coupon
 from user.models import User
 
@@ -138,10 +137,11 @@ def calculate_qualification(data):
         price = price - (price * coupon.sale) / 100
     if data['server'] == '0.8':
         price *= 0.8
-    print('прайс---',int(price), price)
+    print('прайс---', int(price), price)
     return round(price)
 
-def check_coupon(name: str, user:User) -> tuple[bool, str, int]:
+
+def check_coupon(name: str, user: User) -> tuple[bool, str, int]:
     """Проверяет может ли пользователь применить купон"""
     coupon = Coupon.objects.filter(name=name)
 

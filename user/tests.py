@@ -1,6 +1,5 @@
 from http import HTTPStatus
 from unittest.mock import patch
-from urllib import response
 
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
@@ -211,7 +210,8 @@ class UserTestCase(TestCase):
         path = reverse('user:login')
         response = self.client.post(path, {'username': self.user1_username, 'password': '12345'})
         self.assertIn(
-            'Пожалуйста, введите правильные имя пользователя и пароль. Оба поля могут быть чувствительны к регистру.',
+            'Пожалуйста, введите правильные имя пользователя и пароль.\
+                Оба поля могут быть чувствительны к регистру.',
             response.content.decode(),
         )
 
@@ -237,10 +237,6 @@ class UserTestCase(TestCase):
 
 class ProfileTestCase(TestCase):
     def setUp(self):
-        # self.user_username = self.user_password = 'user1'
-        # self.user_email = 'user1@yandex.ru'
-        # User.objects.create_user(username=self.user_username, password=self.user_password, email=self.user_email)
-        # self.client.login(username=self.user_username,password=self.user_password)
         self.user = User.objects.create_user(
             username='testuser', password='password123', email='test@yandex.ru'
         )
@@ -292,7 +288,8 @@ class ProfileTestCase(TestCase):
         response = self.client.post(
             path,
             {
-                'game_username': 'eclipsereclipsereclipsereclipsereclipsereclipsereclipsereclipsereclipsereclipser',
+                'game_username': 'eclipsereclipsereclipsereclipsereclipsereclipserec\
+                    lipsereclipsereclipsereclipser',
                 'update_profile': '',
             },
             follow=True,
@@ -322,7 +319,8 @@ class ProfileTestCase(TestCase):
         response = self.client.post(
             path,
             {
-                'discord': 'eclipsereclipsereclipsereclipsereclipsereclipsereclipsereclipsereclipsereclipser',
+                'discord': 'eclipsereclipsereclipsereclipsereclipsereclipsereclipserec\
+                    lipsereclipsereclipser',
                 'update_profile': '',
             },
             follow=True,

@@ -30,6 +30,7 @@ handler400 = 'main.views.custom_400_view'
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('tinymce/', include('tinymce.urls')),
     path('', include('user.urls')),
     path('', include('main.urls')),
     path('', include('news.urls')),

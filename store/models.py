@@ -4,6 +4,7 @@ from django.forms import ValidationError
 from django.urls import reverse
 from django.utils import timezone
 from mptt.models import MPTTModel, TreeForeignKey
+from tinymce import models as tinymce_models
 
 from user.models import User
 
@@ -278,7 +279,7 @@ class AccountObject(models.Model):
     skins = models.IntegerField(verbose_name='Количество образов')
     rang = models.CharField(max_length=20, choices=RANK_CHOISES, default='NO RANK', verbose_name='Ранг')
     short_description = models.CharField(max_length=100, verbose_name='Короткое описание')
-    description = models.TextField(verbose_name='Описание', blank=True)
+    description = tinymce_models.HTMLField(verbose_name='Описание', blank=True)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
     is_active = models.BooleanField(default=False, verbose_name='Проверен')
     is_confirmed = models.BooleanField(default=False, verbose_name='Покупка подтверждена')
@@ -300,7 +301,8 @@ class AccountObject(models.Model):
         verbose_name_plural = 'Продажа аккаунтов'
 
     def __str__(self):
-        return f'Продажа аккаунта от {self.user.username}| Цена: {self.price} руб.| Id: {self.id} | Статус: {self.is_active}'
+        return f'Продажа аккаунта от {self.user.username}| Цена: {self.price} руб.|\
+            Id: {self.id} | Статус: {self.is_active}'
 
     def get_absolute_url(self):
         return reverse('store:store_account_page', kwargs={'id': self.pk})

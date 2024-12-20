@@ -1,5 +1,6 @@
 from django.db import models
 from mptt.models import MPTTModel, TreeForeignKey
+from tinymce import models as tinymce_models
 
 from user.models import User
 
@@ -16,7 +17,7 @@ class ReviewModel(MPTTModel):
         User, on_delete=models.CASCADE, related_name='reviews', verbose_name='Пользователь'
     )
     stars = models.CharField(max_length=2, choices=STARS_CHOISES, verbose_name='Оценка', blank=True)
-    reviews = models.TextField(verbose_name='Описание', max_length=300)
+    reviews = tinymce_models.HTMLField(verbose_name='Описание', max_length=300)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
     parent = TreeForeignKey(
         'self', on_delete=models.CASCADE, null=True, blank=True, related_name='children'

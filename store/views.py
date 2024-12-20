@@ -64,7 +64,8 @@ class StoreEloBoostChoiceView(TitleMixin, TemplateView):
             messages.success(request, 'Покупка совершена успешно')
         else:
             logger.error(
-                f'Ошибка оформления заказа для пользователя {request.user.username}. Ошибки формы: {form.errors}.'
+                f'Ошибка оформления заказа для пользователя {request.user.username}.\
+                    Ошибки формы: {form.errors}.'
             )
             errors = form.errors.values()
             for error in errors:
@@ -97,7 +98,8 @@ class PlacementMatchesView(TitleMixin, TemplateView):
             messages.success(request, 'Покупка совершена успешно')
         else:
             logger.error(
-                f'Ошибка оформления заказа для пользователя {request.user.username}. Ошибки формы: {form.errors}'
+                f'Ошибка оформления заказа для пользователя {request.user.username}.\
+                    Ошибки формы: {form.errors}'
             )
             errors = form.errors.values()
             for error in errors:
@@ -157,12 +159,14 @@ class StoreSkinsView(TitleMixin, TemplateView):
             form.save()
             send_email_task.delay(mail_subject, html_message, [self.request.user.email])
             logger.info(
-                f'Пользователь {request.user.username} успешно оформил заказ на {purchase_type} {item_name}.'
+                f'Пользователь {request.user.username} успешно оформил заказ\
+                    на {purchase_type} {item_name}.'
             )
             messages.success(request, 'Покупка совершена, письмо отправлено на почту')
         else:
             logger.error(
-                f'Ошибка оформления заказа для пользователя {request.user.username}. Ошибки формы: {form.errors}.'
+                f'Ошибка оформления заказа для пользователя {request.user.username}.\
+                    Ошибки формы: {form.errors}.'
             )
             # Отобразим ошибки формы, чтобы увидеть причину неудачи
             print('1', form.errors)
@@ -201,7 +205,8 @@ class StoreRPView(TitleMixin, TemplateView):
         else:
             # Отобразим ошибки формы, чтобы увидеть причину неудачи
             logger.error(
-                f'Ошибка оформления заказа RP для пользователя {request.user.username}. Ошибки формы: {form.errors}.'
+                f'Ошибка оформления заказа RP для пользователя {request.user.username}.\
+                    Ошибки формы: {form.errors}.'
             )
             errors = form.errors.values()
             for error in errors:
@@ -297,7 +302,8 @@ class StoreAccountsView(TitleMixin, TemplateView):
             return redirect('store:store_accounts')
 
         logger.error(
-            f'Ошибка при добавлении аккаунта для пользователя {request.user.username}. Ошибки формы: {account_form.errors}'
+            f'Ошибка при добавлении аккаунта для пользователя {request.user.username}.\
+                Ошибки формы: {account_form.errors}'
         )
 
         errors = account_form.errors.values()
@@ -395,7 +401,8 @@ class StoreAccountPageView(TitleMixin, TemplateView):
             if form.is_valid():
                 form.save()
                 logger.info(
-                    f'Пользователь {request.user.username} оставил отзыв для пользователя {account.user.username}'
+                    f'Пользователь {request.user.username} оставил отзыв\
+                        для пользователя {account.user.username}'
                 )
             else:
                 errors = form.errors.values()
@@ -404,7 +411,8 @@ class StoreAccountPageView(TitleMixin, TemplateView):
                     for text in error:
                         messages.error(request, text)
                 logger.error(
-                    f'Ошибка при добавлении отзыва для пользователя {account.user.username}, ошибки формы: {form.errors}'
+                    f'Ошибка при добавлении отзыва для пользователя {account.user.username},\
+                        ошибки формы: {form.errors}'
                 )
                 return render(request, self.template_name, {'form': form})
             return redirect(request.META.get('HTTP_REFERER', '/'))

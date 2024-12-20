@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django_recaptcha',
     'django.contrib.humanize',
+    'tinymce',
     'mptt',
     'user',
     'main',
@@ -247,4 +248,11 @@ LOGGING = {
             'propagate': False,
         },
     },
+}
+
+TINYMCE_DEFAULT_CONFIG = {
+    'height': 320,
+    'width': 960,
+    'plugins': 'link image preview codesample table code lists fullscreen',
+    'toolbar': 'undo redo | bold italic | alignleft aligncenter alignright | bullist numlist | link image | preview code fullscreen',
 }

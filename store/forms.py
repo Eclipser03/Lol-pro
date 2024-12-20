@@ -1,7 +1,5 @@
-from email import message
 import json
 import os
-from urllib import request
 
 from django import forms
 from django.conf import settings
@@ -421,7 +419,7 @@ class RPorderForm(forms.ModelForm):
             attrs={
                 'id': 'pay-rubles',
                 'placeholder': 'Стоимость в рублях',
-                'oninput': 'convertFromRubles()'
+                'oninput': 'convertFromRubles()',
             }
         ),
     )
@@ -576,7 +574,8 @@ class ReviewsSellerForm(forms.ModelForm):
 
 class AccountsFilterForm(forms.Form):
     server = forms.ChoiceField(
-        choices=[('', 'Любой'), ('EU WEST', 'EU WEST'), ('RUSSIA', 'RUSSIA')], required=False,
+        choices=[('', 'Любой'), ('EU WEST', 'EU WEST'), ('RUSSIA', 'RUSSIA')],
+        required=False,
         widget=forms.Select(attrs={'id': 'server'}),
     )
     rank = forms.ChoiceField(
@@ -592,28 +591,29 @@ class AccountsFilterForm(forms.Form):
             ('DIAMOND', 'Даймонд'),
             ('MASTER', 'Мастер'),
             ('GRANDMASTER', 'Грандмастер'),
-        ], required=False,
+        ],
+        required=False,
         widget=forms.Select(attrs={'id': 'rank'}),
     )
-    champions_min = forms.IntegerField(required=False,
+    champions_min = forms.IntegerField(
+        required=False,
         widget=forms.NumberInput(
             attrs={'id': 'champions_min', 'name': 'champions_min', 'placeholder': 'От'}
-        )
+        ),
     )
-    champions_max = forms.IntegerField(required=False,
+    champions_max = forms.IntegerField(
+        required=False,
         widget=forms.NumberInput(
             attrs={'id': 'champions_max', 'name': 'champions_max', 'placeholder': 'До'}
-        )
+        ),
     )
-    price_min = forms.IntegerField(required=False,
-        widget=forms.NumberInput(
-            attrs={'id': 'price_min', 'name': 'price_min', 'placeholder': 'От'}
-        )
+    price_min = forms.IntegerField(
+        required=False,
+        widget=forms.NumberInput(attrs={'id': 'price_min', 'name': 'price_min', 'placeholder': 'От'}),
     )
-    price_max = forms.IntegerField(required=False,
-        widget=forms.NumberInput(
-            attrs={'id': 'price_max', 'name': 'price_max', 'placeholder': 'До'}
-        )
+    price_max = forms.IntegerField(
+        required=False,
+        widget=forms.NumberInput(attrs={'id': 'price_max', 'name': 'price_max', 'placeholder': 'До'}),
     )
 
     class Meta:

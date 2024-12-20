@@ -1,5 +1,5 @@
 from http import HTTPStatus
-from urllib import response
+
 from django.test import TestCase
 from django.urls import reverse
 from django.utils.formats import number_format
@@ -7,16 +7,16 @@ from django.utils.formats import number_format
 from main.models import ReviewModel
 from user.models import User
 
+
 # Create your tests here.
 
 
 class MainViewTestCase(TestCase):
-
     @classmethod
     def setUp(cls):
         cls.path = reverse('main:home')
-        cls.user1_username = cls.user1_password = "user1"
-        cls.user1_email = "user1@yandex.ru"
+        cls.user1_username = cls.user1_password = 'user1'
+        cls.user1_email = 'user1@yandex.ru'
 
         cls.user1 = User.objects.create_user(cls.user1_username, cls.user1_email, cls.user1_password)
 
@@ -38,11 +38,12 @@ class MainViewTestCase(TestCase):
         self.assertIn(self.user1_username, response.content.decode())
         self.assertIn('Баланс', response.content.decode())
 
+
 class ReviewsTestCase(TestCase):
     @classmethod
     def setUp(cls):
-        cls.user1_username = cls.user1_password = "user1"
-        cls.user1_email = "user1@yandex.ru"
+        cls.user1_username = cls.user1_password = 'user1'
+        cls.user1_email = 'user1@yandex.ru'
 
         cls.user1 = User.objects.create_user(cls.user1_username, cls.user1_email, cls.user1_password)
 
@@ -55,24 +56,36 @@ class ReviewsTestCase(TestCase):
 
     def test_reviews_post(self):
         path = reverse('main:reviews')
-        response = self.client.post(path, {'stars':'5', 'reviews': 'test_review', 'user':self.user1}, follow=True)
+        response = self.client.post(
+            path, {'stars': '5', 'reviews': 'test_review', 'user': self.user1}, follow=True
+        )
         self.assertEqual(response.status_code, HTTPStatus.OK)
         self.assertIn('Вход в личный кабинет', response.content.decode())
         self.client.login(username=self.user1_username, password=self.user1_password)
         path = reverse('main:reviews')
-        response = self.client.post(path, {'stars':'5', 'reviews': 'test_review', 'user':self.user1}, follow=True)
+        response = self.client.post(
+            path, {'stars': '5', 'reviews': 'test_review', 'user': self.user1}, follow=True
+        )
         self.assertEqual(response.status_code, HTTPStatus.OK)
         self.assertIn('Отзывы о сайте', response.content.decode())
         self.assertIn('test_review', response.content.decode())
         path = reverse('main:reviews')
-        response = self.client.post(path, {
-            'stars':'5',
-            'reviews': 'ALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALADASD',
-            'user':self.user1
-            }, follow=True)
+        response = self.client.post(
+            path,
+            {
+                'stars': '5',
+                'reviews': 'ALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALAL\
+                    ALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALAL\
+                        ALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALALADASD',
+                'user': self.user1,
+            },
+            follow=True,
+        )
         self.assertEqual(response.status_code, HTTPStatus.OK)
         self.assertIn('Отзывы о сайте', response.content.decode())
-        self.assertIn('Убедитесь, что это значение содержит не более 300 символов', response.content.decode())
+        self.assertIn(
+            'Убедитесь, что это значение содержит не более 300 символов', response.content.decode()
+        )
 
     def test_reviews_calculate(self):
         path = reverse('main:reviews')

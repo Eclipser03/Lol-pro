@@ -136,7 +136,7 @@ def logout_user(request):
 
 
 # Сохранение значения дискорда,аватарки, никнейма в POST
-def FORM_FILL(post, obj):
+def form_fill(post, obj):
     """Updates request's POST dictionary with values from object, for update purposes"""
     post = copy(post)
     for k, v in model_to_dict(obj).items():
@@ -184,7 +184,8 @@ class ProfileView(TitleMixin, LoginRequiredMixin, PasswordChangeView):
                 for error in errors:
                     for text in error:
                         logger.error(
-                            f'Ошибка при обновлении баланса для пользователя {request.user.username}: {text}'
+                            f'Ошибка при обновлении баланса для пользователя\
+                                {request.user.username}: {text}'
                         )
                         messages.error(request, text)
             return redirect('user:profile')
@@ -192,7 +193,7 @@ class ProfileView(TitleMixin, LoginRequiredMixin, PasswordChangeView):
         if 'update_profile' in request.POST:
             logger.info(f'Обновление профиля для пользователя {request.user.username}')
             profile_form = ProfileUpdateForm(
-                FORM_FILL(request.POST, request.user), request.FILES, instance=request.user
+                form_fill(request.POST, request.user), request.FILES, instance=request.user
             )
 
             if profile_form.is_valid():
@@ -204,7 +205,8 @@ class ProfileView(TitleMixin, LoginRequiredMixin, PasswordChangeView):
                 for error in errors:
                     for text in error:
                         logger.error(
-                            f'Ошибка при обновлении профиля для пользователя {request.user.username}: {text}'
+                            f'Ошибка при обновлении профиля для пользователя\
+                                {request.user.username}: {text}'
                         )
                         messages.error(request, text)
             return redirect('user:profile')
@@ -215,7 +217,8 @@ class ProfileView(TitleMixin, LoginRequiredMixin, PasswordChangeView):
                 new_email = update_email.cleaned_data.get('new_email')
                 # Отправляем письмо с подтверждением
                 logger.info(
-                    f'Пользователь {request.user.username} изменил email на {new_email}. Письмо отправлено для подтверждения.'
+                    f'Пользователь {request.user.username} изменил email на {new_email}.\
+                        Письмо отправлено для подтверждения.'
                 )
                 self.send_confirmation_email(request, new_email)
                 messages.success(request, 'Письмо отправлено на Вашу почту!')
@@ -224,7 +227,8 @@ class ProfileView(TitleMixin, LoginRequiredMixin, PasswordChangeView):
                 for error in errors:
                     for text in error:
                         logger.error(
-                            f'Ошибка при обновлении email для пользователя {request.user.username}: {text}'
+                            f'Ошибка при обновлении email для пользователя\
+                                {request.user.username}: {text}'
                         )
                         messages.error(request, text)
             return redirect('user:profile')
@@ -280,9 +284,9 @@ def confirm_email_change(request, uidb64, token, new_email_encoded):
         user.save()
         messages.success(request, 'Ваша почта успешно обновлена!')
         return redirect('user:profile')
-    else:
-        messages.error(request, 'Ссылка недействительна или устарела.')
-        return redirect('user:profile')
+
+    messages.error(request, 'Ссылка недействительна или устарела.')
+    return redirect('user:profile')
 
 
 class MessagesView(TitleMixin, TemplateView):

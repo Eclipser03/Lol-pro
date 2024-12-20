@@ -128,10 +128,6 @@ class StoreTestCase(TestCase):
             },
             follow=True,
         )
-        json_path = os.path.join(settings.BASE_DIR, 'static', 'chars', 'assets', 'skins2price.json')
-        with open(json_path, encoding='utf-8') as file:
-            json_data = json.load(file)
-        price = json_data['Галактический Азир']
         self.assertEqual(response.status_code, HTTPStatus.OK)
         self.assertIn('Обязательное поле.', response.content.decode())
 
@@ -277,7 +273,7 @@ class StoreTestCase(TestCase):
         coupon = Coupon.objects.create(
             name='test', sale=20, is_active=True, end_date='2025-10-10', count=200
         )
-        coupon1 = Coupon.objects.create(
+        Coupon.objects.create(
             name='test1', sale=10, is_active=True, end_date='2025-10-10', count=200
         )
         coupon.save()
@@ -320,16 +316,22 @@ class StoreTestCase(TestCase):
         self.assertEqual(self.user1.qualification_orders.all().count(), 1)
 
         path = reverse('store:check-coupon')
-        response = self.client.post(path, json.dumps({'coupon': 'test1'}), content_type='application/json')
+        response = self.client.post(
+            path, json.dumps({'coupon': 'test1'}), content_type='application/json'
+        )
 
         self.assertTrue(response.json()['success'])
         self.assertEqual(response.json()['message'], 'Купон успешно применен')
         self.assertEqual(response.json()['discount'], 10)
-        response = self.client.post(path, json.dumps({'coupon': 'test2'}), content_type='application/json')
+        response = self.client.post(
+            path, json.dumps({'coupon': 'test2'}), content_type='application/json'
+        )
         self.assertFalse(response.json()['success'])
         self.assertEqual(response.json()['message'], 'Купон не найден')
         self.assertEqual(response.json()['discount'], 0)
-        response = self.client.post(path, json.dumps({'coupon': 'test'}), content_type='application/json')
+        response = self.client.post(
+            path, json.dumps({'coupon': 'test'}), content_type='application/json'
+        )
         self.assertFalse(response.json()['success'])
         self.assertEqual(response.json()['message'], 'Купон уже был использован')
         self.assertEqual(response.json()['discount'], 0)
@@ -529,19 +531,22 @@ class StoreTestCase(TestCase):
         path = reverse('store:store_account_page', kwargs={'id': account.id})
         response = self.client.get(path)
         self.assertEqual(response.status_code, HTTPStatus.OK)
-        self.assertIn('Оставить отзыв',response.content.decode())
+        self.assertIn('Оставить отзыв', response.content.decode())
         reviews_seller = ReviewSellerModel.objects.all()
         self.assertEqual(reviews_seller.count(), 0)
-        response = self.client.post(path, {
-            'reviewsbt' : '',
-            'stars':'5',
-            'reviews':'test_review_seller',
-        }, follow=True)
+        response = self.client.post(
+            path,
+            {
+                'reviewsbt': '',
+                'stars': '5',
+                'reviews': 'test_review_seller',
+            },
+            follow=True,
+        )
         response = self.client.get(path)
         self.assertEqual(response.status_code, HTTPStatus.OK)
         self.assertEqual(reviews_seller.count(), 1)
-        self.assertIn('test_review_seller',response.content.decode())
-
+        self.assertIn('test_review_seller', response.content.decode())
 
 
 class WebSocketTest(ChannelsLiveServerTestCase):

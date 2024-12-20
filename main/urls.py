@@ -1,5 +1,3 @@
-from django.conf import settings
-from django.conf.urls.static import static
 from django.urls import path
 
 from main.views import HomeView, ReviewsView
@@ -11,5 +9,3 @@ urlpatterns = [
     path('', HomeView.as_view(), name='home'),
     path('reviews/', ReviewsView.as_view(), name='reviews'),
 ]
-
-

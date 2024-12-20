@@ -1,8 +1,7 @@
 from django.views.generic import ListView
 
-from news.models import News
-from news.services import parse_news
 from main.views import TitleMixin
+from news.models import News
 
 
 # Create your views here.
@@ -17,4 +16,3 @@ class NewsView(TitleMixin, ListView):
     context_object_name = 'news_items'
     ordering = ('-date_published',)
     title = 'Новости'
-    # parse_news()
