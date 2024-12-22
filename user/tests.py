@@ -210,8 +210,8 @@ class UserTestCase(TestCase):
         path = reverse('user:login')
         response = self.client.post(path, {'username': self.user1_username, 'password': '12345'})
         self.assertIn(
-            'Пожалуйста, введите правильные имя пользователя и пароль.\
-                Оба поля могут быть чувствительны к регистру.',
+            'Пожалуйста, введите правильные имя пользователя и пароль. '
+            'Оба поля могут быть чувствительны к регистру.',
             response.content.decode(),
         )
 
@@ -472,6 +472,7 @@ class ProfileTestCase(TestCase):
         )
         response = self.client.get(path)
         self.assertIn('Буст', response.content.decode())
+
 
 class LicenseagreementTestCase(TestCase):
     def test_license_page(self):

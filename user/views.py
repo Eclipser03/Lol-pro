@@ -24,7 +24,6 @@ from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.views.generic import CreateView, TemplateView
 
-from main.views import TitleMixin
 from store.models import AccountOrder, BoostOrder, ChatRoom, Qualification, RPorder, SkinsOrder
 from user.forms import (
     CustomPasswordResetForm,
@@ -38,6 +37,8 @@ from user.forms import (
 )
 from user.tasks import send_email_task
 from user.utils import RedirectAuthUser
+from utils.mixins import TitleMixin
+from utils.services import handle_form_errors
 
 
 logger = logging.getLogger('main')
@@ -64,12 +65,7 @@ class MyLoginView(TitleMixin, RedirectAuthUser, LoginView):
         return super().form_valid(form)
 
     def form_invalid(self, form: BaseModelForm) -> HttpResponse:
-        logger.warning(f'Ошибка при входе: {form.errors}')
-
-        errors = form.errors.values()
-        for error in errors:
-            for text in error:
-                messages.error(self.request, text)
+        handle_form_errors(self.request, form)
         return super().form_invalid(form)
 
 
@@ -79,7 +75,6 @@ class UserRegistrationView(TitleMixin, SuccessMessageMixin, RedirectAuthUser, Cr
     form_class = UserRegistrationForm
     template_name = 'user/registration.html'
     success_url = reverse_lazy('user:login')
-    auth_redirect_link = '/'
     title = 'Регистрация'
 
     def form_valid(self, form: BaseForm) -> HttpResponse:
@@ -87,15 +82,10 @@ class UserRegistrationView(TitleMixin, SuccessMessageMixin, RedirectAuthUser, Cr
         login(self.request, user)
         logger.info(f'Создан аккаунт {user.username}')
         messages.success(self.request, f'Добро пожаловать {user.username}')
-        return redirect('/')
+        return redirect(reverse_lazy('main:home'))
 
     def form_invalid(self, form: BaseModelForm) -> HttpResponse:
-        logger.warning(f'Ошибка при регистрации: {form.errors}')
-
-        errors = form.errors.values()
-        for error in errors:
-            for text in error:
-                messages.error(self.request, text)
+        handle_form_errors(self.request, form)
         return super().form_invalid(form)
 
 
@@ -114,7 +104,7 @@ class PasswordResetFormView(TitleMixin, PasswordResetView):
         return response
 
 
-# Восстановление пароля(забыл папроль)
+# Смена пароля после перехода в письме из почты(забыл папроль)
 class PasswordResetConfirmView(TitleMixin, PasswordResetConfirmView):
     form_class = CustomSetPasswordForm
     template_name = 'user/password_reset_confirm.html'

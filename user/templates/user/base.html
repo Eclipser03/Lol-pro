@@ -73,7 +73,9 @@
 
 
 <script>
-if (typeof notificationSocket === "undefined") {
+const isAuthenticated = '{{ user.is_authenticated }}'
+console.log('mm', isAuthenticated)
+if (typeof notificationSocket === "undefined" && isAuthenticated === true) {
   let wsUrl = 'ws://' + window.location.host + '/ws/notification/';
   let notificationSocket = new WebSocket(wsUrl);
 

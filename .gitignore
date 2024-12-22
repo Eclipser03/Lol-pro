@@ -32,3 +32,8 @@ media
 cache
 dump.rdb
 htmlcov
+staticfiles
+
+celerybeat-schedule.bak
+celerybeat-schedule.dat
+celerybeat-schedule.dir

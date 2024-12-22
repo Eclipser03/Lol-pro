@@ -10,20 +10,23 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
-import os
 from os import getenv
 from pathlib import Path
 
-from celery.schedules import crontab
 from django.conf.global_settings import DEFAULT_FROM_EMAIL, SERVER_EMAIL
 from dotenv import find_dotenv, load_dotenv
 
+
+DEBUG = True
+
+ALLOWED_HOSTS = ['*']
 
 # find the .env file and load it
 load_dotenv(find_dotenv())
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+print('BASE_DIR:', BASE_DIR)
 
 
 # Quick-start development settings - unsuitable for production
@@ -31,11 +34,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = getenv('SECRET_KEY')
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = []
+if not SECRET_KEY:
+    raise ValueError('SECRET_KEY не задан в .env')
 
 
 # Application definition
@@ -48,16 +48,16 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django_recaptcha',
     'django.contrib.humanize',
+    'django_recaptcha',
     'tinymce',
     'mptt',
+    'channels',
+    'channels_redis',
     'user',
     'main',
     'news',
     'store',
-    'channels',
-    'channels_redis',
 ]
 
 MIDDLEWARE = [
@@ -89,22 +89,8 @@ TEMPLATES = [
     },
 ]
 
+ASGI_APPLICATION = 'lol_pay.asgi.application'
 WSGI_APPLICATION = 'lol_pay.wsgi.application'
-
-
-# Database
-# https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': getenv('POSTGRES_DB'),
-        'USER': getenv('POSTGRES_USER'),
-        'PASSWORD': getenv('POSTGRES_PASSWORD'),
-        'HOST': getenv('POSTGRES_HOST'),
-        'PORT': getenv('POSTGRES_PORT'),
-    }
-}
 
 
 # Password validation
@@ -138,32 +124,24 @@ USE_I18N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.1/howto/static-files/
-
-STATIC_URL = 'static/'
-
-STATICFILES_DIRS = [
-    BASE_DIR / 'static',  # Если у вас есть папка static в корневом каталоге проекта
-]
-
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-MEDIA_URL = '/media/'
-
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# captcha
+
 RECAPTCHA_PUBLIC_KEY = getenv('RECAPTCHA_PUBLIC_KEY')  # Site Key от Google reCAPTCHA
 RECAPTCHA_PRIVATE_KEY = getenv('RECAPTCHA_PRIVATE_KEY')  # Secret Key от Google reCAPTCHA
 
+# user
 
 AUTH_USER_MODEL = 'user.User'
 LOGIN_URL = '/login/'
 LOGOUT_REDIRECT_URL = '/'
 LOGIN_REDIRECT_URL = '/'
 
+# mail
 
 EMAIL_HOST = 'smtp.yandex.ru'
 EMAIL_PORT = '465'
@@ -177,82 +155,12 @@ SERVER_EMAIL = EMAIL_HOST_USER  # noqa: F811
 EMAIL_ADMIN = EMAIL_HOST_USER
 
 
-# redis
-
-REDIS_HOST = getenv('REDIS_HOST')
-REDIS_PORT = getenv('REDIS_PORT')
-
-CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {
-            'hosts': [(REDIS_HOST, REDIS_PORT)],
-        },
-    },
-}
-
-# celery
-
-CELERY_BROKER_URL = 'redis://' + REDIS_HOST + ':' + REDIS_PORT + '/0'
-CELERY_BROKER_TRANSPORT_OPTIONS = {'visibility_timeout': 3600}
-CELERY_RESULT_BACKEND = 'redis://' + REDIS_HOST + ':' + REDIS_PORT + '/0'
-CELERY_ACCEPT_CONTENT = ['application/json']
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_RESULT_SERIALIZER = 'json'
-CELERY_TIMEZONE = TIME_ZONE
-
-CELERY_BEAT_SCHEDULE = {
-    'parse-news-every-day': {
-        'task': 'news.tasks.parse_news_task',
-        'schedule': crontab(hour=0, minute=0),  # Ежедневно в 00:00
-    },
-}
-
-CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
-
-
-ASGI_APPLICATION = 'lol_pay.asgi.application'
-
-
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
-        'LOCATION': (BASE_DIR / 'cache'),
-    }
-}
-
-
-SESSION_COOKIE_AGE = 60 * 60 * 24 * 7 * 2
-
-
-LOGGING = {
-    'version': 1,  # Версия конфигурации логирования
-    'disable_existing_loggers': False,  # Не отключать существующие логгеры
-    'formatters': {  # Формат вывода логов
-        'main_format': {
-            'format': '{asctime} - {levelname} - {module} - {message}',
-            'style': '{',
-        },
-    },
-    'handlers': {  # Обработчики логов (куда отправлять логи)
-        'console': {
-            'level': 'INFO',  # Уровень логов
-            'class': 'logging.StreamHandler',  # Выводить логи в консоль
-            'formatter': 'main_format',
-        },
-    },
-    'loggers': {  # Логгеры для разных частей приложения
-        'main': {  # Логгер для вашего приложения
-            'handlers': ['console'],
-            'level': 'INFO',
-            'propagate': False,
-        },
-    },
-}
+# Tinymce
 
 TINYMCE_DEFAULT_CONFIG = {
     'height': 320,
     'width': 960,
     'plugins': 'link image preview codesample table code lists fullscreen',
-    'toolbar': 'undo redo | bold italic | alignleft aligncenter alignright | bullist numlist | link image | preview code fullscreen',
+    'toolbar': 'undo redo | bold italic | alignleft aligncenter alignright |\
+        bullist numlist | link image | preview code fullscreen',
 }

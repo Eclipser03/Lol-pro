@@ -377,7 +377,7 @@ class Message(models.Model):
     text = models.CharField(max_length=300)
     created = models.DateTimeField(default=timezone.now)
     massage_type = models.CharField(
-        choices=MASSAGETYPE_CHOISES, verbose_name='Тип сообщения', blank=True, null=True
+        max_length=25, choices=MASSAGETYPE_CHOISES, verbose_name='Тип сообщения', blank=True, null=True
     )
 
     class Meta:
