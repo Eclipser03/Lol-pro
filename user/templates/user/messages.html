@@ -157,7 +157,6 @@ const accountId = urlParams.get("account_id")
 // Инициализация WebSocket соединения
 const protocol = window.location.protocol === "https:" ? "wss://" : "ws://";
 const chatSocket = new WebSocket(protocol + window.location.host + '/ws/chat/' + currentChatId + '/');
-const notificationSocket = new WebSocket('ws://' + window.location.host + '/ws/notification/');
 
 chatSocket.onmessage = function (e) {
     const data = JSON.parse(e.data);
@@ -336,20 +335,27 @@ function updateLastMessageInChatList(chatId, message, created, username, avatar=
    `) }
 }
 
-notificationSocket.onmessage = function(event) {
-  const data = JSON.parse(event.data);
-  const username = data.username
-  const message = data.message;
-  const message_content = data.message_content;
-  const created = data.created;
-  const chatID = data.chat_room
-  const avatar = data.avatar
-  console.log('DATA', data)
-  if (data.type === 'notification') {
-    updateLastMessageInChatList(chatID, message_content, created, username, avatar);
+const isAuthenticated = '{{ user.is_authenticated }}'
+if (isAuthenticated === 'True') {
+  const notificationSocket = new WebSocket('ws://' + window.location.host + '/ws/notification/');
+
+  notificationSocket.onmessage = function(event) {
+    const data = JSON.parse(event.data);
+    const username = data.username
+    const message = data.message;
+    const message_content = data.message_content;
+    const created = data.created;
+    const chatID = data.chat_room
+    const avatar = data.avatar
+    console.log('DATA', data)
+    if (data.type === 'notification') {
+      updateLastMessageInChatList(chatID, message_content, created, username, avatar);
 
   }
 }
+
+}
+
 // Подвердить покупку
 function confirmPurchase() {
   chatSocket.send(JSON.stringify({

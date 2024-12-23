@@ -1,5 +1,5 @@
 import logging
-from copy import copy
+from itertools import chain
 
 from django.contrib import messages
 from django.contrib.auth import get_user_model, login, logout
@@ -13,15 +13,14 @@ from django.contrib.auth.views import (
     PasswordResetView,
 )
 from django.contrib.messages.views import SuccessMessageMixin
-from django.contrib.sites.shortcuts import get_current_site
+from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Count, Q
-from django.forms import BaseForm, BaseModelForm, model_to_dict
+from django.forms import BaseForm, BaseModelForm
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect
-from django.template.loader import render_to_string
 from django.urls import reverse_lazy
-from django.utils.encoding import force_bytes, force_str
-from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
+from django.utils.encoding import force_str
+from django.utils.http import urlsafe_base64_decode
 from django.views.generic import CreateView, TemplateView
 
 from store.models import AccountOrder, BoostOrder, ChatRoom, Qualification, RPorder, SkinsOrder
@@ -35,10 +34,9 @@ from user.forms import (
     UserLoginForm,
     UserRegistrationForm,
 )
-from user.tasks import send_email_task
 from user.utils import RedirectAuthUser
 from utils.mixins import TitleMixin
-from utils.services import handle_form_errors
+from utils.services import form_fill, handle_form_errors, send_confirmation_email
 
 
 logger = logging.getLogger('main')
@@ -93,15 +91,18 @@ class UserRegistrationView(TitleMixin, SuccessMessageMixin, RedirectAuthUser, Cr
 class PasswordResetFormView(TitleMixin, PasswordResetView):
     form_class = CustomPasswordResetForm
     template_name = 'user/password_reset_form.html'
-    success_url = '/'
+    success_url = reverse_lazy('user:login')
     email_template_name = 'user/password_reset_email.html'
     title = 'Восстановление пароля'
+    success_message = 'Письмо с инструкцией отправлено на Вашу почту!'
 
     def post(self, request, *args, **kwargs):
-        response = super().post(request, *args, **kwargs)
-        logger.info(f'Пользователь {request.user.username} запросил восстановление пароля')
-        messages.success(request, 'Письмо с инструкцией отправлено на Вашу почту!')
-        return response
+        email = request.POST.get('email')
+        if User.objects.filter(email=email).exists():
+            logger.info(f'Пользователь c email: {email} запросил восстановление пароля')
+        else:
+            logger.warning(f'Попытка восстановления пароля для несуществующего email: {email}')
+        return super().post(request, *args, **kwargs)
 
 
 # Смена пароля после перехода в письме из почты(забыл папроль)
@@ -110,29 +111,22 @@ class PasswordResetConfirmView(TitleMixin, PasswordResetConfirmView):
     template_name = 'user/password_reset_confirm.html'
     success_url = reverse_lazy('user:login')
     title = 'Восстановление пароля'
+    success_message = 'Пароль успешно изменен!'
 
-    def post(self, request, *args, **kwargs):
-        response = super().post(request, *args, **kwargs)
-        logger.info(f'Пользователь {request.user.username} сменил пароль')
-        messages.success(request, 'Пароль успешно изменен!')
-        return response
+    def form_valid(self, form):
+        user = form.user  # Пользователь, для которого выполняется сброс
+        logger.info(f'Пользователь {user.email} успешно сменил пароль.')
+        return super().form_valid(form)
 
 
 # Выход из аккаунта
 @login_required
 def logout_user(request):
+    user = request.user
+    logger.info(f'Пользователь {user.username} вышел из системы.')
+    messages.success(request, 'Вы успешно вышли из системы.')
     logout(request)
     return redirect('main:home')
-
-
-# Сохранение значения дискорда,аватарки, никнейма в POST
-def form_fill(post, obj):
-    """Updates request's POST dictionary with values from object, for update purposes"""
-    post = copy(post)
-    for k, v in model_to_dict(obj).items():
-        if k not in post:
-            post[k] = v
-    return post
 
 
 # Смена аватарки, никнейма, дискорда, пароля, почты, пополнение баланса
@@ -144,129 +138,102 @@ class ProfileView(TitleMixin, LoginRequiredMixin, PasswordChangeView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['profile_form'] = ProfileUpdateForm(instance=self.request.user)
-        context['update_email'] = UpdateUserEmail()
-        context['update_balance'] = UpdateBalanceUser()
-        context['boostorders'] = BoostOrder.objects.filter(user=self.request.user).order_by(
-            '-created_at'
+        context.update(
+            {
+                'profile_form': ProfileUpdateForm(instance=self.request.user),
+                'update_email': UpdateUserEmail(),
+                'update_balance': UpdateBalanceUser(),
+                'boostorders': BoostOrder.objects.filter(user=self.request.user).order_by('-created_at'),
+                'all_products': sorted(
+                    chain(
+                        Qualification.objects.filter(user=self.request.user),
+                        SkinsOrder.objects.filter(user=self.request.user),
+                        RPorder.objects.filter(user=self.request.user),
+                        AccountOrder.objects.filter(user=self.request.user),
+                    ),
+                    key=lambda product: product.created_at,
+                    reverse=True,
+                ),
+            }
         )
-        all_products = (
-            list(Qualification.objects.filter(user=self.request.user))
-            + list(SkinsOrder.objects.filter(user=self.request.user))
-            + list(RPorder.objects.filter(user=self.request.user))
-            + list(AccountOrder.objects.filter(user=self.request.user))
-        )
-        all_products = sorted(all_products, key=lambda product: product.created_at, reverse=True)
-        context['all_products'] = all_products
         return context
 
     def post(self, request, *args, **kwargs):
         logger.info(f'Запрос на обновление профиля пользователя {request.user.username}')
-        if 'update_balance' in request.POST:
-            update_balance_form = UpdateBalanceUser(request.POST)
-            if update_balance_form.is_valid():
-                logger.info(f'Баланс пользователя {request.user.username} был обновлён')
-                request.user.balance += update_balance_form.cleaned_data['balance']
-                request.user.save()
-                messages.success(request, 'Баланс успешно пополнен!')
-            else:
-                errors = update_balance_form.errors.values()
-                for error in errors:
-                    for text in error:
-                        logger.error(
-                            f'Ошибка при обновлении баланса для пользователя\
-                                {request.user.username}: {text}'
-                        )
-                        messages.error(request, text)
-            return redirect('user:profile')
 
-        if 'update_profile' in request.POST:
-            logger.info(f'Обновление профиля для пользователя {request.user.username}')
-            profile_form = ProfileUpdateForm(
-                form_fill(request.POST, request.user), request.FILES, instance=request.user
-            )
+        form_handlers = {
+            'update_balance': self.handle_update_balance,
+            'update_profile': self.handle_update_profile,
+            'update_email': self.handle_update_email,
+            'update_password': self.handle_update_password,
+        }
 
-            if profile_form.is_valid():
-                profile_form.save()
-                logger.info(f'Профиль пользователя {request.user.username} успешно обновлён.')
-                messages.success(request, 'Данные успешно обновлены!')
-            else:
-                errors = profile_form.errors.values()
-                for error in errors:
-                    for text in error:
-                        logger.error(
-                            f'Ошибка при обновлении профиля для пользователя\
-                                {request.user.username}: {text}'
-                        )
-                        messages.error(request, text)
-            return redirect('user:profile')
+        for key, handler in form_handlers.items():
+            if key in request.POST:
+                return handler(request)
 
-        if 'update_email' in request.POST:
-            update_email = UpdateUserEmail(request.POST)
-            if update_email.is_valid():
-                new_email = update_email.cleaned_data.get('new_email')
-                # Отправляем письмо с подтверждением
-                logger.info(
-                    f'Пользователь {request.user.username} изменил email на {new_email}.\
-                        Письмо отправлено для подтверждения.'
-                )
-                self.send_confirmation_email(request, new_email)
-                messages.success(request, 'Письмо отправлено на Вашу почту!')
-            else:
-                errors = update_email.errors.values()
-                for error in errors:
-                    for text in error:
-                        logger.error(
-                            f'Ошибка при обновлении email для пользователя\
-                                {request.user.username}: {text}'
-                        )
-                        messages.error(request, text)
-            return redirect('user:profile')
+        messages.error(request, 'Некорректный запрос.')
+        return redirect('user:profile')
 
-        if 'update_password' in request.POST:
-            form = self.get_form()
-            form.instance = request.user
-            if form.is_valid():
-                logger.info(f'Пользователь {request.user.username} успешно изменил пароль.')
-                messages.success(request, 'Пароль успешно изменен')
-                return self.form_valid(form)
+    def handle_update_balance(self, request):
+        form = UpdateBalanceUser(request.POST)
 
-            errors = form.errors.values()
-            for error in errors:
-                for text in error:
-                    logger.error(
-                        f'Ошибка при изменении пароля для пользователя {request.user.username}: {text}'
-                    )
-                    messages.error(request, text)
-            return self.form_invalid(form)
+        if form.is_valid():
+            logger.info(f'Баланс пользователя {request.user.username} был обновлён')
+            request.user.balance += form.cleaned_data['balance']
+            request.user.save()
+            messages.success(request, 'Баланс успешно пополнен!')
+        else:
+            handle_form_errors(request, form)
 
-    # Отправка письма
-    def send_confirmation_email(self, request, new_email):
-        user = request.user
-        new_email_encoded = urlsafe_base64_encode(force_bytes(new_email))
-        current_site = get_current_site(request)
-        mail_subject = 'Подтверждение изменения электронной почты'
-        message = render_to_string(
-            'user/confirm_email_change.html',
-            {
-                'user': user,
-                'new_email': new_email_encoded,
-                'domain': current_site.domain,
-                'uid': urlsafe_base64_encode(force_bytes(user.pk)),
-                'token': token_generator.make_token(user),
-            },
+        return redirect('user:profile')
+
+    def handle_update_profile(self, request):
+        form = ProfileUpdateForm(
+            form_fill(request.POST, request.user), request.FILES, instance=request.user
         )
-        send_email_task.delay(mail_subject, message, [user.email])
-        # send_mail(mail_subject, message, settings.EMAIL_HOST_USER, [user.email])
+
+        if form.is_valid():
+            form.save()
+            logger.info(f'Профиль пользователя {request.user.username} успешно обновлён.')
+            messages.success(request, 'Данные успешно обновлены!')
+        else:
+            handle_form_errors(request, form)
+
+        return redirect('user:profile')
+
+    def handle_update_email(self, request):
+        form = UpdateUserEmail(request.POST)
+
+        if form.is_valid():
+            new_email = form.cleaned_data.get('new_email')
+            send_confirmation_email(request.user, request, new_email)
+            logger.info(f'Письмо для изменения email отправлено пользователю {request.user.username}.')
+            messages.success(request, 'Письмо отправлено на Вашу почту!')
+        else:
+            handle_form_errors(request, form)
+        return redirect('user:profile')
+
+    def handle_update_password(self, request):
+        form = self.get_form()
+        form.instance = request.user
+
+        if form.is_valid():
+            logger.info(f'Пользователь {request.user.username} успешно изменил пароль.')
+            messages.success(request, 'Пароль успешно изменен')
+            return self.form_valid(form)
+
+        handle_form_errors(request, form)
+        return self.form_invalid(form)
 
 
-# Смена почты
+# Смена почты(когда переходишь с письма)
 def confirm_email_change(request, uidb64, token, new_email_encoded):
     try:
-        new_email = uid = force_str(urlsafe_base64_decode(new_email_encoded))
+        new_email = force_str(urlsafe_base64_decode(new_email_encoded))
         uid = force_str(urlsafe_base64_decode(uidb64))
         user = User.objects.get(pk=uid)
-    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+    except (TypeError, ValueError, OverflowError, ObjectDoesNotExist):
         user = None
 
     if user and token_generator.check_token(user, token):
@@ -296,12 +263,10 @@ class MessagesView(TitleMixin, TemplateView):
         chat_id = self.request.GET.get('chat_id')
 
         if chat_id:
-            selected_chat = get_object_or_404(
+            context['selected_chat'] = get_object_or_404(
                 ChatRoom, Q(seller=self.request.user) | Q(buyer=self.request.user), id=chat_id
             )
 
-            context['selected_chat'] = selected_chat
-            print('123123', selected_chat.account)
         return context
 
 

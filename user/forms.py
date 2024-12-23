@@ -88,7 +88,7 @@ class CustomSetPasswordForm(SetPasswordForm):
 
 
 class CustomPasswordResetForm(PasswordResetForm):
-    email = forms.CharField(
+    email = forms.EmailField(
         widget=forms.EmailInput(attrs={'name': 'email', 'placeholder': 'Введите адрес почты'})
     )
 

@@ -719,49 +719,53 @@ document.querySelector('#chat-message-input').addEventListener('keydown', functi
 
 }
 
+const isAuthenticated = '{{ user.is_authenticated }}'
+if (isAuthenticated === 'True') {
+  const notificationSocket = new WebSocket('ws://' + window.location.host + '/ws/notification/');
 
-const notificationSocket = new WebSocket('ws://' + window.location.host + '/ws/notification/');
+  notificationSocket.onmessage = function(event) {
+    let chatRoomId = "{{ chat_room.id }}"
+    const data = JSON.parse(event.data);
+    const chatroom = data.chat_room
+    console.log('DATA1', data)
+    if (chatroom != chatRoomId && data.type === 'notification') {
+      const messageDiv = document.createElement('div');
+      messageDiv.className = 'alert alert-success'; // alert-info или другой класс для стилизации
+      messageDiv.textContent = data.message;
 
-notificationSocket.onmessage = function(event) {
-  let chatRoomId = "{{ chat_room.id }}"
-  const data = JSON.parse(event.data);
-  const chatroom = data.chat_room
-  console.log('DATA1', data)
-  if (chatroom != chatRoomId && data.type === 'notification') {
-    const messageDiv = document.createElement('div');
-    messageDiv.className = 'alert alert-success'; // alert-info или другой класс для стилизации
-    messageDiv.textContent = data.message;
+      // Добавляем сообщение в контейнер
+      const messagesContainer = document.getElementById('messages-container');
+      messagesContainer.appendChild(messageDiv);
 
-    // Добавляем сообщение в контейнер
-    const messagesContainer = document.getElementById('messages-container');
-    messagesContainer.appendChild(messageDiv);
+      // Удаляем сообщение через 5 секунд
+      setTimeout(() => {
+          messageDiv.style.opacity = '0';
+          messageDiv.style.transform = 'translateX(30px)';
+          setTimeout(() => messageDiv.remove(), 500);
+      }, 5000);
+    }
 
-    // Удаляем сообщение через 5 секунд
-    setTimeout(() => {
-        messageDiv.style.opacity = '0';
-        messageDiv.style.transform = 'translateX(30px)';
-        setTimeout(() => messageDiv.remove(), 500);
-    }, 5000);
+    if (data.type === 'error') {
+      const messageDiv = document.createElement('div');
+      messageDiv.className = 'alert alert-warning'; // alert-info или другой класс для стилизации
+      messageDiv.textContent = data.message;
+
+      // Добавляем сообщение в контейнер
+      const messagesContainer = document.getElementById('messages-container');
+      messagesContainer.appendChild(messageDiv);
+
+      // Удаляем сообщение через 5 секунд
+      setTimeout(() => {
+          messageDiv.style.opacity = '0';
+          messageDiv.style.transform = 'translateX(30px)';
+          setTimeout(() => messageDiv.remove(), 500);
+      }, 5000);
+    }
+
   }
-
-  if (data.type === 'error') {
-    const messageDiv = document.createElement('div');
-    messageDiv.className = 'alert alert-warning'; // alert-info или другой класс для стилизации
-    messageDiv.textContent = data.message;
-
-    // Добавляем сообщение в контейнер
-    const messagesContainer = document.getElementById('messages-container');
-    messagesContainer.appendChild(messageDiv);
-
-    // Удаляем сообщение через 5 секунд
-    setTimeout(() => {
-        messageDiv.style.opacity = '0';
-        messageDiv.style.transform = 'translateX(30px)';
-        setTimeout(() => messageDiv.remove(), 500);
-    }, 5000);
-  }
-
 }
+
+
 
 
 
