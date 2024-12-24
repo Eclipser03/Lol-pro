@@ -14,7 +14,7 @@ from django.contrib.auth.views import (
 )
 from django.contrib.messages.views import SuccessMessageMixin
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Count, Q
+from django.db.models import Count, Max, Q
 from django.forms import BaseForm, BaseModelForm
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect
@@ -237,7 +237,7 @@ def confirm_email_change(request, uidb64, token, new_email_encoded):
         user = None
 
     if user and token_generator.check_token(user, token):
-        user.email = new_email  # Меняем почту на новую
+        user.email = new_email
         user.save()
         messages.success(request, 'Ваша почта успешно обновлена!')
         return redirect('user:profile')
@@ -260,6 +260,18 @@ class MessagesView(TitleMixin, TemplateView):
             key=lambda chat: chat.messages.last().created,
             reverse=True,
         )
+
+        context['chats'] = (
+            ChatRoom.objects.annotate(
+                last_message_created=Max('messages__created'),
+            )
+            .filter(
+                Q(seller=self.request.user) | Q(buyer=self.request.user),
+                messages__isnull= False,
+            )
+            .order_by('-last_message_created')
+        )
+
         chat_id = self.request.GET.get('chat_id')
 
         if chat_id:

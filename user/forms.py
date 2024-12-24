@@ -17,8 +17,6 @@ from django_recaptcha.fields import ReCaptchaField
 from lol_pay.celery import app
 
 
-logger = logging.getLogger('django.contrib.auth')
-
 User = get_user_model()
 
 
