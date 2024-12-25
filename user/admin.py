@@ -3,9 +3,6 @@ from django.contrib import admin
 from user.models import User
 
 
-# Register your models here.
-
-
 class UserAdmin(admin.ModelAdmin):
     readonly_fields = ('balance',)
     list_display = ('username', 'email', 'balance', 'is_online')

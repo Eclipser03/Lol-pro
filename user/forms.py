@@ -1,4 +1,3 @@
-import logging
 from collections.abc import Callable
 
 from django import forms
@@ -102,7 +101,6 @@ class CustomPasswordResetForm(PasswordResetForm):
         html_email_template_name=None,
     ):
         subject = loader.render_to_string(subject_template_name, context)
-        # Email subject *must not* contain newlines
         subject = ''.join(subject.splitlines())
         body = loader.render_to_string(email_template_name, context)
 
@@ -172,7 +170,6 @@ class UpdateUserEmail(forms.Form):
     def clean_new_email(self):
         new_email = self.cleaned_data['new_email']
 
-        # Проверка, существует ли уже такой email в базе данных
         if User.objects.filter(email=new_email).exists():
             raise forms.ValidationError('Этот email уже используется.')
 

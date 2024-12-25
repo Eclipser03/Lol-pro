@@ -43,7 +43,6 @@ logger = logging.getLogger('main')
 User = get_user_model()
 
 
-# Вход в аккаунт
 class MyLoginView(TitleMixin, RedirectAuthUser, LoginView):
     model = User
     form_class = UserLoginForm
@@ -52,22 +51,18 @@ class MyLoginView(TitleMixin, RedirectAuthUser, LoginView):
 
     def form_valid(self, form):
         checkbox = form.cleaned_data.get('checkbox')
-        print(checkbox)
         if checkbox:
-            # Устанавливаем срок жизни сессии на, например, 30 дней
             self.request.session.set_expiry(60 * 60 * 24 * 30)  # 30 дней
         else:
-            # Сессия будет закрыта после закрытия браузера
             self.request.session.set_expiry(0)
 
         return super().form_valid(form)
 
-    def form_invalid(self, form: BaseModelForm) -> HttpResponse:
+    def form_invalid(self, form):
         handle_form_errors(self.request, form)
         return super().form_invalid(form)
 
 
-# Регистрация пользователя
 class UserRegistrationView(TitleMixin, SuccessMessageMixin, RedirectAuthUser, CreateView):
     model = User
     form_class = UserRegistrationForm
@@ -75,19 +70,18 @@ class UserRegistrationView(TitleMixin, SuccessMessageMixin, RedirectAuthUser, Cr
     success_url = reverse_lazy('user:login')
     title = 'Регистрация'
 
-    def form_valid(self, form: BaseForm) -> HttpResponse:
+    def form_valid(self, form):
         user = form.save()
         login(self.request, user)
         logger.info(f'Создан аккаунт {user.username}')
         messages.success(self.request, f'Добро пожаловать {user.username}')
-        return redirect(reverse_lazy('main:home'))
+        return redirect('main:home')
 
-    def form_invalid(self, form: BaseModelForm) -> HttpResponse:
+    def form_invalid(self, form):
         handle_form_errors(self.request, form)
         return super().form_invalid(form)
 
 
-# Забыли пароль
 class PasswordResetFormView(TitleMixin, PasswordResetView):
     form_class = CustomPasswordResetForm
     template_name = 'user/password_reset_form.html'
@@ -105,7 +99,6 @@ class PasswordResetFormView(TitleMixin, PasswordResetView):
         return super().post(request, *args, **kwargs)
 
 
-# Смена пароля после перехода в письме из почты(забыл папроль)
 class PasswordResetConfirmView(TitleMixin, PasswordResetConfirmView):
     form_class = CustomSetPasswordForm
     template_name = 'user/password_reset_confirm.html'
@@ -114,12 +107,11 @@ class PasswordResetConfirmView(TitleMixin, PasswordResetConfirmView):
     success_message = 'Пароль успешно изменен!'
 
     def form_valid(self, form):
-        user = form.user  # Пользователь, для которого выполняется сброс
+        user = form.user
         logger.info(f'Пользователь {user.email} успешно сменил пароль.')
         return super().form_valid(form)
 
 
-# Выход из аккаунта
 @login_required
 def logout_user(request):
     user = request.user
@@ -129,7 +121,6 @@ def logout_user(request):
     return redirect('main:home')
 
 
-# Смена аватарки, никнейма, дискорда, пароля, почты, пополнение баланса
 class ProfileView(TitleMixin, LoginRequiredMixin, PasswordChangeView):
     form_class = ProfileChangePasswordForm
     template_name = 'user/profile.html'
@@ -227,7 +218,6 @@ class ProfileView(TitleMixin, LoginRequiredMixin, PasswordChangeView):
         return self.form_invalid(form)
 
 
-# Смена почты(когда переходишь с письма)
 def confirm_email_change(request, uidb64, token, new_email_encoded):
     try:
         new_email = force_str(urlsafe_base64_decode(new_email_encoded))
@@ -252,14 +242,6 @@ class MessagesView(TitleMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['chats'] = sorted(
-            ChatRoom.objects.annotate(count_messages=Count('messages')).filter(
-                Q(seller=self.request.user) | Q(buyer=self.request.user),
-                count_messages__gt=0,
-            ),
-            key=lambda chat: chat.messages.last().created,
-            reverse=True,
-        )
 
         context['chats'] = (
             ChatRoom.objects.annotate(

@@ -5,7 +5,6 @@ from django.db import models
 from django.utils import timezone
 
 
-# Create your models here.
 class User(AbstractUser):
     avatar = models.ImageField(
         upload_to='users_avatar', null=True, blank=True, default='avatar.jpg', verbose_name='Аватар'
