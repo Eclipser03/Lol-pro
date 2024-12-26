@@ -14,7 +14,7 @@ from user.models import User
 from user.tasks import send_email_task
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('main')
 
 
 def handle_form_errors(request: HttpRequest, form: BaseForm) -> None:
@@ -60,3 +60,8 @@ def send_confirmation_email(user: User, request: HttpRequest, new_email: str) ->
     )
     # Асинхронная отправка письма через задачу Celery
     send_email_task.delay(mail_subject, message, [user.email])
+
+
+def authenticated_logger(request):
+    logger.warning('Попытка оформления заказа без входа в аккаунт.')
+    messages.warning(request, 'Пожалуйста, войдите в аккаунт, чтобы оформить заказ')

@@ -161,3 +161,5 @@ def check_coupon(name: str, user: User) -> tuple[bool, str, int]:
     if coupon.is_active and coupon.count > 0 and coupon.end_date > timezone.now():
         return True, 'Купон успешно применен', coupon.sale
     return False, 'Купон недействителен или закончился', 0
+
+

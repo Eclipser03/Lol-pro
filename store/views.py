@@ -24,10 +24,10 @@ from store.forms import (
 from store.models import AccountObject, AccountOrder, AccountsImage, ChatRoom, ReviewSellerModel
 from store.services import check_coupon
 from user.tasks import send_email_task
+from utils.services import authenticated_logger, handle_form_errors, login_logger
 
 
 logger = logging.getLogger('main')
-# Create your views here.
 
 
 class StoreView(TitleMixin, TemplateView):
@@ -52,10 +52,9 @@ class StoreEloBoostChoiceView(TitleMixin, TemplateView):
 
     def post(self, request, *args, **kwargs):
         if not request.user.is_authenticated:
-            logger.warning('Попытка оформления заказа без входа в аккаунт.')
-            messages.warning(request, 'Пожалуйста, войдите в аккаунт, чтобы оформить заказ')
+            authenticated_logger(request)
             return redirect('user:login')
-        # print('post', request.POST)
+
         form = BoostOrderForms(request.POST)
         form.request = self.request
         if form.is_valid():
@@ -63,14 +62,15 @@ class StoreEloBoostChoiceView(TitleMixin, TemplateView):
             logger.info(f'Пользователь {request.user.username} успешно оформил заказ на Эло-буст.')
             messages.success(request, 'Покупка совершена успешно')
         else:
-            logger.error(
-                f'Ошибка оформления заказа для пользователя {request.user.username}.\
-                    Ошибки формы: {form.errors}.'
-            )
-            errors = form.errors.values()
-            for error in errors:
-                for text in error:
-                    messages.error(request, text)
+            handle_form_errors(request, form)
+            # logger.error(
+            #     f'Ошибка оформления заказа для пользователя {request.user.username}.\
+            #         Ошибки формы: {form.errors}.'
+            # )
+            # errors = form.errors.values()
+            # for error in errors:
+            #     for text in error:
+            #         messages.error(request, text)
             return render(request, self.template_name, {'store_form': form})
         return redirect('store:store_elo_boost_choice')
 
@@ -86,25 +86,17 @@ class PlacementMatchesView(TitleMixin, TemplateView):
 
     def post(self, request, *args, **kwargs):
         if not request.user.is_authenticated:
-            logger.warning('Попытка оформления заказа без входа в аккаунт.')
-            messages.warning(request, 'Пожалуйста, войдите в аккаунт, чтобы оформить заказ')
+            authenticated_logger(request)
             return redirect('user:login')
-        print('post', request.POST)
+
         form = QualificationForm(request.POST, request=request)
-        # form.request = self.request
+
         if form.is_valid():
             form.save()
             logger.info(f'Пользователь {request.user.username} успешно оформил заказ на квалификацию.')
             messages.success(request, 'Покупка совершена успешно')
         else:
-            logger.error(
-                f'Ошибка оформления заказа для пользователя {request.user.username}.\
-                    Ошибки формы: {form.errors}'
-            )
-            errors = form.errors.values()
-            for error in errors:
-                for text in error:
-                    messages.error(request, text)
+            authenticated_logger(request)
             return render(request, self.template_name, {'qualification_form': form})
 
         return redirect('store:placement_matches')
