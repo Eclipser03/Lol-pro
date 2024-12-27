@@ -1,7 +1,13 @@
+import logging
+
+from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
 
 from store.models import Coupon
 from user.models import User
+
+
+logger = logging.getLogger('main')
 
 
 def calculate_boost(data):
@@ -143,23 +149,18 @@ def calculate_qualification(data):
 
 def check_coupon(name: str, user: User) -> tuple[bool, str, int]:
     """Проверяет может ли пользователь применить купон"""
-    coupon = Coupon.objects.filter(name=name)
-
-    if not coupon.exists():
+    try:
+        coupon = Coupon.objects.get(name=name)
+    except ObjectDoesNotExist:
+        logger.warning(f"Купон с именем '{name}' не найден для пользователя {user.username}.")
         return False, 'Купон не найден', 0
 
-    coupon = coupon.last()
-
-    user_coupons = user.qualification_orders.all().values('coupon_code')
-    if any(coupon.id == next(iter(i.values())) for i in user_coupons):
+    if user.qualification_orders.filter(coupon_code=coupon.id).exists():
         return False, 'Купон уже был использован', 0
 
-    user_coupons1 = user.boost_orders.all().values('coupon_code')
-    if any(coupon.id == next(iter(i.values())) for i in user_coupons1):
+    if user.boost_orders.filter(coupon_code=coupon.id).exists():
         return False, 'Купон уже был использован', 0
 
     if coupon.is_active and coupon.count > 0 and coupon.end_date > timezone.now():
         return True, 'Купон успешно применен', coupon.sale
     return False, 'Купон недействителен или закончился', 0
-
-

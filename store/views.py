@@ -24,7 +24,7 @@ from store.forms import (
 from store.models import AccountObject, AccountOrder, AccountsImage, ChatRoom, ReviewSellerModel
 from store.services import check_coupon
 from user.tasks import send_email_task
-from utils.services import authenticated_logger, handle_form_errors, login_logger
+from utils.services import authenticated_logger, handle_form_errors
 
 
 logger = logging.getLogger('main')
@@ -42,7 +42,6 @@ class StoreEloBoostView(TitleMixin, TemplateView):
 
 class StoreEloBoostChoiceView(TitleMixin, TemplateView):
     template_name = 'store/store_elo_boost_choice.html'
-    login_url = '/login/'
     title = 'Эло-буст'
 
     def get_context_data(self, **kwargs):
@@ -63,16 +62,8 @@ class StoreEloBoostChoiceView(TitleMixin, TemplateView):
             messages.success(request, 'Покупка совершена успешно')
         else:
             handle_form_errors(request, form)
-            # logger.error(
-            #     f'Ошибка оформления заказа для пользователя {request.user.username}.\
-            #         Ошибки формы: {form.errors}.'
-            # )
-            # errors = form.errors.values()
-            # for error in errors:
-            #     for text in error:
-            #         messages.error(request, text)
             return render(request, self.template_name, {'store_form': form})
-        return redirect('store:store_elo_boost_choice')
+        return redirect('main:home')
 
 
 class PlacementMatchesView(TitleMixin, TemplateView):
@@ -96,10 +87,10 @@ class PlacementMatchesView(TitleMixin, TemplateView):
             logger.info(f'Пользователь {request.user.username} успешно оформил заказ на квалификацию.')
             messages.success(request, 'Покупка совершена успешно')
         else:
-            authenticated_logger(request)
+            handle_form_errors(request, form)
             return render(request, self.template_name, {'qualification_form': form})
 
-        return redirect('store:placement_matches')
+        return redirect('main:home')
 
 
 def check_coupon_views(request):
@@ -128,7 +119,6 @@ class StoreSkinsView(TitleMixin, TemplateView):
             return redirect('user:login')
 
         form = SkinsOrderForm(request.POST)
-        print('Принт реквест', request.POST)
         form.request = self.request
         mail_subject = 'Покупка с сайта Lol-Pay'
         key = str(uuid.uuid4())
