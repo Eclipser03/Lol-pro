@@ -147,12 +147,12 @@ def calculate_qualification(data):
     return round(price)
 
 
-def check_coupon(name: str, user: User) -> tuple[bool, str, int]:
+def check_coupon(coupon_code: str, user: User) -> tuple[bool, str, int]:
     """Проверяет может ли пользователь применить купон"""
     try:
-        coupon = Coupon.objects.get(name=name)
+        coupon = Coupon.objects.get(name=coupon_code)
     except ObjectDoesNotExist:
-        logger.warning(f"Купон с именем '{name}' не найден для пользователя {user.username}.")
+        logger.warning(f"Купон с именем '{coupon_code}' не найден для пользователя {user.username}.")
         return False, 'Купон не найден', 0
 
     if user.qualification_orders.filter(coupon_code=coupon.id).exists():

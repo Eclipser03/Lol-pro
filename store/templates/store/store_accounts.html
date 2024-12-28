@@ -109,17 +109,28 @@
   </div>
 </div>
 <div class="pagination">
-  {% if current_page.has_previous %}
-  <a class="first" href="?page=1"><<</a>
-  <a class="prev" href="?page={{ current_page.previous_page_number }}">Предыдущая</a>
+  {% if page_obj.has_previous %}
+    <a href="?page=1" class="prev">« Первая</a>
+    <a href="?page={{ page_obj.previous_page_number }}" class="prev">‹ Предыдущая</a>
   {% endif %}
 
-  <span class="pagination-info">Страница <span id="current-page">{{ current_page.number }}</span> из <span id="total-pages">{{ paginator.num_pages }}</span></span>
+  {% for page_num in paginator.page_range %}
+    {% if page_num == page_obj.number %}
+      <span class="active">{{ page_num }}</span>
+    {% elif page_num == 1 or page_num == paginator.num_pages %}
+      <a href="?page={{ page_num }}">{{ page_num }}</a>
+    {% elif page_num >= page_obj.number|add:'-2' and page_num <= page_obj.number|add:'2' %}
+      <a href="?page={{ page_num }}">{{ page_num }}</a>
+    {% elif page_num == page_obj.number|add:'-3' or page_num == page_obj.number|add:'3' %}
+      <span class="dots">...</span>
+    {% endif %}
+  {% endfor %}
 
-  {% if current_page.has_next %}
-  <a class="next" href="?page={{ current_page.next_page_number }}">Следующая</a>
+  {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}" class="next">Следующая ›</a>
+    <a href="?page={{ paginator.num_pages }}" class="next">Последняя »</a>
   {% endif %}
-
+</div>
 </div>
 
 

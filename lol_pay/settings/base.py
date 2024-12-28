@@ -54,6 +54,8 @@ INSTALLED_APPS = [
     'mptt',
     'channels',
     'channels_redis',
+    'django_filters',
+
     'user',
     'main',
     'news',

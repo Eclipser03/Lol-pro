@@ -1,5 +1,6 @@
 import json
 import logging
+from urllib import request
 import uuid
 from statistics import mean
 
@@ -8,9 +9,10 @@ from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
-from django.views.generic import TemplateView
+from django.views.generic import ListView, TemplateView
 
 from main.views import TitleMixin
+from store.filters import AccountsFilter
 from store.forms import (
     AccountObjectForm,
     AccountsFilterForm,
@@ -114,19 +116,19 @@ class StoreSkinsView(TitleMixin, TemplateView):
 
     def post(self, request, *args, **kwargs):
         if not request.user.is_authenticated:
-            logger.warning('Попытка оформления заказа без входа в аккаунт.')
-            messages.warning(request, 'Пожалуйста, войдите в аккаунт, чтобы оформить заказ')
+            authenticated_logger(request)
             return redirect('user:login')
 
         form = SkinsOrderForm(request.POST)
         form.request = self.request
-        mail_subject = 'Покупка с сайта Lol-Pay'
-        key = str(uuid.uuid4())
 
-        purchase_type = 'образа' if 'skin_name' in request.POST else 'персонажа'
-        item_name = request.POST.get('skin_name') or request.POST.get('char_name')
+        if form.is_valid():
 
-        html_message = render_to_string(
+            key = str(uuid.uuid4())
+            purchase_type = 'образа' if 'skin_name' in request.POST else 'персонажа'
+            item_name = request.POST.get('skin_name') or request.POST.get('char_name')
+            mail_subject = 'Покупка с сайта Lol-Pay'
+            html_message = render_to_string(
             'store/store_skins_email.html',
             {
                 'mail_subject': mail_subject,
@@ -134,31 +136,22 @@ class StoreSkinsView(TitleMixin, TemplateView):
                 'purchase_type': purchase_type,
                 'item_name': item_name,
                 'key': key,
-            },
-        )
+                },
+            )
 
-        if form.is_valid():
             form.save()
             send_email_task.delay(mail_subject, html_message, [self.request.user.email])
+
             logger.info(
                 f'Пользователь {request.user.username} успешно оформил заказ\
                     на {purchase_type} {item_name}.'
             )
             messages.success(request, 'Покупка совершена, письмо отправлено на почту')
         else:
-            logger.error(
-                f'Ошибка оформления заказа для пользователя {request.user.username}.\
-                    Ошибки формы: {form.errors}.'
-            )
-            # Отобразим ошибки формы, чтобы увидеть причину неудачи
-            print('1', form.errors)
-            errors = form.errors.values()
-            for error in errors:
-                for text in error:
-                    messages.error(request, text)
+            handle_form_errors(request, form)
             return render(request, self.template_name, {'skinorder_form': form})
-        print('Прошло')
-        return redirect('store:store_skins')
+
+        return redirect('main:home')
 
 
 class StoreRPView(TitleMixin, TemplateView):
@@ -172,94 +165,45 @@ class StoreRPView(TitleMixin, TemplateView):
 
     def post(self, request, *args, **kwargs):
         if not request.user.is_authenticated:
-            logger.warning('Попытка оформления заказа без входа в аккаунт.')
-            messages.warning(request, 'Пожалуйста, войдите в аккаунт, чтобы оформить заказ')
+            authenticated_logger(request)
             return redirect('user:login')
 
         form = RPorderForm(request.POST)
         form.request = self.request
-        print('реквестПОСТ---', request.POST)
-        print('реквест---', self.request)
+
         if form.is_valid():
             form.save(user=request.user)
             logger.info(f'Пользователь {request.user.username} успешно оформил заказ RP.')
             messages.success(request, 'Покупка совершена успешно')
         else:
-            # Отобразим ошибки формы, чтобы увидеть причину неудачи
-            logger.error(
-                f'Ошибка оформления заказа RP для пользователя {request.user.username}.\
-                    Ошибки формы: {form.errors}.'
-            )
-            errors = form.errors.values()
-            for error in errors:
-                for text in error:
-                    messages.error(request, text)
+
+            handle_form_errors(request, form)
             return render(request, self.template_name, {'rp_form': form})
-        return redirect('store:store_rp')
+        return redirect('main:home')
 
 
-class StoreAccountsView(TitleMixin, TemplateView):
+class StoreAccountsView(TitleMixin, ListView):
     template_name = 'store/store_accounts.html'
     title = 'Аккаунты'
+    paginate_by = 1
+    model = AccountObject
+    context_object_name = 'accounts'
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        acounts = AccountObject.objects.filter(is_active=True).order_by('-created_at')
-        myaccount = self.request.GET.get('myaccount', None)
-        user = self.request.user
-        user_list = acounts.values_list('user', flat=True)
+    def get_queryset(self):
+        qureset = self.model.objects.filter(is_active=True).order_by('-created_at')
         filter_form = AccountsFilterForm(self.request.GET)
 
         if filter_form.is_valid():
-            server = filter_form.cleaned_data.get('server')
-            rank = filter_form.cleaned_data.get('rank')
-            champions_min = filter_form.cleaned_data.get('champions_min')
-            champions_max = filter_form.cleaned_data.get('champions_max')
-            price_min = filter_form.cleaned_data.get('price_min')
-            price_max = filter_form.cleaned_data.get('price_max')
+            qureset = AccountsFilter(self.request.GET, queryset=qureset, request=self.request).qs
 
-            logger.info(
-                f'Фильтрация аккаунтов: server={server}, rank={rank}, champions_min={champions_min}, '
-                f'champions_max={champions_max}, price_min={price_min}, price_max={price_max}'
-            )
+        return qureset
 
-        # Фильтрация
-        if server and server != 'all':
-            acounts = acounts.filter(server=server)
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
 
-        if rank:
-            acounts = acounts.filter(rang=rank)
-
-        if champions_min is not None and champions_max is not None:
-            acounts = acounts.filter(champions__range=(champions_min, champions_max))
-        if champions_min and champions_max is None:
-            acounts = acounts.filter(champions__gte=champions_min)
-        if champions_min is None and champions_max:
-            acounts = acounts.filter(champions__lte=champions_max)
-
-        if price_min and price_max:
-            acounts = acounts.filter(price__gte=price_min, price__lte=price_max)
-        if price_min and price_max is None:
-            acounts = acounts.filter(price__gte=price_min)
-        if price_min is None and price_max:
-            acounts = acounts.filter(price__lte=price_max)
-
-        if myaccount:
-            acounts = acounts.filter(user=user)
-            logger.info(f'Фильтрация по моим аккаунтам для пользователя {user.username}')
-
-        page_number = self.request.GET.get('page', 1)
-        paginator = Paginator(acounts, 10)
-        current_page = paginator.page(page_number)
-
-        context['accounts'] = list(current_page)
-        context['paginator'] = paginator
-        context['current_page'] = current_page
-        context['user'] = user
-        context['user_list'] = user_list
+        context['user_list'] = self.get_queryset().values_list('user', flat=True)
         context['account_form'] = AccountObjectForm()
-        context['filter_form'] = filter_form
-        logger.debug(f'Контекст для отображения: {context}')
+        context['filter_form'] = AccountsFilterForm(self.request.GET)
         return context
 
     def post(self, request, *args, **kwargs):
@@ -283,17 +227,9 @@ class StoreAccountsView(TitleMixin, TemplateView):
 
             return redirect('store:store_accounts')
 
-        logger.error(
-            f'Ошибка при добавлении аккаунта для пользователя {request.user.username}.\
-                Ошибки формы: {account_form.errors}'
-        )
-
-        errors = account_form.errors.values()
-        for error in errors:
-            for text in error:
-                messages.error(request, text)
+        handle_form_errors(request, account_form)
         return render(
-            request, self.template_name, {'account_form': account_form, 'accounts': context['accounts']}
+            request, self.template_name, {'account_form': account_form, **context}
         )
 
 
