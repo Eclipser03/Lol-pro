@@ -5,7 +5,6 @@ import uuid
 from statistics import mean
 
 from django.contrib import messages
-from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
@@ -16,7 +15,6 @@ from store.filters import AccountsFilter
 from store.forms import (
     AccountObjectForm,
     AccountsFilterForm,
-    # AccountsImageForm,
     BoostOrderForms,
     QualificationForm,
     ReviewsSellerForm,
@@ -123,19 +121,18 @@ class StoreSkinsView(TitleMixin, TemplateView):
         form.request = self.request
 
         if form.is_valid():
-
             key = str(uuid.uuid4())
             purchase_type = 'образа' if 'skin_name' in request.POST else 'персонажа'
             item_name = request.POST.get('skin_name') or request.POST.get('char_name')
             mail_subject = 'Покупка с сайта Lol-Pay'
             html_message = render_to_string(
-            'store/store_skins_email.html',
-            {
-                'mail_subject': mail_subject,
-                'username': request.user.username,
-                'purchase_type': purchase_type,
-                'item_name': item_name,
-                'key': key,
+                'store/store_skins_email.html',
+                {
+                    'mail_subject': mail_subject,
+                    'username': request.user.username,
+                    'purchase_type': purchase_type,
+                    'item_name': item_name,
+                    'key': key,
                 },
             )
 
@@ -176,7 +173,6 @@ class StoreRPView(TitleMixin, TemplateView):
             logger.info(f'Пользователь {request.user.username} успешно оформил заказ RP.')
             messages.success(request, 'Покупка совершена успешно')
         else:
-
             handle_form_errors(request, form)
             return render(request, self.template_name, {'rp_form': form})
         return redirect('main:home')
@@ -228,51 +224,47 @@ class StoreAccountsView(TitleMixin, ListView):
             return redirect('store:store_accounts')
 
         handle_form_errors(request, account_form)
-        return render(
-            request, self.template_name, {'account_form': account_form, **context}
-        )
+        return render(request, self.template_name, {'account_form': account_form, **context})
 
 
-class StoreAccountPageView(TitleMixin, TemplateView):
+class StoreAccountPageView(TitleMixin, ListView):
     template_name = 'store/store_account_page.html'
     title = 'Обзор аккаунта'
+    model = ReviewSellerModel
+    paginate_by = 10
+    context_object_name = 'reviews'
+
+    def get_queryset(self):
+        self.account = get_object_or_404(AccountObject, id=self.kwargs.get('id'))
+        return ReviewSellerModel.objects.filter(parent__isnull=True, seller=self.account.user)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        account = get_object_or_404(AccountObject, id=self.kwargs.get('id'))
-        context['account'] = account
+        context['account'] = self.account
         context['form'] = ReviewsSellerForm()
-        context['set_form'] = AccountObjectForm(instance=account)
-        reviews = ReviewSellerModel.objects.filter(parent__isnull=True, seller=account.user)
-        user_list = reviews.values_list('buyer', flat=True)
-        user = self.request.user
-        average_stars = mean(map(int, reviews.values_list('stars', flat=True) or [0]))
-        if user.is_authenticated:
-            context['can_reviews'] = AccountOrder.objects.filter(
-                user=user, account__user=account.user
-            ).exists()
-        else:
-            context['can_reviews'] = False
+        context['set_form'] = AccountObjectForm(instance=self.account)
+        context['average_stars'] = mean(
+            map(int, self.get_queryset().values_list('stars', flat=True) or [0])
+        )
+        context['can_reviews'] = (
+            self.request.user.is_authenticated
+            and AccountOrder.objects.filter(
+                user=self.request.user, account__user=self.account.user
+            ).exists() and self.request.user.id not in self.get_queryset().values_list('buyer', flat=True)
+            and self.account.user != self.request.user
+        )
 
-        page_number = self.request.GET.get('page', 1)
-        paginator = Paginator(reviews, 10)
-        current_page = paginator.page(page_number)
+        context['average_stars'] = mean(
+            map(int, self.get_queryset().values_list('stars', flat=True) or [0])
+        )
 
-        context['reviews'] = current_page
-        context['paginator'] = paginator
-        context['current_page'] = current_page
-        context['user_list'] = user_list
-        context['user'] = user
-        context['average_stars'] = average_stars
-
-        if self.request.user == account.user:
+        if self.request.user == self.account.user:
             return context
 
         if not self.request.user.is_anonymous:
-            chat_room, created = ChatRoom.objects.get_or_create(
-                buyer=self.request.user, seller=account.user, account=account
+            context['chat_room'], _ = ChatRoom.objects.get_or_create(
+                buyer=self.request.user, seller=self.account.user, account=self.account
             )
-            context['chat_room'] = chat_room
         return context
 
     def post(self, request, *args, **kwargs):

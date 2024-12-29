@@ -255,7 +255,7 @@
     {% endif %}
 
 
-    {% if account.user != request.user and user.id not in user_list and can_reviews %}
+    {% if can_reviews %}
     <div class="write_reviews">
       <div class="feedback-container">
         <h2>Оставить отзыв</h2>
