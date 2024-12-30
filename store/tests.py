@@ -273,9 +273,7 @@ class StoreTestCase(TestCase):
         coupon = Coupon.objects.create(
             name='test', sale=20, is_active=True, end_date='2025-10-10', count=200
         )
-        Coupon.objects.create(
-            name='test1', sale=10, is_active=True, end_date='2025-10-10', count=200
-        )
+        Coupon.objects.create(name='test1', sale=10, is_active=True, end_date='2025-10-10', count=200)
         coupon.save()
         print('fafa', Coupon.objects.all().count())
         data = {

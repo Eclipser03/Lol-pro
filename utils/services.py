@@ -28,9 +28,9 @@ def handle_form_errors(request: HttpRequest, form: BaseForm) -> None:
             messages.error(request, text)
 
 
-# Сохранение значения дискорда,аватарки, никнейма в POST
 def form_fill(data: QueryDict, obj: User) -> dict:
     """Заполняет дату данными пользователя"""
+
     data = copy(data)
     for k, v in model_to_dict(obj).items():
         if k not in data:
@@ -38,11 +38,9 @@ def form_fill(data: QueryDict, obj: User) -> dict:
     return data
 
 
-# Отправка письма
 def send_confirmation_email(user: User, request: HttpRequest, new_email: str) -> None:
     """
     Отправляет письмо для подтверждения изменения электронной почты.
-
     """
 
     new_email_encoded = urlsafe_base64_encode(force_bytes(new_email))
@@ -58,7 +56,7 @@ def send_confirmation_email(user: User, request: HttpRequest, new_email: str) ->
             'token': token_generator.make_token(user),
         },
     )
-    # Асинхронная отправка письма через задачу Celery
+
     send_email_task.delay(mail_subject, message, [user.email])
 
 

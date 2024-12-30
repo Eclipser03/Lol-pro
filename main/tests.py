@@ -108,6 +108,6 @@ class ReviewsTestCase(TestCase):
         ReviewModel.objects.create(user=self.user1, parent=review_last, reviews='test4')
         reviews = ReviewModel.objects.all()
         self.assertEqual(reviews.count(), 4)
-        self.assertEqual(review_last.children.count(), 1)
+        self.assertEqual(review_last.childrens.count(), 1)
         response = self.client.get(path)
         self.assertIn('test4', response.content.decode())

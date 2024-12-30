@@ -1,6 +1,3 @@
-from .base import *
-
-
 LOGGING = {
     'version': 1,  # Версия конфигурации логирования
     'disable_existing_loggers': False,  # Не отключать существующие логгеры

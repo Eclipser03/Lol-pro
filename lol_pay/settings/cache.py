@@ -1,7 +1,7 @@
-from .base import *
+from os import getenv
 
+from lol_pay.settings.base import BASE_DIR
 
-# redis
 
 REDIS_HOST = getenv('REDIS_HOST')
 REDIS_PORT = getenv('REDIS_PORT')

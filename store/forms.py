@@ -7,7 +7,6 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 
 from store.models import (
     AccountObject,
-    # AccountsImage,
     BoostOrder,
     Coupon,
     Qualification,
@@ -16,42 +15,7 @@ from store.models import (
     SkinsOrder,
 )
 from store.services import calculate_boost, calculate_qualification, check_coupon
-
-
-position = {
-    '8': 'GRANDMASTER',
-    '7': 'MASTER',
-    '6': 'DIAMOND',
-    '5': 'EMERALD',
-    '4': 'PLATINUM',
-    '3': 'GOLD',
-    '2': 'SILVER',
-    '1': 'BRONZE',
-    '0': 'IRON',
-}
-
-pre_position = {
-    '9': 'GRANDMASTER',
-    '8': 'MASTER',
-    '7': 'DIAMOND',
-    '6': 'EMERALD',
-    '5': 'PLATINUM',
-    '4': 'GOLD',
-    '3': 'SILVER',
-    '2': 'BRONZE',
-    '1': 'IRON',
-    '0': 'UNRANKED',
-}
-
-division = {'3': 'DIVISION 4', '2': 'DIVISION 3', '1': 'DIVISION 2', '0': 'DIVISION 1'}
-
-lp = {'0': '0-20LP', '1': '21-40LP', '2': '41-60LP', '3': '61-80LP', '4': '81-99LP'}
-
-lp_win = {'1': '18+LP', '1.1': '15-17LP', '1.2': '<15LP'}
-
-server_choice = {'1': 'EU WEST', '0.8': 'RUSSIA'}
-
-queue = {'0': 'SOLO/DUO', '1': 'FLEX'}
+from store.utils import DIVISION, LP, LP_WIN, POSITION, PRE_POSITION, QUEUE, SERVER_CHOICE
 
 
 class BoostOrderForms(forms.ModelForm):
@@ -157,40 +121,34 @@ class BoostOrderForms(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        print('clean data', cleaned_data)
         cleaned_data['user'] = self.request.user
-        print('USER---', cleaned_data['user'])
         coupon = cleaned_data.pop('coupon_code')
+
+        if coupon:
+            cleaned_data['coupon_code'] = Coupon.objects.get(name=coupon)
 
         if cleaned_data['current_position'] == cleaned_data['desired_position'] and int(
             cleaned_data['current_division']
         ) <= int(cleaned_data['desired_division']):
-            print('2')
             raise forms.ValidationError('Текущий дивизион не может быть больше желаемого')
 
         if int(cleaned_data['current_position']) > int(cleaned_data['desired_position']):
-            print('1')
             raise forms.ValidationError('Текущая позиция не может быть больше желаемой')
 
         if cleaned_data['total_price'] != calculate_boost(cleaned_data):
-            print('4', cleaned_data['total_price'], calculate_boost(cleaned_data))
             raise forms.ValidationError('Цена не совпадает, где-то ошибка')
 
         if cleaned_data['total_time'].total_seconds() == 0:
-            print('3')
             raise forms.ValidationError('Время не может быть равно 0, где-то ошибка')
 
-        cleaned_data['current_position'] = position[cleaned_data['current_position']]
-        cleaned_data['current_division'] = division[cleaned_data['current_division']]
-        cleaned_data['current_lp'] = lp[cleaned_data['current_lp']]
-        cleaned_data['desired_position'] = position[cleaned_data['desired_position']]
-        cleaned_data['desired_division'] = division[cleaned_data['desired_division']]
-        cleaned_data['lp_per_win'] = lp_win[cleaned_data['lp_per_win']]
-        cleaned_data['server'] = server_choice[cleaned_data['server']]
-        cleaned_data['queue_type'] = queue[cleaned_data['queue_type']]
-
-        if coupon:
-            cleaned_data['coupon_code'] = Coupon.objects.get(name=coupon)
+        cleaned_data['current_position'] = POSITION[cleaned_data['current_position']]
+        cleaned_data['current_division'] = DIVISION[cleaned_data['current_division']]
+        cleaned_data['current_lp'] = LP[cleaned_data['current_lp']]
+        cleaned_data['desired_position'] = POSITION[cleaned_data['desired_position']]
+        cleaned_data['desired_division'] = DIVISION[cleaned_data['desired_division']]
+        cleaned_data['lp_per_win'] = LP_WIN[cleaned_data['lp_per_win']]
+        cleaned_data['server'] = SERVER_CHOICE[cleaned_data['server']]
+        cleaned_data['queue_type'] = QUEUE[cleaned_data['queue_type']]
 
         if cleaned_data['user'].balance < cleaned_data['total_price']:
             raise forms.ValidationError('Пополните баланс')
@@ -212,9 +170,7 @@ class BoostOrderForms(forms.ModelForm):
 
 class QualificationForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
-        # Извлекаем объект request, если он был передан, и сохраняем его в атрибуте self.request
         self.request = kwargs.pop('request', None)
-        # Вызываем оригинальный метод __init__ у родительского класса для инициализации формы
         super().__init__(*args, **kwargs)
 
     previous_position = forms.ChoiceField(
@@ -317,9 +273,9 @@ class QualificationForm(forms.ModelForm):
         if cleaned_data['total_price'] != calculate_qualification(cleaned_data):
             raise forms.ValidationError('Цена не совпадает, где-то ошибка')
 
-        cleaned_data['previous_position'] = pre_position[cleaned_data['previous_position']]
-        cleaned_data['server'] = server_choice[cleaned_data['server']]
-        cleaned_data['queue_type'] = queue[cleaned_data['queue_type']]
+        cleaned_data['previous_position'] = PRE_POSITION[cleaned_data['previous_position']]
+        cleaned_data['server'] = SERVER_CHOICE[cleaned_data['server']]
+        cleaned_data['queue_type'] = QUEUE[cleaned_data['queue_type']]
 
         if cleaned_data['user'].balance < cleaned_data['total_price']:
             raise forms.ValidationError('Пополните баланс')
@@ -371,23 +327,21 @@ class SkinsOrderForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        print(cleaned_data)
         cleaned_data['user'] = self.request.user
-
-        if cleaned_data['char_name']:
+        if cleaned_data.get('char_name'):
             json_path = os.path.join(settings.BASE_DIR, 'static', 'chars', 'assets', 'name2price.json')
             with open(json_path, encoding='utf-8') as file:
                 json_data = json.load(file)
-            cleaned_data['price_char'] = json_data[cleaned_data['char_name']]
-            if cleaned_data['user'].balance < cleaned_data['price_char']:
+            cleaned_data['price_char'] = json_data[cleaned_data.get('char_name')]
+            if cleaned_data.get('user').balance < cleaned_data.get('price_char'):
                 raise forms.ValidationError('Пополните баланс')
 
-        if cleaned_data['skin_name']:
+        if cleaned_data.get('skin_name'):
             json_path = os.path.join(settings.BASE_DIR, 'static', 'chars', 'assets', 'skins2price.json')
             with open(json_path, encoding='utf-8') as file:
                 json_data = json.load(file)
-            cleaned_data['price_skin'] = json_data[cleaned_data['skin_name']]
-            if cleaned_data['user'].balance < cleaned_data['price_skin']:
+            cleaned_data['price_skin'] = json_data[cleaned_data.get('skin_name')]
+            if cleaned_data.get('user').balance < cleaned_data.get('price_skin'):
                 raise forms.ValidationError('Пополните баланс')
 
         return cleaned_data
@@ -445,7 +399,7 @@ class RPorderForm(forms.ModelForm):
         cleaned_data = super().clean()
         cleaned_data['price_rub'] = round(cleaned_data['rp'] * 0.23)
         user = self.request.user
-        print('adadad', cleaned_data['price_rub'])
+
         if cleaned_data['price_rub'] <= user.balance:
             return cleaned_data
         raise forms.ValidationError('Пополните баланс')
@@ -453,7 +407,7 @@ class RPorderForm(forms.ModelForm):
     def save(self, commit=True, user=None):
         instance = super().save(commit=False)
         if user:
-            instance.user = user  # Устанавливаем пользователя перед сохранением
+            instance.user = user
             user.balance -= self.instance.price_rub
             user.save()
         if commit:
@@ -510,16 +464,8 @@ class AccountObjectForm(forms.ModelForm):
             'price',
         ]
 
-    def clean(self):
-        clean_data = super().clean()
-        print('КЛеаг ждата сюда:', clean_data)
-        images = self.files.getlist('images')
-        print('JORA-----', images)
-        return clean_data
-
     def save(self, commit=True, user=None):
         instance = super().save(commit=False)
-        print('УСПЕХ 2')
         if user:
             instance.user = user  # Устанавливаем пользователя перед сохранением
         if commit:
@@ -558,11 +504,9 @@ class ReviewsSellerForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        print('CLEANED DATA', self.request)
         cleaned_data['seller'] = self.product.user
         cleaned_data['product'] = self.product
 
-        print('CLEANED DATA USER', cleaned_data['buyer'], cleaned_data['seller'])
         if cleaned_data['parent'] == '':
             cleaned_data.pop('parent')
             cleaned_data['buyer'] = self.request.user

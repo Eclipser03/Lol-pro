@@ -1,16 +1,17 @@
 import logging
 import time
-from datetime import datetime  # Импортируем datetime для работы с датами
+from datetime import datetime
+from os import getenv
 
 from pytz import timezone
-from selenium import webdriver  # Импортируем webdriver для управления браузером
+from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import (
-    By,  # Импортируем модуль для выбора элементов по различным селекторам
+    By,
 )
 
-from news.models import News  # Импортируем модель News для записи данных в базу данных
+from news.models import News
 
 
 logger = logging.getLogger('main')
@@ -22,14 +23,13 @@ def parse_news() -> None:
 
     try:
         driver = webdriver.Chrome(options=options)
-
     except Exception as e:
         logger.error(f'Ошибка при запуске WebDriver: {e}')
         return
 
     else:
-        # Переходим на страницу новостей League of Legends
-        driver.get('https://www.leagueoflegends.com/ru-ru/news/game-updates/')
+        url = getenv('PARSE_URL')
+        driver.get(url)
 
         max_scrolls = 50
         scroll_count = 0

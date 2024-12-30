@@ -1,6 +1,5 @@
 import json
 import logging
-from urllib import request
 import uuid
 from statistics import mean
 
@@ -153,7 +152,7 @@ class StoreSkinsView(TitleMixin, TemplateView):
 
 class StoreRPView(TitleMixin, TemplateView):
     template_name = 'store/store_rp.html'
-    title = 'RP'
+    title = 'Покупка RP'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -205,8 +204,8 @@ class StoreAccountsView(TitleMixin, ListView):
     def post(self, request, *args, **kwargs):
         account_form = AccountObjectForm(request.POST, request.FILES)
         images = request.FILES.getlist('images')
+        self.object_list = self.get_queryset()
         context = self.get_context_data(**kwargs)
-
         if len(images) > 10:
             account_form.add_error(None, 'Можно загрузить не более 10 изображений.')
             logger.warning(f'Попытка загрузить больше 10 изображений. Количество: {len(images)}')
@@ -250,12 +249,9 @@ class StoreAccountPageView(TitleMixin, ListView):
             self.request.user.is_authenticated
             and AccountOrder.objects.filter(
                 user=self.request.user, account__user=self.account.user
-            ).exists() and self.request.user.id not in self.get_queryset().values_list('buyer', flat=True)
+            ).exists()
+            and self.request.user.id not in self.get_queryset().values_list('buyer', flat=True)
             and self.account.user != self.request.user
-        )
-
-        context['average_stars'] = mean(
-            map(int, self.get_queryset().values_list('stars', flat=True) or [0])
         )
 
         if self.request.user == self.account.user:
@@ -268,68 +264,75 @@ class StoreAccountPageView(TitleMixin, ListView):
         return context
 
     def post(self, request, *args, **kwargs):
-        account = get_object_or_404(AccountObject, id=self.kwargs.get('id'))
-        logger.debug(f'POST запрос для аккаунта с ID {account.id}, данные: {request.POST}')
+        self.account = get_object_or_404(AccountObject, id=self.kwargs.get('id'))
+        logger.debug(f'POST запрос для аккаунта с ID {self.account.id}, данные: {request.POST}')
 
-        if 'delete_account' in request.POST and account.is_active:
-            account.is_archive = True
-            account.save()
-            messages.success(request, 'Аккаунт успешно удалён')
-            logger.info(f'Аккаунт с ID {account.id} был удалён пользователем {request.user.username}')
-            return redirect('store:store_accounts')
+        if 'delete_account' in request.POST:
+            return self.handle_delete_account(request)
 
-        if 'setting' in request.POST and account.is_active:
-            set_form = AccountObjectForm(request.POST, request.FILES, instance=account)
-            print('FILES:', request.FILES)
-            images = request.FILES.getlist('images')
-            logger.debug(f'Загруженные изображения для аккаунта {account.id}: {images}')
-            if len(images) > 10:
-                set_form.add_error(None, 'Можно загрузить не более 10 изображений.')
-                logger.warning(f'Попытка загрузить больше 10 изображений для аккаунта {account.id}')
-
-            if set_form.is_valid() and len(images) < 11:
-                set_form.save()
-
-                for image in images:
-                    print('NU CHTO')
-                    AccountsImage.objects.create(account=account, image=image)
-                    logger.info(f'Изображение для аккаунта {account.id} успешно загружено.')
-            else:
-                errors = set_form.errors.values()
-                print(set_form.errors)
-                for error in errors:
-                    for text in error:
-                        messages.error(request, text)
-                return render(request, self.template_name, {'set_form': set_form})
-            logger.error(f'Ошибка при обновлении аккаунта {account.id}, ошибки формы: {set_form.errors}')
-            return redirect(request.META.get('HTTP_REFERER', '/'))
+        if 'setting' in request.POST:
+            return self.handle_update_settings(request)
 
         if 'reviewsbt' in request.POST:
-            form = ReviewsSellerForm(request.POST)
-            form.request = self.request
-            form.product = get_object_or_404(AccountObject, id=self.kwargs.get('id'))
-            if form.is_valid():
-                form.save()
-                logger.info(
-                    f'Пользователь {request.user.username} оставил отзыв\
-                        для пользователя {account.user.username}'
-                )
-            else:
-                errors = form.errors.values()
-                print(form.errors)
-                for error in errors:
-                    for text in error:
-                        messages.error(request, text)
-                logger.error(
-                    f'Ошибка при добавлении отзыва для пользователя {account.user.username},\
-                        ошибки формы: {form.errors}'
-                )
-                return render(request, self.template_name, {'form': form})
+            return self.handle_reviews(request)
+
+        return redirect(request.META.get('HTTP_REFERER', '/'))
+
+    def handle_delete_account(self, request):
+        if self.account.is_active:
+            self.account.is_active = False
+            self.account.is_archive = True
+            self.account.save()
+            messages.success(request, 'Аккаунт успешно удалён')
+            logger.info(
+                f'Аккаунт с ID {self.account.id} был удалён пользователем {request.user.username}'
+            )
+        return redirect('store:store_accounts')
+
+    def handle_update_settings(self, request):
+        if not self.account.is_active:
+            messages.error(request, 'Этот аккаунт больше не активен.')
             return redirect(request.META.get('HTTP_REFERER', '/'))
+
+        set_form = AccountObjectForm(request.POST, request.FILES, instance=self.account)
+        images = request.FILES.getlist('images')
+        logger.debug(f'Загруженные изображения для аккаунта {self.account.id}: {images}')
+
+        if len(images) > 10:
+            set_form.add_error(None, 'Можно загрузить не более 10 изображений.')
+            logger.warning(f'Попытка загрузить больше 10 изображений для аккаунта {self.account.id}')
+
+        if set_form.is_valid() and len(images) < 11:
+            set_form.save()
+
+            for image in images:
+                AccountsImage.objects.create(account=self.account, image=image)
+                logger.info(f'Изображение для аккаунта {self.account.id} успешно загружено.')
+
+            messages.success(request, 'Настройки успешно обновлены.')
+            return redirect(request.META.get('HTTP_REFERER', '/'))
+
+        handle_form_errors(request, set_form)
+        return render(request, self.template_name, {'set_form': set_form})
+
+    def handle_reviews(self, request):
+        form = ReviewsSellerForm(request.POST)
+        form.request = self.request
+        form.product = get_object_or_404(AccountObject, id=self.kwargs.get('id'))
+
+        if form.is_valid():
+            form.save()
+            logger.info(
+                f'Пользователь {request.user.username} оставил отзыв\
+                        для пользователя {self.account.user.username}'
+            )
+        else:
+            handle_form_errors(request, form)
+            return render(request, self.template_name, {'form': form})
+
         return redirect(request.META.get('HTTP_REFERER', '/'))
 
 
-# Удаление изображений
 def delete_image(request, image_id):
     if request.method == 'DELETE':
         image = AccountsImage.objects.get(id=image_id)

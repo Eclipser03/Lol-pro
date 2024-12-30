@@ -5,19 +5,15 @@ from asgiref.sync import sync_to_async
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 
+from store.models import AccountObject, AccountOrder, ChatRoom, Message
 from user.models import User
-
-from .models import AccountObject, AccountOrder, ChatRoom, Message
 
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        print('Scope during connect:', self.scope)
         try:
             self.room_id = self.scope['url_route']['kwargs']['room_id']
-            print(f'Room ID: {self.room_id}')
         except KeyError:
-            print("Error: 'url_route' or 'kwargs' is missing in scope!")
             await self.close()
             return
         self.room_group_name = f'chat_{self.room_id}'
@@ -40,7 +36,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
     # Получаем сообщение от WebSocket
     async def receive(self, text_data):
         text_data_json = json.loads(text_data)
-        print('text_data_json', text_data_json)
 
         # Отправляем сообщение в группу
         if text_data_json['type'] == 'chat_message':
@@ -81,12 +76,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 )
                 buyer.balance -= account.price
                 await buyer.asave()
-                print('OLA123')
                 account.is_active = False
                 account.buyer = buyer
                 await account.asave()
-                print('asdas', account.is_active)
-                print('123', buyer.balance)
                 await self.channel_layer.group_send(
                     self.room_group_name,
                     {'type': 'buy_account', 'userid': self.scope['user'].id, 'message': message},
@@ -127,8 +119,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 account.is_active = True
                 account.buyer = None
                 await account.asave()
-                print(12345)
-                print('11', self.room_group_name)
                 await self.channel_layer.group_send(
                     self.room_group_name,
                     {'type': 'cancell', 'userid': str(self.scope['user'].id), 'message': message},
@@ -244,7 +234,6 @@ class NotificationConsumer(AsyncWebsocketConsumer):
             await self.close()
         else:
             self.user_group_name = f'user_{self.scope['user'].id}'
-            print('СРАБОТАЛО')
             await self.channel_layer.group_add(self.user_group_name, self.channel_name)
             await self.accept()
 

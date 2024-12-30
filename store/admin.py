@@ -16,8 +16,6 @@ from store.models import (
 )
 
 
-# Register your models here.
-
 admin.site.register(Coupon)
 admin.site.register(Qualification)
 admin.site.register(RPorder)

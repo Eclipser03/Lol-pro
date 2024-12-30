@@ -1,8 +1,7 @@
 from celery.schedules import crontab
 
-from lol_pay.settings.cache import *
-
-from .base import *
+from lol_pay.settings.base import TIME_ZONE
+from lol_pay.settings.cache import REDIS_HOST, REDIS_PORT
 
 
 CELERY_BROKER_URL = 'redis://' + REDIS_HOST + ':' + REDIS_PORT + '/0'
@@ -16,7 +15,7 @@ CELERY_TIMEZONE = TIME_ZONE
 CELERY_BEAT_SCHEDULE = {
     'parse-news-every-day': {
         'task': 'news.tasks.parse_news_task',
-        'schedule': crontab(hour=0, minute=0),  # Ежедневно в 00:00
+        'schedule': crontab(hour=0, minute=0),
     },
 }
 

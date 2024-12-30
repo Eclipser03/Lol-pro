@@ -10,7 +10,7 @@ from user.models import User
 logger = logging.getLogger('main')
 
 
-def calculate_boost(data):
+def calculate_boost(data: dict) -> float:
     rank_data = {
         0: {
             0: {'price': 300, 'time': 2},
@@ -58,13 +58,7 @@ def calculate_boost(data):
         8: {3: {'price': 10000, 'time': 15}},
     }
 
-    # server_data = {
-    #     1 : 1,
-    #     0 : 0.8,
-    # }
-
     price = 0
-    time = 0
 
     current_position = int(data['current_position'])
     desired_position = int(data['desired_position'])
@@ -72,12 +66,9 @@ def calculate_boost(data):
     desired_division = int(data['desired_division'])
     if 'coupon_code' in data:
         coupon = data['coupon_code']
-    # print('-----', current_position, current_division, desired_position, desired_division)
 
     while (current_position, current_division) != (desired_position, desired_division):
-        # print(current_position, current_division, desired_position, desired_division)
         price += rank_data[current_position][current_division]['price']
-        time += rank_data[current_position][current_division]['time']
 
         if current_division != 0 and current_position != 7:
             current_division -= 1
@@ -85,18 +76,15 @@ def calculate_boost(data):
             if current_position == 7 and desired_position == 8:
                 current_position += 1
                 price += rank_data[current_position][current_division]['price']
-                time += rank_data[current_position][current_division]['time']
                 break
             if current_position == 6 and desired_position == 7:
                 current_position += 1
                 current_division = max(rank_data[current_position].keys())
                 price += rank_data[current_position][current_division]['price']
-                time += rank_data[current_position][current_division]['time']
                 break
 
             current_position += 1
             current_division = max(rank_data[current_position].keys())
-    # server = (float(data['server']))
     price = int(price * float(data['server']) * float(data['lp_per_win']))
 
     if data['duo_booster']:
@@ -107,11 +95,10 @@ def calculate_boost(data):
 
     if data.get('coupon_code'):
         price = price - (price * coupon.sale) / 100
-    print(round(price), time)
     return round(price)
 
 
-def calculate_qualification(data):
+def calculate_qualification(data: dict) -> float:
     price_rank = {
         0: {'price': 160},  # unranked
         1: {'price': 160},  # iron
@@ -143,7 +130,6 @@ def calculate_qualification(data):
         price = price - (price * coupon.sale) / 100
     if data['server'] == '0.8':
         price *= 0.8
-    print('прайс---', int(price), price)
     return round(price)
 
 

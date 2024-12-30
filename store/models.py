@@ -6,10 +6,15 @@ from django.utils import timezone
 from mptt.models import MPTTModel, TreeForeignKey
 from tinymce import models as tinymce_models
 
+from store.choises import (
+    CurrentLPChoices,
+    DivisionChoices,
+    LPPerWinChoices,
+    QueueChoices,
+    RankChoices,
+    ServerChoices,
+)
 from user.models import User
-
-
-# Create your models here.
 
 
 class Coupon(models.Model):
@@ -28,54 +33,6 @@ class Coupon(models.Model):
 
 
 class BoostOrder(models.Model):
-    RANK_CHOISES = [
-        ('IRON', 'Железо'),
-        ('BRONZE', 'Бронза'),
-        ('SILVER', 'Серебро'),
-        ('GOLD', 'Голд'),
-        ('PLATINUM', 'Платина'),
-        ('EMERALD', 'Эмеральд'),
-        ('DIAMOND', 'Даймонд'),
-        ('MASTER', 'Мастер'),
-        ('GRANDMASTER', 'Грандмастер'),
-    ]
-
-    DIVISION_CHOISES = [
-        ('DIVISION 1', 'Дивизион 1'),
-        ('DIVISION 2', 'Дивизион 2'),
-        ('DIVISION 3', 'Дивизион 3'),
-        ('DIVISION 4', 'Дивизион 4'),
-    ]
-
-    CURRENT_LP_CHOISES = [
-        ('0-20LP', '0-20LP'),
-        ('21-40LP', '21-40LP'),
-        ('41-60LP', '41-60LP'),
-        ('61-80LP', '61-80LP'),
-        ('81-99LP', '81-99LP'),
-    ]
-
-    LP_PER_WIN_CHOISES = [
-        ('18+LP', '18+ LP'),
-        ('15-17LP', '15-17 LP'),
-        ('<15LP', '<15LP'),
-    ]
-
-    SERVER_CHOISES = [('EU WEST', 'Вест'), ('RUSSIA', 'Россия')]
-
-    STATUS_CHOICES = [
-        ('CREATED', 'Создан'),
-        ('PAYED', 'Оплачен'),
-        ('IN_PROCCES', 'В процессе'),
-        ('CANCELED', 'Отменен'),
-        ('FINISHED', 'Исполнен'),
-    ]
-
-    QUEUE_CHOICES = [
-        ('SOLO/DUO', 'Соло-дуо'),
-        ('FLEX', 'Флекс'),
-    ]
-
     user = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
@@ -83,20 +40,26 @@ class BoostOrder(models.Model):
         related_name='boost_orders',
         verbose_name='Пользователь',
     )
-    current_position = models.CharField(max_length=20, choices=RANK_CHOISES, verbose_name='Текущий ранг')
-    current_division = models.CharField(
-        max_length=20, choices=DIVISION_CHOISES, verbose_name='Текущий дивизион'
+    current_position = models.CharField(
+        max_length=20, choices=RankChoices.choices, verbose_name='Текущий ранг'
     )
-    current_lp = models.CharField(max_length=20, choices=CURRENT_LP_CHOISES, verbose_name='Текущие лп')
+    current_division = models.CharField(
+        max_length=20, choices=DivisionChoices.choices, verbose_name='Текущий дивизион'
+    )
+    current_lp = models.CharField(
+        max_length=20, choices=CurrentLPChoices.choices, verbose_name='Текущие лп'
+    )
     desired_position = models.CharField(
-        max_length=20, choices=RANK_CHOISES, verbose_name='Желаемый ранг'
+        max_length=20, choices=RankChoices.choices, verbose_name='Желаемый ранг'
     )
     desired_division = models.CharField(
-        max_length=20, choices=DIVISION_CHOISES, verbose_name='Желаемый дивизион'
+        max_length=20, choices=DivisionChoices.choices, verbose_name='Желаемый дивизион'
     )
-    lp_per_win = models.CharField(max_length=20, choices=LP_PER_WIN_CHOISES, verbose_name='ЛП за победу')
-    server = models.CharField(max_length=20, choices=SERVER_CHOISES, verbose_name='Сервер')
-    queue_type = models.CharField(max_length=20, choices=QUEUE_CHOICES, verbose_name='Режим игры')
+    lp_per_win = models.CharField(
+        max_length=20, choices=LPPerWinChoices.choices, verbose_name='ЛП за победу'
+    )
+    server = models.CharField(max_length=20, choices=ServerChoices.choices, verbose_name='Сервер')
+    queue_type = models.CharField(max_length=20, choices=QueueChoices.choices, verbose_name='Режим игры')
     specific_role = models.BooleanField(verbose_name='Определенная роль')
     duo_booster = models.BooleanField(verbose_name='Игра в дуо')
     coupon_code = models.ForeignKey(
@@ -120,33 +83,6 @@ class BoostOrder(models.Model):
 
 
 class Qualification(models.Model):
-    RANK_CHOISES = [
-        ('IRON', 'Железо'),
-        ('BRONZE', 'Бронза'),
-        ('SILVER', 'Серебро'),
-        ('GOLD', 'Голд'),
-        ('PLATINUM', 'Платина'),
-        ('EMERALD', 'Эмеральд'),
-        ('DIAMOND', 'Даймонд'),
-        ('MASTER', 'Мастер'),
-        ('GRANDMASTER', 'Грандмастер'),
-    ]
-
-    SERVER_CHOISES = [('EU WEST', 'Вест'), ('RUSSIA', 'Россия')]
-
-    STATUS_CHOICES = [
-        ('CREATED', 'Создан'),
-        ('PAYED', 'Оплачен'),
-        ('IN_PROCCES', 'В процессе'),
-        ('CANCELED', 'Отменен'),
-        ('FINISHED', 'Исполнен'),
-    ]
-
-    QUEUE_CHOICES = [
-        ('SOLO/DUO', 'Соло-дуо'),
-        ('FLEX', 'Флекс'),
-    ]
-
     user = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
@@ -155,15 +91,15 @@ class Qualification(models.Model):
         verbose_name='Пользователь',
     )
     previous_position = models.CharField(
-        max_length=20, choices=RANK_CHOISES, verbose_name='Ранг в прошлом сезоне'
+        max_length=20, choices=RankChoices.choices, verbose_name='Ранг в прошлом сезоне'
     )
     specific_role = models.BooleanField(verbose_name='Определенная роль')
     duo_booster = models.BooleanField(verbose_name='Игра в дуо')
     game_count = models.IntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(5)], verbose_name='Кол-во игр'
     )
-    server = models.CharField(max_length=20, choices=SERVER_CHOISES, verbose_name='Сервер')
-    queue_type = models.CharField(max_length=20, choices=QUEUE_CHOICES, verbose_name='Режим игры')
+    server = models.CharField(max_length=20, choices=ServerChoices.choices, verbose_name='Сервер')
+    queue_type = models.CharField(max_length=20, choices=QueueChoices.choices, verbose_name='Режим игры')
     coupon_code = models.ForeignKey(
         Coupon,
         on_delete=models.SET_NULL,
@@ -185,8 +121,6 @@ class Qualification(models.Model):
 
 
 class SkinsOrder(models.Model):
-    SERVER_CHOISES = [('EU WEST', 'Вест'), ('RUSSIA', 'Россия')]
-
     user = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
@@ -201,7 +135,7 @@ class SkinsOrder(models.Model):
     price_skin = models.IntegerField(blank=True, null=True, verbose_name='Цена образа')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
     server = models.CharField(
-        max_length=20, choices=SERVER_CHOISES, default='EU WEST', verbose_name='Сервер'
+        max_length=20, choices=ServerChoices.choices, default='EU WEST', verbose_name='Сервер'
     )
     account_name = models.CharField(
         max_length=50, verbose_name='Никнейм аккаунта', default='default_name'
@@ -219,7 +153,6 @@ class SkinsOrder(models.Model):
 
 
 class RPorder(models.Model):
-    SERVER_CHOISES = [('EU WEST', 'Вест'), ('RUSSIA', 'Россия')]
     user = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
@@ -231,7 +164,7 @@ class RPorder(models.Model):
     rp = models.IntegerField(verbose_name='Кол-во RP')
     price_rub = models.IntegerField(verbose_name='Цена')
     server = models.CharField(
-        max_length=20, choices=SERVER_CHOISES, default='EU WEST', verbose_name='Сервер'
+        max_length=20, choices=ServerChoices.choices, default='EU WEST', verbose_name='Сервер'
     )
     account_name = models.CharField(
         max_length=50, verbose_name='Никнейм аккаунта', default='default_name'
@@ -247,21 +180,6 @@ class RPorder(models.Model):
 
 
 class AccountObject(models.Model):
-    SERVER_CHOISES = [('EU WEST', 'Вест'), ('RUSSIA', 'Россия')]
-
-    RANK_CHOISES = [
-        ('NO RANK', 'Нет ранга'),
-        ('IRON', 'Железо'),
-        ('BRONZE', 'Бронза'),
-        ('SILVER', 'Серебро'),
-        ('GOLD', 'Голд'),
-        ('PLATINUM', 'Платина'),
-        ('EMERALD', 'Эмеральд'),
-        ('DIAMOND', 'Даймонд'),
-        ('MASTER', 'Мастер'),
-        ('GRANDMASTER', 'Грандмастер'),
-    ]
-
     user = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
@@ -271,13 +189,15 @@ class AccountObject(models.Model):
     )
 
     server = models.CharField(
-        max_length=20, choices=SERVER_CHOISES, default='EU WEST', verbose_name='Сервер'
+        max_length=20, choices=ServerChoices.choices, default='EU WEST', verbose_name='Сервер'
     )
 
     lvl = models.IntegerField(verbose_name='Уровень')
     champions = models.IntegerField(verbose_name='Количество чемпионов')
     skins = models.IntegerField(verbose_name='Количество образов')
-    rang = models.CharField(max_length=20, choices=RANK_CHOISES, default='NO RANK', verbose_name='Ранг')
+    rang = models.CharField(
+        max_length=20, choices=RankChoices.choices, default='NO RANK', verbose_name='Ранг'
+    )
     short_description = models.CharField(max_length=100, verbose_name='Короткое описание')
     description = tinymce_models.HTMLField(verbose_name='Описание', blank=True)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
@@ -304,6 +224,7 @@ class AccountObject(models.Model):
         return f'Продажа аккаунта от {self.user.username}| Цена: {self.price} руб.|\
             Id: {self.id} | Статус: {self.is_active}'
 
+    # зачем?
     def get_absolute_url(self):
         return reverse('store:store_account_page', kwargs={'id': self.pk})
 

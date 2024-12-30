@@ -1,10 +1,7 @@
 import os
+from os import getenv
 
-from .base import *
-
-
-# Database
-# https://docs.djangoproject.com/en/5.1/ref/settings/#databases
+from lol_pay.settings.base import BASE_DIR, DEBUG
 
 
 DATABASES = {
@@ -17,12 +14,6 @@ DATABASES = {
         'PORT': getenv('POSTGRES_PORT'),
     }
 }
-
-print('data', DATABASES)
-
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = '/static/'
 

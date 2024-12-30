@@ -40,12 +40,12 @@
             </div>
 
 
-        {% if review.children.exists %}
+        {% if review.childrens.exists %}
         <!-- Вложенные отзывы -->
         <div class="nested-reviews">
           <!-- Пример вложенного отзыва -->
           <div class="review">
-            {% for child in review.children.all|dictsort:"created_at" %}
+            {% for child in review.childrens.all|dictsort:"created_at" %}
             <div class="review-header">
               <div class="review-author-info">
               <img src="{{ child.user.avatar.url }}" alt="Avatar" class="review-avatar">

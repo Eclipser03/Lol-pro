@@ -10,7 +10,7 @@ class User(AbstractUser):
         upload_to='users_avatar', null=True, blank=True, default='avatar.jpg', verbose_name='Аватар'
     )
     game_username = models.CharField(
-        max_length=30, blank=True, null=True, verbose_name='Никнейм в игре', default=''
+        max_length=30, blank=True, verbose_name='Никнейм в игре', default=''
     )
     discord = models.CharField(max_length=30, blank=True, null=True, verbose_name='Дискорд')
     balance = models.IntegerField(default=0, verbose_name='Баланс', validators=[MinValueValidator(0)])

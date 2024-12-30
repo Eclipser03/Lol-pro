@@ -14,9 +14,7 @@ from django.contrib.auth.views import (
 )
 from django.contrib.messages.views import SuccessMessageMixin
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Count, Max, Q
-from django.forms import BaseForm, BaseModelForm
-from django.http import HttpResponse
+from django.db.models import Max, Q
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.utils.encoding import force_str
@@ -92,10 +90,8 @@ class PasswordResetFormView(TitleMixin, PasswordResetView):
 
     def post(self, request, *args, **kwargs):
         email = request.POST.get('email')
-        if User.objects.filter(email=email).exists():
-            logger.info(f'Пользователь c email: {email} запросил восстановление пароля')
-        else:
-            logger.warning(f'Попытка восстановления пароля для несуществующего email: {email}')
+        logger.info(f'Пользователь c email: {email} запросил восстановление пароля')
+
         return super().post(request, *args, **kwargs)
 
 
@@ -249,7 +245,7 @@ class MessagesView(TitleMixin, TemplateView):
             )
             .filter(
                 Q(seller=self.request.user) | Q(buyer=self.request.user),
-                messages__isnull= False,
+                messages__isnull=False,
             )
             .order_by('-last_message_created')
         )

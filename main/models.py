@@ -16,7 +16,7 @@ class ReviewModel(MPTTModel):
     reviews = tinymce_models.HTMLField(verbose_name='Описание', max_length=300)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
     parent = TreeForeignKey(
-        'self', on_delete=models.CASCADE, null=True, blank=True, related_name='children'
+        'self', on_delete=models.CASCADE, null=True, blank=True, related_name='childrens'
     )
 
     class MPTTMeta:
