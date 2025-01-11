@@ -43,14 +43,13 @@ def send_confirmation_email(user: User, request: HttpRequest, new_email: str) ->
     Отправляет письмо для подтверждения изменения электронной почты.
     """
 
-    new_email_encoded = urlsafe_base64_encode(force_bytes(new_email))
     current_site = get_current_site(request)
     mail_subject = 'Подтверждение изменения электронной почты'
     message = render_to_string(
         'user/confirm_email_change.html',
         {
             'user': user,
-            'new_email': new_email_encoded,
+            'new_email': new_email,
             'domain': current_site.domain,
             'uid': urlsafe_base64_encode(force_bytes(user.pk)),
             'token': token_generator.make_token(user),

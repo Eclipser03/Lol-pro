@@ -1,11 +1,12 @@
+import os
 from os import getenv
 
 from lol_pay.settings.base import BASE_DIR
 
 
-REDIS_HOST = getenv('REDIS_HOST')
+REDIS_HOST = getenv('REDIS_HOST') if not os.environ.get('RUN_FROM_DOCKER') else 'redis'
 REDIS_PORT = getenv('REDIS_PORT')
-
+print(REDIS_HOST)
 
 CHANNEL_LAYERS = {
     'default': {

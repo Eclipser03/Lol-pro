@@ -1,9 +1,15 @@
 import logging
+from os import getenv
 from statistics import mean
 
 from django.contrib import messages
+from django.core.exceptions import PermissionDenied
+from django.core.handlers.asgi import ASGIRequest
+from django.http import HttpResponse
 from django.shortcuts import redirect, render
+from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import ListView, TemplateView
+from proxy.views import proxy_view
 
 from main.forms import ReviewsForm
 from main.models import ReviewModel
@@ -76,3 +82,17 @@ def custom_403_view(request, exception):
 
 def custom_400_view(request, exception):
     return render(request, 'errors/400.html', status=400)
+
+
+@csrf_exempt
+def flower_proxy_view(request: ASGIRequest, path: str) -> HttpResponse:
+    """Представление позволяющее открывать панель flower
+    как обычную страницу django (только для супер пользователя)."""
+
+    if not request.user.is_superuser:
+        raise PermissionDenied
+    return proxy_view(
+        request,
+        f"http://{getenv('CELERY_FLOWER_ADDRESS')}:{getenv('CELERY_FLOWER_PORT')}/{getenv('CELERY_FLOWER_URL_PREFIX')}/{path}",
+        {},
+    )

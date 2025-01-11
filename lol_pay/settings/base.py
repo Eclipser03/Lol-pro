@@ -19,6 +19,7 @@ if not SECRET_KEY:
     raise ValueError('SECRET_KEY не задан в .env')
 
 
+
 INSTALLED_APPS = [
     'daphne',
     'django.contrib.admin',

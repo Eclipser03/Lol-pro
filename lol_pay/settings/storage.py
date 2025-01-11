@@ -10,17 +10,16 @@ DATABASES = {
         'NAME': getenv('POSTGRES_DB'),
         'USER': getenv('POSTGRES_USER'),
         'PASSWORD': getenv('POSTGRES_PASSWORD'),
-        'HOST': getenv('POSTGRES_HOST'),
+        'HOST': getenv('POSTGRES_HOST') if not bool(os.environ.get('RUN_FROM_DOCKER')) else 'postgres',
         'PORT': getenv('POSTGRES_PORT'),
     }
 }
-
+print(getenv('POSTGRES_HOST'))
 STATIC_URL = '/static/'
 
 if DEBUG:
     STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
-else:
-    STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 MEDIA_ROOT = BASE_DIR / 'media'
 MEDIA_URL = '/media/'
