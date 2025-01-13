@@ -7,9 +7,11 @@ from pytz import timezone
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import (
     By,
 )
+from webdriver_manager.chrome import ChromeDriverManager
 
 from news.models import News
 
@@ -22,7 +24,7 @@ def parse_news() -> None:
     options.add_experimental_option('excludeSwitches', ['enable-logging'])
 
     try:
-        driver = webdriver.Chrome(options=options)
+        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
     except Exception as e:
         logger.error(f'Ошибка при запуске WebDriver: {e}')
         return
