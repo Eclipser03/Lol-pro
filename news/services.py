@@ -11,8 +11,6 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import (
     By,
 )
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.ui import WebDriverWait
 from webdriver_manager.chrome import ChromeDriverManager
 
 from news.models import News
@@ -47,11 +45,12 @@ def parse_news() -> None:
                 driver.execute_script('window.scrollTo(0, document.body.scrollHeight);')
                 time.sleep(1)
                 try:
-                    button = WebDriverWait(driver, 10).until(
-                        EC.element_to_be_clickable((By.CLASS_NAME, 'cta'))
-                    )
-                    # button = driver.find_element(By.CLASS_NAME, 'cta')
-                    button.click()
+                    # button = WebDriverWait(driver, 10).until(
+                    #     EC.element_to_be_clickable((By.CLASS_NAME, 'cta'))
+                    # )
+                    button = driver.find_element(By.CLASS_NAME, 'cta')
+                    driver.execute_script('arguments[0].click();', button)
+                    # button.click()
                     scroll_count += 1
                 except NoSuchElementException:
                     break
