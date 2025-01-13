@@ -476,7 +476,8 @@ function deleteImage(event) {
   let accountId = "{{ account.id }}"
   let userId = "{{ request.user }}";   // Подставить ID пользователя
   if (chatRoomId) {
-  const wsUrl6 = 'ws://' + window.location.host + '/ws/chat/' + chatRoomId + '/';
+  const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+  const wsUrl6 = protocol + window.location.host + '/ws/chat/' + chatRoomId + '/';
   const byBtn = document.getElementById('bybtn');
 
 
@@ -721,7 +722,8 @@ document.querySelector('#chat-message-input').addEventListener('keydown', functi
 
 const isAuthenticated = '{{ user.is_authenticated }}'
 if (isAuthenticated === 'True') {
-  const notificationSocket = new WebSocket('ws://' + window.location.host + '/ws/notification/');
+  const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+  const notificationSocket = new WebSocket(protocol + window.location.host + '/ws/notification/');
 
   notificationSocket.onmessage = function(event) {
     let chatRoomId = "{{ chat_room.id }}"
