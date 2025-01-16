@@ -200,8 +200,8 @@ ___
   ssh username@server_ip
   ```
   далее введите пароль для подключения.
-  <br/><br/>
-  *Windows*<br/>
+  <br/>
+  *Windows*
   <br/>
 
   **Для подключения по `SSH` на Windows можно использовать следующее ПО, [Putty](https://www.putty.org/) или [MobaXterm](https://mobaxterm.mobatek.net/)**
@@ -268,7 +268,19 @@ ___
   GRANT ALL PRIVILEGES ON DATABASE db_name TO db_username;
   ```
 
-  **8. Выйдите из интерактивного режима**
+  **8.Предоставление всех привилегий на схему public**
+
+  ```
+  GRANT ALL PRIVILEGES ON SCHEMA public TO your_database_user;
+  ```
+
+  **9.Назначение суперпользователя**
+
+  ```
+  ALTER USER your_database_user WITH SUPERUSER;
+  ```
+
+  **10. Выйдите из интерактивного режима**
 
   ```
   \q
@@ -277,136 +289,138 @@ ___
 
 <a id="create-venv"></a>
 * **Создайте виртуальное окружение для проекта**
+  <br/>
+  ```
+  sudo -H pip3 install --upgrade pip ПОСТАВИТЬ НИЖЕ
+  ```
   <br/><br/>
 
-  **1. Обновите пакетный установщик `pip`**
+* **Установите `Python-3.12.2`**
+<br/>
 
-  ```
-  sudo -H pip3 install --upgrade pip
-  ```
-  <br/>
 
-    * **Установите `Python-3.12.2`**
+    **1. Установите необходимые пакеты**
+    ```
+    sudo apt-get install -y make build-essential libssl-dev zlib1g-dev
+    ```
 
-        **1. Установите необходимые пакеты**
-        ```
-        sudo apt-get install -y make build-essential libssl-dev zlib1g-dev
-        ```
+    ```
+    sudo apt-get install -y libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm
+    ```
 
-        ```
-        sudo apt-get install -y libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm
-        ```
+    ```
+    sudo apt-get install -y libncurses5-dev  libncursesw5-dev xz-utils tk-dev
+    ```
 
-        ```
-        sudo apt-get install -y libncurses5-dev  libncursesw5-dev xz-utils tk-dev
-        ```
+    **2. Перейдите в каталог `/opt`**
 
-        **2. Смените пользователя на `root`**
+    ```
+    cd /opt
+    ```
 
-        ```
-        su root
-        ```
+    **3. Скачайте архив с исходным кодом `Python-3.12.2`**
 
-        **3. Перейдите в каталог `/opt`**
+    ```
+    wget https://www.python.org/ftp/python/3.12.2/Python-3.12.2.tgz
+    ```
 
-        ```
-        cd /opt
-        ```
+    **4. Распакуйте архив**
 
-        **4. Скачайте архив с исходным кодом `Python-3.12.2`**
+    ```
+    tar xzvf Python-3.12.2.tgz
+    ```
 
-        ```
-        wget https://www.python.org/ftp/python/3.12.2/Python-3.12.2.tgz
-        ```
+    **5. Зайдите в разархивированный каталог**
 
-        **5. Распакуйте архив**
+    ```
+    cd Python-3.12.2
+    ```
 
-        ```
-        tar xzvf Python-3.12.2.tgz
-        ```
+    **6. Выполните оптимизацию компилятора при сборке `python`**
 
-        **6. Зайдите в разархивированный каталог**
+    ```
+    ./configure --enable-optimizations
+    ```
 
-        ```
-        cd Python-3.12.2
-        ```
+    **7. Скомпилируйте исходные файлы**
 
-        **7. Выполните оптимизацию компилятора при сборке `python`**
+    ```
+    make
+    ```
 
-        ```
-        ./configure --enable-optimizations
-        ```
+    **8. Установите скомпилируемые файлы**
 
-        **8. Скомпилируйте исходные файлы**
+    ```
+    sudo make install
+    ```
 
-        ```
-        make
-        ```
+    **9. Перейдите в рабочую директорию**
 
-        **9. Установите скомпилируемые файлы**
-
-        ```
-        sudo make install
-        ```
-
-        **11. Перейдите в рабочую директорию**
-
-        ```
-        cd /Lol-pro
-        ```
+    ```
+    cd /root/
+    ```
     <br/><br/>
+
 **2. Загрузите файлы проекта на удаленный сервер**
-    *git*
+<br/>
 
-    ```
-    git clone https://github.com/Eclipser03/Lol-pro
-    ```
+*git*
 
-    *scp (выполнять на локальном ПК)*
+```
+git clone https://github.com/Eclipser03/Lol-pro
+```
 
-    ```
-    scp -r <путь до директории на локальном ПК> [username]@[server_ip]:<путь куда копировать диркторию>
-    ```
+*scp (выполнять на локальном ПК)*
 
-    **3. Создайте виртуальное окружение**
+```
+scp -r <путь до директории на локальном ПК> [username]@[server_ip]:<путь куда копировать диркторию>
+```
+*Перейдите в папку с проектом*
 
-    ```
-    python3.12 -m venv venv
-    ```
+```
+cd Lol-pro/
+```
 
-    **4. Активируйте виртуальное окружение**
+**3. Создайте виртуальное окружение**
 
-    ```
-    source venv/bin/activate
-    ```
+```
+python3.12 -m venv venv
+```
 
-    **5. Обновите пакетный установщик `pip`**
+**4. Активируйте виртуальное окружение**
 
-    ```
-    pip install --upgrade pip
-    ```
+```
+source venv/bin/activate
+```
 
-    **6. Установите зависимости для проекта**
+**5. Обновите пакетный установщик `pip`**
 
-    ```
-    pip install -r requirements.txt
-    ```
+```
+pip install --upgrade pip
+```
 
-    **7. Дополнительно установите**
+**6. Установите зависимости для проекта**
 
-    ```
-    pip install gunicorn psycopg2-binary
-    ```
+```
+pip install -r requirements.txt
+```
 
-    **8. Для работы вебсокета установите**
+**7. Дополнительно установите**
 
-    ```
-    pip install -U 'Twisted[tls,http2]'
-    ```
-    <br/>
+```
+pip install gunicorn psycopg2-binary
+```
+
+**8. Для работы вебсокета установите**
+
+```
+pip install -U 'Twisted[tls,http2]'
+```
+<br/>
 
 <a id="vim-settings"></a>
 * **Настройте `vim` для комфортной работы с файлами**
+<br/>
 
   **Перейдите в директорию `root`**
 
@@ -438,11 +452,31 @@ ___
 
 <a id="test-run"></a>
 * **Тестовый запуск проекта**
+<br/>
 
   **1. Разрешите входящий трафик по порту `8000`**
 
   ```
   sudo ufw allow 8000
+  ```
+  **2. Создайте файл `.env` и заполните его по примеру**
+
+  ```
+  SECRET_KEY = 'secret-key'
+  POSTGRES_DB='dbname'
+  POSTGRES_USER='dbuser'
+  POSTGRES_PASSWORD='dbpassword'
+  POSTGRES_HOST=127.0.0.1
+  POSTGRES_PORT=5432
+
+  RECAPTCHA_PUBLIC_KEY = 'public-key'
+  RECAPTCHA_PRIVATE_KEY = 'private-key'
+
+  EMAIL_HOST_PASSWORD = 'email-password-IMAP'
+  EMAIL_HOST_USER = 'email'
+
+  REDIS_HOST = 127.0.0.1
+  REDIS_PORT = 6379
   ```
 
   **2. Создайте файлы миграций**
@@ -473,6 +507,7 @@ ___
   DEBUG=False
   ```
 
+  *В файле `storage.py`*:
   ```python
 
   DATABASES = {
@@ -523,6 +558,16 @@ ___
   ```
   sudo usermod -a -G www-data $(whoami)
   ```
+
+  ```
+  python manage.py collectstatic
+  ```
+  *Что бы в админ панели отображались статические файлы*
+
+  ```
+  cp -r staticfiles/* static/
+  ```
+
 <br/>
 
 <a id="setup-gunicorn"></a>
@@ -1034,7 +1079,7 @@ ___
 <a id="setup-nginx"></a>
 * **Настройте Nginx для пропуска прокси к Gunicorn**
 
-  **1. Создайте файл `/etc/nginx/sites-available/mysite` со следующим содержимым**
+  **1. Создайте файл `/etc/nginx/sites-available/lol_pay` со следующим содержимым**
 
   ```
   vim /etc/nginx/sites-available/lol_pay
@@ -1065,7 +1110,7 @@ ___
   **3. Создайте символическую ссылку**
 
   ```
-  sudo ln -s /etc/nginx/sites-available/mysite /etc/nginx/sites-enabled
+  sudo ln -s /etc/nginx/sites-available/lol_pay /etc/nginx/sites-enabled
   ```
 
   **4. Проверьте конфигурацию `nginx`**
@@ -1361,6 +1406,40 @@ ___
   ```
   sudo systemctl status certbot.timer
   ```
+
+* **Так же не забудьте настроить Google ReCAPTCHA**
+<br/>
+
+* **Настройка парсинга новостей на сайте**
+
+  *Обновление пакетов:*
+
+  ```
+  sudo apt update
+  ```
+  *Установка зависимостей:*
+
+  ```
+  sudo apt install curl software-properties-common apt-transport-https ca-certificates gnupg2 -y
+  ```
+  *Установка Google Chrome*
+
+  ```
+  sudo apt install google-chrome-stable -y
+  ```
+
+  *Установка необходимых библиотек для работы с браузером в headless-режиме*
+
+  ```
+  sudo apt install -y unzip xvfb libxi6 libgconf-2-4
+  ```
+
+  *Скачивание и установка ChromeDriver*
+
+  ```
+  sudo apt install chromium-chromedriver
+  ```
+
 
   **Если все работает корректно, тогда посетите ваш сайт по адресу `https://<domain>/` и убедитесь, что все работет как и должно работать.**
  <br/>
