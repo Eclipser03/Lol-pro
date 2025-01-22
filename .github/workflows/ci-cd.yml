@@ -111,20 +111,16 @@ jobs:
   notify:
     runs-on: ubuntu-latest
     needs: [lint, test, deploy]
-    if: always()  # Уведомление будет отправлено всегда, независимо от статуса пайплайна
+    if: success() || failure()  # Это условие будет проверять успех или неудачу выполнения
 
     steps:
       - name: Notify via Telegram
         run: |
-          # Проверим статус работы пайплайна
           if [ "${{ job.status }}" == "success" ]; then
             STATUS="CI/CD pipeline success"
           else
             STATUS="CI/CD pipeline failed"
           fi
-
-          # Для отладки выведем URL в лог
-          echo "Telegram API URL: https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage"
 
           # Отправка сообщения в Telegram
           curl -X POST \
