@@ -66,8 +66,7 @@ jobs:
 
       - name: Create .env file
         run: |
-          echo $ENV
-          echo $ENV > .env
+          echo "${{ secrets.ENV }}" > .env
           cat .env
 
       - name: Run Tests
