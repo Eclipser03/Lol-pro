@@ -66,7 +66,7 @@ jobs:
 
       - name: Create .env file
         run: |
-          echo "${{ secrets.ENV }}" > .env
+          echo "$ENV" > .env
           echo "DATABASE_URL=postgres://django:django@localhost:5432/test_db" >> .env
           echo "SECRET_KEY=django-insecure-dummy-secret" >> .env
 
