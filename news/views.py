@@ -9,4 +9,4 @@ class NewsView(TitleMixin, ListView):
     paginate_by = 12
     model = News
     context_object_name = 'news_items'
-    title = 'Новости лиги легенд'
+    title = 'Новости лиги'
