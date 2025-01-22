@@ -50,6 +50,17 @@ jobs:
         ports:
           - 5432:5432
 
+      redis:
+        image: redis:7
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -67,7 +78,6 @@ jobs:
       - name: Create .env file
         run: |
           echo "${{ secrets.ENV }}" > .env
-          cat .env
 
       - name: Run Tests
         run: |
