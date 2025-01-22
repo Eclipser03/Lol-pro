@@ -111,11 +111,12 @@ jobs:
   notify:
     runs-on: ubuntu-latest
     needs: [lint, test, deploy]
-    if: failure() || success()
+    if: success() || failure()  # Это условие будет проверять успех или неудачу выполнения
+
     steps:
       - name: Notify via Telegram
         run: |
-          if [ ${{ job.status }} == 'success' ]; then
+          if [ "${{ job.status }}" == "success" ]; then
             STATUS="CI/CD pipeline success"
           else
             STATUS="CI/CD pipeline failed"
