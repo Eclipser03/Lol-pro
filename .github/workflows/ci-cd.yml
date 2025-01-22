@@ -1,0 +1,73 @@
+name: Django CI/CD
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: django
+          POSTGRES_PASSWORD: django
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'  # Укажите версию Python
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Tests
+        env:
+          DATABASE_URL: postgres://django:django@localhost:5432/test_db
+        run: |
+          python manage.py test .
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Deploy to server
+        env:
+          SSH_KEY: ${{ secrets.SSH_KEY }}
+          SERVER: ${{ secrets.SERVER }}
+          USER: ${{ secrets.USER }}
+        run: |
+          echo "$SSH_KEY" > deploy_key
+          chmod 600 deploy_key
+          ssh -o StrictHostKeyChecking=no -i deploy_key $USER@$SERVER << EOF
+            cd /root/Lol-pro
+            git pull origin main
+            source /root/Lol-pro/venv/bin/activate
+            pip install -r requirements.txt
+            python manage.py migrate
+            systemctl reboot
+          EOF
