@@ -14,14 +14,14 @@ from django.contrib.auth.views import (
 )
 from django.contrib.messages.views import SuccessMessageMixin
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Max, Q
+from django.db.models import Q, OuterRef, Prefetch, Subquery
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.utils.encoding import force_str
 from django.utils.http import urlsafe_base64_decode
 from django.views.generic import CreateView, TemplateView
 
-from store.models import AccountOrder, BoostOrder, ChatRoom, Qualification, RPorder, SkinsOrder
+from store.models import AccountOrder, BoostOrder, ChatRoom, Message, Qualification, RPorder, SkinsOrder
 from user.forms import (
     CustomPasswordResetForm,
     CustomSetPasswordForm,
@@ -126,17 +126,24 @@ class ProfileView(TitleMixin, LoginRequiredMixin, PasswordChangeView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context.update(
+            # ТЫК
             {
                 'profile_form': ProfileUpdateForm(instance=self.request.user),
                 'update_email': UpdateUserEmail(),
                 'update_balance': UpdateBalanceUser(),
-                'boostorders': BoostOrder.objects.filter(user=self.request.user).order_by('-created_at'),
+                'boostorders': BoostOrder.objects.filter(user=self.request.user)
+                .select_related('user', 'coupon_code')
+                .order_by('-created_at'),
                 'all_products': sorted(
                     chain(
-                        Qualification.objects.filter(user=self.request.user),
-                        SkinsOrder.objects.filter(user=self.request.user),
-                        RPorder.objects.filter(user=self.request.user),
-                        AccountOrder.objects.filter(user=self.request.user),
+                        Qualification.objects.filter(user=self.request.user).select_related(
+                            'user', 'coupon_code'
+                        ),
+                        SkinsOrder.objects.filter(user=self.request.user).select_related('user'),
+                        RPorder.objects.filter(user=self.request.user).select_related('user'),
+                        AccountOrder.objects.filter(user=self.request.user).select_related(
+                            'user', 'account'
+                        ),
                     ),
                     key=lambda product: product.created_at,
                     reverse=True,
@@ -238,23 +245,41 @@ class MessagesView(TitleMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
+        # ТЫК
         context['chats'] = (
-            ChatRoom.objects.annotate(
-                last_message_created=Max('messages__created'),
+            ChatRoom.objects.select_related('buyer', 'seller', 'account')
+            .prefetch_related(
+                Prefetch(
+                    'messages',
+                    queryset=Message.objects.filter(
+                        id__in=Subquery(
+                            ChatRoom.objects.annotate(
+                                last_message=Subquery(
+                                    Message.objects.filter(chat_room_id=OuterRef('id'))
+                                    .order_by('-id')
+                                    .values_list('id', flat=True)[:1]
+                                )
+                            ).values_list('last_message', flat=True)
+                        )
+                    ).select_related('author'),
+                ),
             )
             .filter(
                 Q(seller=self.request.user) | Q(buyer=self.request.user),
                 messages__isnull=False,
             )
-            .order_by('-last_message_created')
+            .distinct()
         )
 
         chat_id = self.request.GET.get('chat_id')
 
         if chat_id:
             context['selected_chat'] = get_object_or_404(
-                ChatRoom, Q(seller=self.request.user) | Q(buyer=self.request.user), id=chat_id
+                ChatRoom.objects.select_related('buyer', 'seller', 'account').prefetch_related(
+                    'messages', 'messages__author'
+                ),
+                Q(seller=self.request.user) | Q(buyer=self.request.user),
+                id=chat_id,
             )
 
         return context

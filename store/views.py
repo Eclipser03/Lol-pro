@@ -92,6 +92,7 @@ class PlacementMatchesView(TitleMixin, TemplateView):
         return redirect('main:home')
 
 
+# ТЫК
 def check_coupon_views(request):
     if request.method == 'POST':
         data = json.loads(request.body)
@@ -180,12 +181,15 @@ class StoreRPView(TitleMixin, TemplateView):
 class StoreAccountsView(TitleMixin, ListView):
     template_name = 'store/store_accounts.html'
     title = 'Аккаунты'
-    paginate_by = 1
+    paginate_by = 10
     model = AccountObject
     context_object_name = 'accounts'
 
     def get_queryset(self):
-        qureset = self.model.objects.filter(is_active=True).order_by('-created_at')
+        # ТЫК
+        qureset = (
+            self.model.objects.filter(is_active=True).select_related('user').order_by('-created_at')
+        )
         filter_form = AccountsFilterForm(self.request.GET)
 
         if filter_form.is_valid():
@@ -233,24 +237,33 @@ class StoreAccountPageView(TitleMixin, ListView):
     paginate_by = 10
     context_object_name = 'reviews'
 
+    # ТЫК
     def get_queryset(self):
-        self.account = get_object_or_404(AccountObject, id=self.kwargs.get('id'))
-        return ReviewSellerModel.objects.filter(parent__isnull=True, seller=self.account.user)
+        self.account = get_object_or_404(
+            AccountObject.objects.select_related('user', 'buyer').prefetch_related('images'), id=self.kwargs.get('id')
+        )
+        return (
+            ReviewSellerModel.objects.filter(parent__isnull=True, seller=self.account.user)
+            .select_related('buyer', 'seller', 'parent', 'product')
+            .prefetch_related('children')
+        )
 
     def get_context_data(self, **kwargs):
+        queryset= self.object_list
+
         context = super().get_context_data(**kwargs)
         context['account'] = self.account
         context['form'] = ReviewsSellerForm()
         context['set_form'] = AccountObjectForm(instance=self.account)
         context['average_stars'] = mean(
-            map(int, self.get_queryset().values_list('stars', flat=True) or [0])
+            map(int, queryset.values_list('stars', flat=True) or [0])
         )
         context['can_reviews'] = (
             self.request.user.is_authenticated
-            and AccountOrder.objects.filter(
-                user=self.request.user, account__user=self.account.user
-            ).exists()
-            and self.request.user.id not in self.get_queryset().values_list('buyer', flat=True)
+            and AccountOrder.objects.select_related('account')
+            .filter(user=self.request.user, account__user=self.account.user)
+            .exists()
+            and self.request.user.id not in queryset.values_list('buyer', flat=True)
             and self.account.user != self.request.user
         )
 
@@ -258,8 +271,10 @@ class StoreAccountPageView(TitleMixin, ListView):
             return context
 
         if not self.request.user.is_anonymous:
-            context['chat_room'], _ = ChatRoom.objects.get_or_create(
-                buyer=self.request.user, seller=self.account.user, account=self.account
+            context['chat_room'], _ = (
+                ChatRoom.objects.select_related('seller', 'buyer')
+                .prefetch_related('messages', 'messages__author')
+                .get_or_create(buyer=self.request.user, seller=self.account.user, account=self.account)
             )
         return context
 

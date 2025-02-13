@@ -14,7 +14,7 @@ DATABASES = {
         'PORT': getenv('POSTGRES_PORT'),
     }
 }
-print(getenv('POSTGRES_HOST'))
+
 STATIC_URL = '/static/'
 
 if DEBUG:

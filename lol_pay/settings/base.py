@@ -19,7 +19,6 @@ if not SECRET_KEY:
     raise ValueError('SECRET_KEY не задан в .env')
 
 
-
 INSTALLED_APPS = [
     'daphne',
     'django.contrib.admin',
@@ -30,6 +29,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.humanize',
     'django_recaptcha',
+    'debug_toolbar',
     'tinymce',
     'mptt',
     'channels',
@@ -50,6 +50,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'user.middleware.ActiveUserMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
 ]
 
 ROOT_URLCONF = 'lol_pay.urls'
@@ -135,3 +136,7 @@ TINYMCE_DEFAULT_CONFIG = {
     'toolbar': 'undo redo | bold italic | alignleft aligncenter alignright |\
         bullist numlist | link image | preview code fullscreen',
 }
+
+INTERNAL_IPS = [
+    '127.0.0.1',
+]

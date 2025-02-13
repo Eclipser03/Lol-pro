@@ -33,7 +33,13 @@ class ReviewsView(TitleMixin, ListView):
     context_object_name = 'reviews'
 
     def get_queryset(self):
-        return ReviewModel.objects.filter(parent__isnull=True)
+        # ТЫК
+        # return ReviewModel.objects.filter(parent__isnull=True)
+        return (
+            ReviewModel.objects.filter(parent__isnull=True)
+            .select_related('user', 'parent')
+            .prefetch_related('childrens','childrens__user')
+        )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
